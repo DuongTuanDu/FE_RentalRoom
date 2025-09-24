@@ -1,0 +1,10 @@
+{
+  "welcome": "Chào mừng trở lại",
+  "loginDescription": "Đăng nhập vào tài khoản của bạn để tiếp tục",
+  "email": "Địa chỉ Email",
+  "password": "Mật khẩu",
+  "errorMessages": {
+    "required": "{{field}} là bắt buộc nhập",
+    "email": "Địa chỉ Email cần chứa một ký tự '@'"
+  }
+}
