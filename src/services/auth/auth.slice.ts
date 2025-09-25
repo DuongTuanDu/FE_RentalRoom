@@ -1,78 +1,79 @@
-import type IAuth from '@/types/auth'
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import Cookies from 'js-cookie'
-
+import type IAuth from "@/types/auth";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import Cookies from "js-cookie";
 
 interface IAuthState {
-  accessToken: string | null
-  emailVerify: string
-  isAuthenticated: boolean
+  accessToken: string | null;
+  emailVerify: string;
+  isAuthenticated: boolean;
   userInfo: {
-    id: number
-    name: string
-    username: string
-    email: string
-    phone: string
-    avatarPublicId: string
-    avatarUrl: string
-    role: number
-    status: number
-    createdAt: string
-  }
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+    phone: string;
+    avatarPublicId: string;
+    avatarUrl: string;
+    role: number;
+    status: number;
+    createdAt: string;
+  };
 }
 
 const initialState: IAuthState = {
   accessToken: null,
-  emailVerify: '',
+  emailVerify: "",
   isAuthenticated: false,
   userInfo: {
     id: 0,
-    name: '',
-    username: '',
-    email: '',
-    phone: '',
-    avatarPublicId: '',
-    avatarUrl: '',
+    name: "",
+    username: "",
+    email: "",
+    phone: "",
+    avatarPublicId: "",
+    avatarUrl: "",
     role: 0,
     status: 0,
-    createdAt: ''
-  }
-}
+    createdAt: "",
+  },
+};
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setLogin: (state, { payload }: PayloadAction<IAuth>) => {
-      state.accessToken = payload.token.accessToken
-
-      if (payload.token.accessToken) {
-        Cookies.set('accessToken', payload.token.accessToken)
+      state.accessToken = payload.accessToken;
+      if (payload.accessToken) {
+        Cookies.set("accessToken", payload.accessToken);
       }
     },
     setLogout: (state) => {
-      state.accessToken = null
-      state.isAuthenticated = false
+      state.accessToken = null;
+      state.isAuthenticated = false;
       state.userInfo = {
         id: 0,
-        name: '',
-        username: '',
-        email: '',
-        phone: '',
-        avatarPublicId: '',
-        avatarUrl: '',
+        name: "",
+        username: "",
+        email: "",
+        phone: "",
+        avatarPublicId: "",
+        avatarUrl: "",
         role: 0,
         status: 0,
-        createdAt: ''
-      }
-      Cookies.remove('accessToken')
-    }
-  }
-})
+        createdAt: "",
+      };
+      Cookies.remove("accessToken");
+    },
+    setEmailVerify(state, action) {
+      state.emailVerify = action.payload;
+    },
+    setIsAuthenticated(state, action) {
+      state.isAuthenticated = action.payload;
+    },
+  },
+});
 
-export const {
-  setLogin,
-  setLogout,
-} = authSlice.actions
+export const { setLogin, setLogout, setEmailVerify, setIsAuthenticated } = authSlice.actions;
 
-export default authSlice
+export default authSlice.reducer;

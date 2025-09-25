@@ -12,11 +12,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useDispatch, useSelector } from "react-redux";
+import { setLogout } from "@/services/auth/auth.slice";
+import config from "@/config/config";
+import Cookies from "js-cookie";
 
 const Header = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const hasToken = Cookies.get('accessToken');
+  const isLoggedIn = isAuthenticated || !!hasToken;
+  console.log("isLoggedIn", isLoggedIn);
+  
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +41,11 @@ const Header = () => {
     { path: "/host-software", label: "Phềm mềm chủ nhà", icon: Building },
     { path: "/about-us", label: "Về chúng tôi", icon: Handshake },
   ];
+
+  const handleLogout = () => {
+    dispatch(setLogout())
+    navigate(config.loginPath);
+  }
 
   return (
     <header
@@ -78,17 +93,31 @@ const Header = () => {
               <LanguageSelector isScrolled={isScrolled} />
             </div>
 
-            <Button
-              onClick={() => navigate("/auth/login")}
-              variant="ghost"
-              className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer ${
-                isScrolled
-                  ? "text-blue-600 hover:bg-blue-100"
-                  : "text-white hover:bg-white/20"
-              }`}
-            >
-              Đăng nhập
-            </Button>
+            {isLoggedIn === true  ? (
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer ${
+                  isScrolled
+                    ? "text-blue-600 hover:bg-blue-100"
+                    : "text-white hover:bg-white/20"
+                }`}
+              >
+                Đăng xuất
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate(config.loginPath)}
+                variant="ghost"
+                className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer ${
+                  isScrolled
+                    ? "text-blue-600 hover:bg-blue-100"
+                    : "text-white hover:bg-white/20"
+                }`}
+              >
+                Đăng nhập
+              </Button>
+            )}
 
             {/* Mobile Menu Sheet */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

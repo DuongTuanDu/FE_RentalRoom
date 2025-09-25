@@ -18,8 +18,10 @@ import "aos/dist/aos.css";
 import CountUp from "@/components/animation/CountUp";
 import TextType from "@/components/animation/TextType";
 import SplitText from "@/components/animation/SplitText";
+import { useNavigate } from "react-router-dom";
 
 const AboutUsPage = () => {
+  const navigate = useNavigate();
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -172,10 +174,10 @@ const AboutUsPage = () => {
             />
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <button className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all transform hover:scale-105 flex items-center space-x-2 cursor-pointer">
-                <span>Dùng Thử Miễn Phí</span>
+                <span onClick={() => navigate("/")}>Dùng Thử Miễn Phí</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="bg-white/80 backdrop-blur-md text-blue-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white transition-all border border-blue-200 hover:shadow-lg cursor-pointer">
+              <button onClick={() => navigate("/")} className="bg-white/80 backdrop-blur-md text-blue-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white transition-all border border-blue-200 hover:shadow-lg cursor-pointer">
                 Xem Demo
               </button>
             </div>

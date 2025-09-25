@@ -1,3 +1,4 @@
+import ScrollToTopButton from "@/components/ScrollToTop";
 import { Outlet } from "react-router-dom";
 
 const LayoutAboutUs = () => {
@@ -6,6 +7,7 @@ const LayoutAboutUs = () => {
       <div className="flex-grow min-h-screen">
         <Outlet />
       </div>
+      <ScrollToTopButton />
     </div>
   );
 };
