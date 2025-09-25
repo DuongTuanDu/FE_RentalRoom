@@ -90,7 +90,7 @@ const LanguageSelector = ({ isScrolled }: LanguageSelectorProps) => {
         <SelectTrigger
           className={`h-9 border-0 focus:ring-0 transition-all duration-300 ${
             isScrolled
-              ? "bg-teal-50 hover:bg-teal-100 text-teal-700"
+              ? "bg-blue-50 hover:bg-blue-100 text-blue-700"
               : "bg-white/20 hover:bg-white/30 text-white border-white/30"
           }`}
         >
@@ -100,12 +100,12 @@ const LanguageSelector = ({ isScrolled }: LanguageSelectorProps) => {
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-white border-teal-200 shadow-xl">
+        <SelectContent className="bg-white border-blue-200 shadow-xl">
           {languages.map((language) => (
             <SelectItem
               key={language.code}
               value={language.code}
-              className="hover:bg-teal-50 focus:bg-teal-50 cursor-pointer"
+              className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <span>{language.flag}</span>

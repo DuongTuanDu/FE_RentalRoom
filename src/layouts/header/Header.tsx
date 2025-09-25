@@ -36,7 +36,7 @@ const Header = () => {
     <header
       className={`fixed w-full top-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-teal-100"
+          ? "bg-white/10 backdrop-blur-md shadow-lg border-b border-white/10"
           : "bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500"
       }`}
     >
@@ -81,9 +81,9 @@ const Header = () => {
             <Button
               onClick={() => navigate("/auth/login")}
               variant="ghost"
-              className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+              className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer ${
                 isScrolled
-                  ? "text-teal-600 hover:bg-teal-50"
+                  ? "text-blue-600 hover:bg-blue-100"
                   : "text-white hover:bg-white/20"
               }`}
             >
