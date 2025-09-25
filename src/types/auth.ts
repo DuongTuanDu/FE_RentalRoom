@@ -1,21 +1,20 @@
 export default interface IAuth {
-  token: {
-    accessToken: string
-    refreshToken: string
-  }
+  accessToken: string;
+  refreshToken: string;
   data: {
-    id: string
-    email: string
-    username: string
-    status: number
-    role: number
-  }
+    id: string;
+    email: string;
+    username: string;
+    status: number;
+    role: number;
+  };
+  message: string;
 }
 
 export interface IRegisterRequest {
-  username: string
-  email: string
-  password: string
-  confirmPassword: string
-  emailVerified: boolean
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  emailVerified: boolean;
 }

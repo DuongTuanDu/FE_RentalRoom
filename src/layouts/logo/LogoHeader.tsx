@@ -73,11 +73,7 @@ const LogoHeader = ({ isScrolled }: LogoHeaderProps) => {
 
       {/* Animated underline */}
       <div
-        className={`absolute -bottom-1 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-500 ${
-          isScrolled
-            ? "bg-gradient-to-r from-teal-500 to-cyan-500"
-            : "bg-white/60"
-        }`}
+        className={`absolute -bottom-1 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-500 bg-white/60 `}
       ></div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { SubmitHandler } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,13 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Lock, LogIn, User } from "lucide-react";
 import config from "@/config/config";
-import { useLoginMutation, type ILoginRequest } from "@/services/auth/auth.service";
+import {
+  useLoginMutation,
+  type ILoginRequest,
+} from "@/services/auth/auth.service";
 import useValidateLoginFormHook from "@/hooks/login/useValidateLoginForm.hook";
+import { useDispatch } from "react-redux";
+import { setIsAuthenticated } from "@/services/auth/auth.slice";
 
 const BE_URL = import.meta.env.ENV_ENDPOINT_API;
 
@@ -25,6 +30,7 @@ const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
+  const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -37,14 +43,9 @@ const Login = () => {
   ) => {
     try {
       const res = await login(data).unwrap();
-      console.log("res", res);
-
       if (res) {
-        if (res.data.role === config.roleAdmin) {
-          navigate(config.adminDashboardPath);
-        } else {
-          navigate("/");
-        }
+        navigate("/");
+        dispatch(setIsAuthenticated(true));
       }
     } catch (err: any) {
       console.log("err", err);
@@ -53,10 +54,6 @@ const Login = () => {
 
   const handleGoogleLogin = () => {
     window.location.href = `${BE_URL}/auth/google`;
-  };
-
-  const handleRegisterRedirect = () => {
-    navigate(config.registerPath);
   };
 
   return (
@@ -169,7 +166,7 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors duration-200"
+              className="w-full h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -231,13 +228,12 @@ const Login = () => {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Chưa có tài khoản?{" "}
-              <button
-                type="button"
-                onClick={handleRegisterRedirect}
-                className="hover:underline font-bold text-blue-600"
+              <Link
+                to={config.sendOtpPath}
+                className="hover:underline font-bold text-blue-600 cursor-pointer"
               >
                 Đăng ký ngay
-              </button>
+              </Link>
             </p>
           </div>
         </CardContent>
