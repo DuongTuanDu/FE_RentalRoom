@@ -268,7 +268,7 @@ const SendOtp: React.FC = () => {
 
       {/* Modal OTP */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white shadow-xl">
           <DialogHeader className="text-center">
             <DialogTitle className="text-xl font-bold text-gray-900">
               Xác thực mã OTP
