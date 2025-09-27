@@ -44,6 +44,7 @@ const authSlice = createSlice({
   reducers: {
     setLogin: (state, { payload }: PayloadAction<IAuth>) => {
       state.accessToken = payload.accessToken;
+      state.isAuthenticated = true;
       if (payload.accessToken) {
         Cookies.set("accessToken", payload.accessToken);
       }
@@ -74,6 +75,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setLogin, setLogout, setEmailVerify, setIsAuthenticated } = authSlice.actions;
+export const { setLogin, setLogout, setEmailVerify, setIsAuthenticated } =
+  authSlice.actions;
 
 export default authSlice.reducer;

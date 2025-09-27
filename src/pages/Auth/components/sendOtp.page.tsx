@@ -340,6 +340,7 @@ const SendOtp: React.FC = () => {
               variant="outline"
               onClick={handleCloseModal}
               disabled={isVerifying}
+              className="cursor-pointer"
             >
               Hủy
             </Button>
@@ -347,7 +348,7 @@ const SendOtp: React.FC = () => {
               type="button"
               onClick={handleVerifyOTP}
               disabled={isVerifying || otpValue.length !== 6}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer"
             >
               {isVerifying ? (
                 <div className="flex items-center gap-2">

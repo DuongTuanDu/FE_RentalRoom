@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, Lock, LogIn, User } from "lucide-react";
+import { Eye, EyeOff, Home, Lock, LogIn, User } from "lucide-react";
 import config from "@/config/config";
 import {
   useLoginMutation,
@@ -60,6 +60,11 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center">
       <Card className="w-full max-w-lg shadow-xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="space-y-1 text-center pb-6">
+          <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 bg-gradient-to-br from-teal-500 via-cyan-500 to-blue-500 shadow-lg cursor-pointer hover:scale-105 hover:rotate-3 hover:shadow-2xl"
+          onClick={() => navigate(config.homePath)}>
+            <Home className="w-6 h-6 text-white" />
+          </div>
+
           <CardTitle className="text-2xl font-bold text-gray-900">
             {t("welcome")}
           </CardTitle>

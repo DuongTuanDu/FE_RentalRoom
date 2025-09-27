@@ -1,14 +1,14 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Outlet, Route } from 'react-router-dom'
-import Cookies from 'js-cookie'
+import { Route } from 'react-router-dom'
 import config from '@/config/config'
 import Register from '@/pages/Auth/components/register.page'
 import SendOtp from '@/pages/Auth/components/sendOtp.page'
+import GuestRoute from '@/components/GuestRoute'
 
 const Login = lazy(() => import('@/pages/Auth/components/login.page'))
 
 export default (
-  <Route element={Cookies.get('accessToken') ? <Navigate to='/' /> : <Outlet />}>
+  <Route element={<GuestRoute />}>
     <Route
       path={config.loginPath}
       element={
