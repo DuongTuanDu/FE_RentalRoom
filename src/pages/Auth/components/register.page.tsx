@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock, User, Home, UserPlus } from "lucide-react";
 import { useRegisterMutation } from "@/services/auth/auth.service";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import config from "@/config/config";
 import useValidateRegisterForm from "@/hooks/register/useValidateRegisterForm.hook";
 
@@ -13,6 +13,7 @@ const Register = () => {
   const [registerApi] = useRegisterMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const {
     emailRegister,
@@ -54,8 +55,9 @@ const Register = () => {
 
     try {
       const res = await registerApi(payload).unwrap();
-      console.log("Register success", res);
-      // TODO: điều hướng hoặc hiển thị thông báo
+      if (res.message === "Đăng ký thành công!") {
+        navigate(config.loginPath);
+      }
     } catch (err) {
       console.error("Register error:", err);
     }
@@ -199,6 +201,7 @@ const Register = () => {
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer"
+                
               >
                 <UserPlus className="w-4 h-4" />
                 Đăng ký

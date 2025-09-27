@@ -15,16 +15,13 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
 import config from "@/config/config";
-import Cookies from "js-cookie";
 
 const Header = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated } = useSelector((state: any) => state.auth);
-  const hasToken = Cookies.get('accessToken');
-  const isLoggedIn = isAuthenticated || !!hasToken;
-  console.log("isLoggedIn", isLoggedIn);
+ 
   
   const dispatch = useDispatch();
 
@@ -44,7 +41,6 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(setLogout())
-    navigate(config.loginPath);
   }
 
   return (
@@ -93,7 +89,7 @@ const Header = () => {
               <LanguageSelector isScrolled={isScrolled} />
             </div>
 
-            {isLoggedIn === true  ? (
+            {isAuthenticated ? (
               <Button
                 onClick={handleLogout}
                 variant="ghost"

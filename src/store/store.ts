@@ -1,14 +1,30 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { persistStore, persistReducer } from 'redux-persist';
 import { authApi } from "../services/auth/auth.service";
 import authReducer from "../services/auth/auth.slice";
+import storage from 'redux-persist/lib/storage'
+
+// Cấu hình persist cho auth reducer
+const persistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: ['isAuthenticated', 'accessToken', 'userInfo'],
+};
+
+const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    auth: persistedAuthReducer,
     [authApi.reducerPath]: authApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      },
     }).concat(authApi.middleware),
 });
+
+export const persistor = persistStore(store);
