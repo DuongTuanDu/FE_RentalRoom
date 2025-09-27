@@ -3,19 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, User, Home, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Home, UserPlus, Loader2 } from "lucide-react";
 import { useRegisterMutation } from "@/services/auth/auth.service";
 import { Link, useNavigate } from "react-router-dom";
 import config from "@/config/config";
 import useValidateRegisterForm from "@/hooks/register/useValidateRegisterForm.hook";
+import { useDispatch } from "react-redux";
+import { setEmailVerify } from "@/services/auth/auth.slice";
 
 const Register = () => {
-  const [registerApi] = useRegisterMutation();
+  const [registerApi, { isLoading }] = useRegisterMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
+    nameRegister,
     emailRegister,
     passwordRegister,
     confirmPasswordRegister,
@@ -55,8 +59,9 @@ const Register = () => {
 
     try {
       const res = await registerApi(payload).unwrap();
-      if (res.message === "Đăng ký thành công!") {
-        navigate(config.loginPath);
+      if (res.data) {
+        dispatch(setEmailVerify(res.data.email));
+        navigate(config.verifyPath);
       }
     } catch (err) {
       console.error("Register error:", err);
@@ -66,7 +71,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-2xl shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="space-y-1 text-center pb-6">
+        <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold text-gray-900">
             Tạo tài khoản mới
           </CardTitle>
@@ -79,11 +84,12 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setRole("resident")}
+                disabled={isLoading}
                 className={`p-4 border-2 rounded-lg text-center transition-all ${
                   role === "resident"
                     ? "border-blue-500 bg-blue-50 text-blue-700"
                     : "border-gray-200 hover:border-gray-300"
-                }`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <User className="w-8 h-8 mx-auto mb-2" />
                 <div className="font-medium">Người thuê</div>
@@ -91,15 +97,46 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setRole("landlord")}
+                disabled={isLoading}
                 className={`p-4 border-2 rounded-lg text-center transition-all ${
                   role === "landlord"
                     ? "border-blue-500 bg-blue-50 text-blue-700"
                     : "border-gray-200 hover:border-gray-300"
-                }`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <Home className="w-8 h-8 mx-auto mb-2" />
                 <div className="font-medium">Chủ nhà</div>
               </button>
+            </div>
+
+            {/* Full Name */}
+            <div className='space-y-2'>
+              <Label
+                htmlFor='name'
+                className='text-sm font-medium text-gray-700'
+              >
+                Tên đầy đủ
+              </Label>
+              <div className='relative'>
+                <User className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+                <Input
+                  id='name'
+                  type='text'
+                  {...nameRegister}
+                  placeholder='Nhập tên đầy đủ của bạn'
+                  disabled={isLoading}
+                  className={`pl-10 h-11 ${
+                    errors.fullName
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : ''
+                  } ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                />
+              </div>
+              {errors.fullName && (
+                <p className='text-sm text-red-600'>
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             {/* Email */}
@@ -113,7 +150,8 @@ const Register = () => {
                   id="email"
                   type="email"
                   placeholder="Nhập email của bạn"
-                  className="pl-10 h-11"
+                  disabled={isLoading}
+                  className={`pl-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   {...emailRegister}
                 />
               </div>
@@ -133,13 +171,15 @@ const Register = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Nhập mật khẩu"
-                  className="pl-10 pr-10 h-11"
+                  disabled={isLoading}
+                  className={`pl-10 pr-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   {...passwordRegister}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={isLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -180,13 +220,15 @@ const Register = () => {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Nhập lại mật khẩu"
-                  className="pl-10 pr-10 h-11"
+                  disabled={isLoading}
+                  className={`pl-10 pr-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                   {...confirmPasswordRegister}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={isLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -200,11 +242,20 @@ const Register = () => {
             <div className="pt-6">
               <Button
                 type="submit"
-                className="w-full h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer"
-                
+                disabled={isLoading}
+                className="w-full h-11 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
-                <UserPlus className="w-4 h-4" />
-                Đăng ký
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    <span>Đăng ký</span>
+                  </>
+                )}
               </Button>
             </div>
           </form>
@@ -213,7 +264,10 @@ const Register = () => {
           <div className="text-center mt-6 pt-6 border-t">
             <p className="text-sm text-gray-600">
               Bạn đã có tài khoản?{" "}
-              <Link to={config.loginPath} className="text-blue-600 hover:underline">
+              <Link 
+                to={config.loginPath} 
+                className={`text-blue-600 hover:underline ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+              >
                 Đăng nhập
               </Link>
             </p>
