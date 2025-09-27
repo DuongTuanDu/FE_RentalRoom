@@ -162,8 +162,8 @@ const Login = () => {
               </div>
               <button
                 type="button"
-                onClick={() => navigate("/auth/send-otp")}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                onClick={() => navigate(config.sendOtpPath)}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
               >
                 Quên mật khẩu?
               </button>

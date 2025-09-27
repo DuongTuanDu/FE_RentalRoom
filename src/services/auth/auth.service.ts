@@ -52,7 +52,14 @@ export const authApi = createApi({
         data,
       }),
     }),
+    resetPassword: builder.mutation<IAuth,  { email: string, newPassword: string, confirmNewPassword: string }>({
+      query: (data: { email: string, newPassword: string, confirmNewPassword: string }) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        data,
+      }),
+    })
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useSentOTPMutation, useVerifyOTPMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation, useSentOTPMutation, useVerifyOTPMutation, useResetPasswordMutation } = authApi;
