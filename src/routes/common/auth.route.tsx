@@ -2,8 +2,8 @@ import { lazy, Suspense } from 'react'
 import { Route } from 'react-router-dom'
 import config from '@/config/config'
 import Register from '@/pages/Auth/components/register.page'
-import SendOtp from '@/pages/Auth/components/sendOtp.page'
 import GuestRoute from '@/components/GuestRoute'
+import VerifyOtp from '@/pages/Auth/components/veriryOTP.page'
 
 const Login = lazy(() => import('@/pages/Auth/components/login.page'))
 
@@ -26,10 +26,10 @@ export default (
       }
     />
     <Route
-      path={config.sendOtpPath}
+      path={config.verifyPath}
       element={
         <Suspense>
-          <SendOtp />
+          <VerifyOtp />
         </Suspense>
       }
     />

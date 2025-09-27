@@ -42,8 +42,8 @@ const Login = () => {
     data: ILoginRequest
   ) => {
     try {
-      const res = await login(data).unwrap();
-      if (res) {
+      const res = await login(data);
+      if (res.data) {
         navigate("/");
         dispatch(setIsAuthenticated(true));
       }
@@ -234,7 +234,7 @@ const Login = () => {
             <p className="text-sm text-gray-600">
               Chưa có tài khoản?{" "}
               <Link
-                to={config.sendOtpPath}
+                to={config.registerPath}
                 className="hover:underline font-bold text-blue-600 cursor-pointer"
               >
                 Đăng ký ngay

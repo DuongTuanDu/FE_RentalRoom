@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 export interface IRegisterRequest {
-  username: string;
+  fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -17,6 +17,7 @@ export interface IRegisterRequest {
 }
 
 export default (): {
+  nameRegister: UseFormRegisterReturn<'fullName'>
   emailRegister: UseFormRegisterReturn<"email">;
   passwordRegister: UseFormRegisterReturn<"password">;
   confirmPasswordRegister: UseFormRegisterReturn<"confirmPassword">;
@@ -33,6 +34,18 @@ export default (): {
   } = useForm<IRegisterRequest>({ mode: "all" });
 
   const password = watch("password");
+
+  const nameRegister = register('fullName', {
+    required: 'Tên là bắt buộc',
+    minLength: {
+      value: 2,
+      message: 'Tên phải có ít nhất 2 ký tự'
+    },
+    maxLength: {
+      value: 100,
+      message: 'Tên không được quá 100 ký tự'
+    }
+  })
 
   const emailRegister = register("email", {
     required: t("errorMessages.required", { field: t("email") }),
@@ -66,6 +79,7 @@ export default (): {
   });
 
   return {
+    nameRegister,
     emailRegister,
     passwordRegister,
     confirmPasswordRegister,
