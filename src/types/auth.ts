@@ -9,6 +9,7 @@ export default interface IAuth {
     role: number;
   };
   message: string;
+  status: boolean
 }
 
 export interface IRegisterRequest {
