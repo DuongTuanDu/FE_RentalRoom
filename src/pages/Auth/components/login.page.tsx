@@ -23,6 +23,7 @@ import {
 import useValidateLoginFormHook from "@/hooks/login/useValidateLoginForm.hook";
 import { useDispatch } from "react-redux";
 import { setIsAuthenticated } from "@/services/auth/auth.slice";
+import { toast } from "sonner";
 
 const BE_URL = import.meta.env.ENV_ENDPOINT_API;
 
@@ -42,13 +43,15 @@ const Login = () => {
     data: ILoginRequest
   ) => {
     try {
-      const res = await login(data);
-      if (res.data) {
+      const res = await login(data).unwrap();
+      if (res.status) {
         navigate("/");
+        toast.success(res.message);
         dispatch(setIsAuthenticated(true));
       }
     } catch (err: any) {
       console.log("err", err);
+      toast.error(err.message.message);
     }
   };
 

@@ -25,6 +25,7 @@ const createAxiosInstance = () => {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
+      console.log("error222222222222", error);
       if (error.response) {
         console.error(
           "Response error:",
@@ -72,7 +73,7 @@ export const baseQuery = async <T = any>({
       ...config,
     });
 
-    return { data: response as T };
+    return { data: response.data as T };
   } catch (error) {
     const err = error as AxiosError;
     return {
