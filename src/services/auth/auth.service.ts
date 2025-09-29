@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import RentalRoomFetch from "@/lib/api-client";
+import { baseQuery } from "@/lib/api-client";
 import { setLogin } from "./auth.slice";
 import type IAuth from "@/types/auth";
 
@@ -10,10 +10,7 @@ export interface ILoginRequest {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: async (args) => {
-    const { url, method, data, params } = args;
-    return RentalRoomFetch({ url, method, data, params });
-  },
+  baseQuery,
   tagTypes: ["auth"],
   endpoints: (builder) => ({
     login: builder.mutation<IAuth, ILoginRequest>({
@@ -27,7 +24,7 @@ export const authApi = createApi({
           const { data } = await queryFulfilled;
           dispatch(setLogin(data));
         } catch (error) {
-          console.log(error);
+          console.log("error", error);
         }
       },
     }),
