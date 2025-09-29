@@ -3,25 +3,23 @@ import {
   Users,
   FileText,
   DollarSign,
-  Shield,
   CheckCircle,
   ArrowRight,
-  Star,
   BarChart3,
-  Clock,
-  Zap,
   Globe,
+  ShieldCheck,
+  Car,
+  Wallet,
+  UserCog,
 } from "lucide-react";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import CountUp from "@/components/animation/CountUp";
-import TextType from "@/components/animation/TextType";
-import SplitText from "@/components/animation/SplitText";
-import { useNavigate } from "react-router-dom";
+import HeroSection from "./components/HeroSection";
+import StatsSection from "./components/StatsSection";
+import Testimonials from "./components/Testimonials";
 
 const AboutUsPage = () => {
-  const navigate = useNavigate();
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -34,186 +32,154 @@ const AboutUsPage = () => {
   const features = [
     {
       icon: Building2,
-      title: "Quản Lý Tòa Nhà",
+      title: "Quản lý nhiều nhà trọ - chung cư - ktx, sleepbox, homestay",
       description:
-        "Quản lý nhiều tòa nhà, phòng trọ một cách hiệu quả và tập trung",
+        "ó thể cùng một lúc quản lý nhiều nhà trọ - tòa nhà chung cư - ktx, đồng thời cũng có thể theo dõi tổng quan, chi tiết thông tin nhà cho thuê của mình với tính năng này.",
       gradient: "from-blue-400 to-blue-600",
     },
     {
       icon: Users,
-      title: "Quản Lý Khách Thuê",
+      title: "Quản lý phòng trọ, căn hộ, giường - sleepbox",
       description:
-        "Theo dõi thông tin khách thuê, hợp đồng và lịch sử thuê phòng",
+        "Các thông tin về phòng trọ như khách thuê phòng, số điện thoại, trạng thái phòng,... sẽ được cung cấp bởi tính năng này. Việc quản lý phòng trọ sẽ đơn giản hơn nhiều.",
       gradient: "from-sky-400 to-blue-500",
     },
-    {
-      icon: FileText,
-      title: "Hợp Đồng Điện Tử",
-      description:
-        "Tạo và ký hợp đồng điện tử, quản lý điều khoản một cách chuyên nghiệp",
-      gradient: "from-blue-500 to-indigo-600",
-    },
+
     {
       icon: DollarSign,
-      title: "Quản Lý Tài Chính",
-      description: "Theo dõi doanh thu, chi phí, hóa đơn và thanh toán tự động",
+      title: "Hóa đơn tiền phòng, thu tiền",
+      description:
+        "Chúng tôi giúp bạn theo dõi và tính toán tiền điện, nước, dịch vụ,... chốt tiền phòng hàng tháng một cách tự động, in hóa đơn cho khách thuê. Theo dõi thu tiền phòng hàng tháng cho bạn.",
       gradient: "from-cyan-400 to-blue-600",
     },
     {
-      icon: BarChart3,
-      title: "Báo Cáo Thống Kê",
+      icon: FileText,
+      title: "Quản lý cọc giữ chỗ và hợp đồng thuê nhà",
       description:
-        "Phân tích dữ liệu, báo cáo doanh thu và hiệu quả kinh doanh",
+        "Lưu giữ tất cả thông tin khách thuê, tiền cọc, ngày cọc,... với chức năng này bạn sẽ không cần phải ghi nhớ bất cứ thông tin đặt cọc nào.",
+      gradient: "from-blue-500 to-indigo-600",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Quản lý khách thuê",
+      description:
+        "Quản lý các thông tin về khách thuê phòng, tình trạng giấy tờ tùy thân, tình trạng đăng ký tạm trú. Ngoài ra phần mềm còn hỗ trợ đăng ký tạm trú online trên dịch vụ công.",
+      gradient: "from-sky-500 to-blue-700",
+    },
+
+    {
+      icon: BarChart3,
+      title: "Thống kê báo cáo",
+      description:
+        "Bạn sẽ theo dõi tổng quan hoạt động của nhà trọ, phòng trọ để sắp xếp công việc hợp lý, đồng thời nắm bắt nhanh doanh thu, chi phí và tỉ lệ phòng trống.",
+      gradient: "from-sky-500 to-blue-700",
+    },
+    {
+      icon: Car,
+      title: "Quản lý xe, tài sản",
+      description:
+        "Quản lý thông tin xe của khách & tài sản khách sử dụng trong quá trình thuê nhà, kiểm kệ tình trạng của tài sản.",
+      gradient: "from-sky-500 to-blue-700",
+    },
+    {
+      icon: Wallet,
+      title: "Quản lý tài chính",
+      description:
+        "Mọi thu, chi tổng kết kinh doanh sẽ được lưu trữ và tính toán tự động bạn sẽ không còn đau đầu với những con số.",
       gradient: "from-blue-600 to-indigo-700",
     },
     {
-      icon: Shield,
-      title: "Bảo Mật Cao",
+      icon: UserCog,
+      title: "Quản lý nhân viên",
       description:
-        "Hệ thống bảo mật đa lớp, bảo vệ thông tin khách hàng tuyệt đối",
+        "Phần mềm cung cấp tính năng phân quyền để bạn có thể tổ chức công ty hoặc đội nhóm cùng tham gia quản lý.",
       gradient: "from-sky-500 to-blue-700",
     },
   ];
 
-  const stats = [
-    { number: 1000, suffix: "+", label: "Phòng Trọ Quản Lý", icon: Building2 },
-    { number: 500, suffix: "+", label: "Chủ Trọ Tin Dùng", icon: Users },
-    { number: 99.9, suffix: "%", label: "Thời Gian Hoạt Động", icon: Clock },
-    { number: 24, suffix: "/7", label: "Hỗ Trợ Khách Hàng", icon: Zap },
-  ];
-
-  const testimonials = [
+  const platforms = [
     {
-      name: "Nguyễn Văn A",
-      role: "Chủ trọ - 15 phòng",
-      content:
-        "Hệ thống giúp tôi quản lý hiệu quả hơn 300%. Không còn lo lắng về việc quên thu tiền phòng hay theo dõi hợp đồng.",
-      rating: 5,
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+      image: "https://quanlytro.me/images/banner_ipad_flatform.webp",
+      title: "Quản lý trên điện thoại",
+      description:
+        "Quản lý ngay trên chiếc điện thoại. Nhẹ nhàng, thuận tiện, linh hoạt với đầy đủ tính năng và được đồng bộ với các nền tảng khác.",
+      gradient: "from-purple-400 to-indigo-500",
+      color: "indigo-500/30",
     },
     {
-      name: "Trần Thị B",
-      role: "Chủ trọ - 25 phòng",
-      content:
-        "Tính năng báo cáo rất chi tiết, giúp tôi nắm được tình hình kinh doanh một cách chính xác và kịp thời.",
-      rating: 5,
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
+      image: "https://quanlytro.me/images/banner_mobile_flatform.webp",
+      title: "Quản lý trên máy tính bảng",
+      description:
+        "Nếu bạn đang có chiếc máy tính bảng là một lợi thế. Bạn có thể kết hợp được sự linh hoạt giữa điện thoại và máy tính.",
+      gradient: "from-emerald-400 to-emerald-700",
+      color: "emerald-500/30",
     },
     {
-      name: "Lê Văn C",
-      role: "Chủ trọ - 8 phòng",
-      content:
-        "Giao diện đơn giản, dễ sử dụng. Khách thuê của tôi cũng rất hài lòng với tính năng thanh toán online.",
-      rating: 5,
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+      image: "https://quanlytro.me/images/banner_desktop_flatform.webp",
+      title: "Quản lý trên máy tính",
+      description:
+        "Quản lý ngay trên website mà không cần cài đặt app. Tất cả các tính năng sẽ rất chi tiết, sẽ giúp bạn quản lý thuận tiện đầy đủ.",
+      gradient: "from-sky-400 to-blue-500",
+      color: "blue-500/30",
     },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100">
       {/* Hero Section */}
-      <section
-        className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8"
-        data-aos="fade-down"
-      >
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="animate-fadeInUp">
-            <h1 className="text-center text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight gap-3">
-              <SplitText
-                text="Quản Lý"
-                tag="span"
-                className="text-slate-800 inline align-baseline"
-                splitType="chars"
-                delay={100}
-                duration={0.6}
-                ease="power3.out"
-                from={{ opacity: 0, y: 40 }}
-                to={{ opacity: 1, y: 0 }}
-              />
-
-              <span className="mx-3">
-                <SplitText
-                  text="Phòng Trọ"
-                  tag="span"
-                  className="inline align-baseline"
-                  charsClass="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent ml-1"
-                  splitType="chars"
-                  delay={120}
-                  duration={0.6}
-                  ease="power3.out"
-                  from={{ opacity: 0, y: 40 }}
-                  to={{ opacity: 1, y: 0 }}
-                />
-              </span>
-
-              <SplitText
-                text="Thông Minh"
-                tag="span"
-                className="text-slate-800 inline align-baseline"
-                splitType="chars"
-                delay={140}
-                duration={0.6}
-                ease="power3.out"
-                from={{ opacity: 0, y: 40 }}
-                to={{ opacity: 1, y: 0 }}
-              />
-            </h1>
-
-            <TextType
-              text={
-                "Hệ thống quản lý phòng trọ toàn diện, giúp chủ trọ tối ưu hóa vận hành, tăng doanh thu và nâng cao trải nghiệm khách thuê"
-              }
-              typingSpeed={100}
-              pauseDuration={1000}
-              showCursor={true}
-              cursorCharacter="|"
-              className="text-xl md:text-2xl text-slate-600 mb-8 max-w-4xl mx-auto leading-relaxed"
-            />
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <button className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all transform hover:scale-105 flex items-center space-x-2 cursor-pointer">
-                <span onClick={() => navigate("/")}>Dùng Thử Miễn Phí</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button onClick={() => navigate("/")} className="bg-white/80 backdrop-blur-md text-blue-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white transition-all border border-blue-200 hover:shadow-lg cursor-pointer">
-                Xem Demo
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Animation Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
-          <div
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: "2s" }}
-          ></div>
-        </div>
-      </section>
+      <div data-aos="fade-down">
+        <HeroSection />
+      </div>
 
       {/* Stats Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8" data-aos="fade-up">
+      <div data-aos="fade-up">
+        <StatsSection />
+      </div>
+
+      {/* Multi-Platform Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent to-blue-50/30">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 hover:bg-white/90 transition-all duration-300 border border-blue-200/50 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-300">
-                  <stat.icon className="w-8 h-8 text-blue-600 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                  <div className="text-3xl font-bold text-slate-800 mb-2">
-                    <CountUp
-                      from={0}
-                      to={stat.number}
-                      separator=","
-                      direction="up"
-                      duration={1}
-                      className="count-up-text"
+          <div className="text-center mb-16">
+            <div data-aos="fade-left">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 uppercase">
+                Quản lý trên đa nền tảng
+              </h2>
+              <h3 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-500 to-blue-700 bg-clip-text text-transparent mb-6">
+                ĐIỆN THOẠI - IPAD - MÁY TÍNH - WEBSITE
+              </h3>
+            </div>
+            <p
+              className="text-lg text-slate-600 mx-auto leading-relaxed"
+              data-aos="fade-right"
+            >
+              Với sự đa dạng về nền tảng sẽ giúp bạn quản lý nhà trọ linh động
+              hơn, thay vì mẫu excel phức tạp hay sổ sách rờm rà. Thật tuyệt vời
+              khi nay bạn đã có thể quản lý nhà trọ của mình trên mọi thiết bị
+              bạn có.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8" data-aos="fade-up">
+            {platforms.map((platform, index) => (
+              <div key={index} className="group">
+                <div
+                  className={`shadow-lg rounded-lg h-full flex flex-col items-center text-center hover:shadow-2xl hover:shadow-${platform.color}`}
+                >
+                  <div className="w-full h-auto mb-6 flex items-center justify-center overflow-hidden rounded-t-lg">
+                    <img
+                      src={platform.image}
+                      alt={platform.title}
+                      className="w-full h-full object-cover "
                     />
-                    {stat.suffix && <span className="ml-1">{stat.suffix}</span>}
                   </div>
-                  <div className="text-slate-600">{stat.label}</div>
+                  <button
+                    className={`bg-gradient-to-br ${platform.gradient} text-white px-6 py-2 rounded-full font-semibold text-md mb-4 hover:bg-blue-50 transition-colors border-4 border-indigo-200`}
+                  >
+                    {platform.title}
+                  </button>
+                  <p className="leading-relaxed text-start px-3 pb-4">
+                    {platform.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -265,63 +231,7 @@ const AboutUsPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section
-        id="testimonials"
-        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-100/50 to-sky-100/50"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2
-              className="text-4xl md:text-5xl font-bold text-slate-800 mb-4"
-              data-aos="fade-right"
-            >
-              Khách Hàng Nói Gì?
-            </h2>
-            <p
-              className="text-xl text-slate-600 max-w-3xl mx-auto"
-              data-aos="fade-left"
-            >
-              Hàng trăm chủ trọ đã tin tưởng và thành công cùng RoomMaster
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8" data-aos="fade-up">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white/80 backdrop-blur-md rounded-2xl p-8 border border-blue-200/50 hover:bg-white/95 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10"
-              >
-                <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-5 h-5 text-yellow-500 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-slate-600 mb-6 italic">
-                  "{testimonial.content}"
-                </p>
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-200"
-                  />
-                  <div>
-                    <div className="font-semibold text-slate-800">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-slate-600 text-sm">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Testimonials />
 
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
