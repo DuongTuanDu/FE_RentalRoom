@@ -55,7 +55,7 @@ const Testimonials = () => {
     <div className="py-10 md:py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <div data-aos="fade-right">
+          <div data-aos="fade-left">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 uppercase">
               Lý do chủ nhà chọn chúng tôi
             </h2>
@@ -63,7 +63,7 @@ const Testimonials = () => {
               Cảm nhận từ khách hàng
             </h2>
           </div>
-          <p className="text-xl text-slate-600 mx-auto" data-aos="fade-left">
+          <p className="text-xl text-slate-600 mx-auto" data-aos="fade-right">
             Sự hài lòng của khách hàng là động lực giúp chúng tôi hoàn thiện ứng
             dụng, đồng thời mở ra cơ hội có thêm nhiều khách hàng mới trong
             tương lai. Chúng tôi chân thành cảm ơn khách hàng đã tin dùng cũng
