@@ -109,9 +109,6 @@ const Testimonials = () => {
                   className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-blue-600 
                   transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-t-xl"
                 ></div>
-                <div className="text-2xl md:text-4xl mb-1.5 lg:mb-4 text-blue-200 dark:text-blue-800">
-                  &quot;
-                </div>
                 <p className="text-gray-700 mb-6 italic max-w-[200px] lg:max-w-sm">
                   {testimonial.quote}
                 </p>
