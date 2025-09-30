@@ -18,11 +18,12 @@ import "aos/dist/aos.css";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import Testimonials from "./components/Testimonials";
+import WhyChoose from "./components/WhyChoose";
 
 const AboutUsPage = () => {
   useEffect(() => {
     AOS.init({
-      duration: 1000,
+      duration: 600,
       once: false,
       easing: "ease-in-out",
     });
@@ -104,7 +105,7 @@ const AboutUsPage = () => {
       description:
         "Quản lý ngay trên chiếc điện thoại. Nhẹ nhàng, thuận tiện, linh hoạt với đầy đủ tính năng và được đồng bộ với các nền tảng khác.",
       gradient: "from-purple-400 to-indigo-500",
-      color: "indigo-500/30",
+      shadow: "hover:shadow-indigo-500/30",
     },
     {
       image: "https://quanlytro.me/images/banner_mobile_flatform.webp",
@@ -112,7 +113,7 @@ const AboutUsPage = () => {
       description:
         "Nếu bạn đang có chiếc máy tính bảng là một lợi thế. Bạn có thể kết hợp được sự linh hoạt giữa điện thoại và máy tính.",
       gradient: "from-emerald-400 to-emerald-700",
-      color: "emerald-500/30",
+      shadow: "hover:shadow-emerald-500/30",
     },
     {
       image: "https://quanlytro.me/images/banner_desktop_flatform.webp",
@@ -120,7 +121,7 @@ const AboutUsPage = () => {
       description:
         "Quản lý ngay trên website mà không cần cài đặt app. Tất cả các tính năng sẽ rất chi tiết, sẽ giúp bạn quản lý thuận tiện đầy đủ.",
       gradient: "from-sky-400 to-blue-500",
-      color: "blue-500/30",
+      shadow: "hover:shadow-blue-500/30",
     },
   ];
 
@@ -163,7 +164,7 @@ const AboutUsPage = () => {
             {platforms.map((platform, index) => (
               <div key={index} className="group">
                 <div
-                  className={`shadow-lg rounded-lg h-full flex flex-col items-center text-center hover:shadow-2xl hover:shadow-${platform.color}`}
+                  className={`shadow-lg rounded-lg h-full flex flex-col items-center text-center hover:shadow-2xl ${platform.shadow}`}
                 >
                   <div className="w-full h-auto mb-6 flex items-center justify-center overflow-hidden rounded-t-lg">
                     <img
@@ -205,22 +206,23 @@ const AboutUsPage = () => {
             </p>
           </div>
 
-          <div
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-            data-aos="fade-up"
-          >
+          <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="group">
+              <div
+                key={index}
+                data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
+                className="group"
+              >
                 <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 hover:bg-white/90 transition-all duration-500 border border-blue-200/50 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10">
                   <div
-                    className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform duration-300`}
+                    className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:rotate-6 transition-transform duration-300`}
                   >
                     <feature.icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-4">
+                  <h3 className="text-2xl font-bold text-slate-800 mb-4 text-center">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-600 leading-relaxed">
+                  <p className="text-slate-600 leading-relaxed text-center">
                     {feature.description}
                   </p>
                 </div>
@@ -229,6 +231,9 @@ const AboutUsPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Why Choose Section */}
+      <WhyChoose />
 
       {/* Testimonials Section */}
       <Testimonials />
