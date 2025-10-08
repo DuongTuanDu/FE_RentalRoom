@@ -22,7 +22,7 @@ import {
 } from "@/services/auth/auth.service";
 import useValidateLoginFormHook from "@/hooks/login/useValidateLoginForm.hook";
 import { useDispatch } from "react-redux";
-import { setIsAuthenticated } from "@/services/auth/auth.slice";
+import { setIsAuthenticated, setUserInfo } from "@/services/auth/auth.slice";
 import { toast } from "sonner";
 
 const BE_URL = import.meta.env.ENV_ENDPOINT_API;
@@ -45,9 +45,16 @@ const Login = () => {
     try {
       const res = await login(data).unwrap();
       if (res.status) {
-        navigate("/");
+        if (res.role === config.roleAdmin) {
+          console.log("kkkkkkkkk");
+          navigate(config.adminDashboardPath);
+        } else {
+          console.log("jjjjjjjjj");
+          navigate(config.homePath);
+        }
         toast.success(res.message);
         dispatch(setIsAuthenticated(true));
+        dispatch(setUserInfo(res.role));
       }
     } catch (err: any) {
       console.log("err", err);
