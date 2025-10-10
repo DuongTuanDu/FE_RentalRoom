@@ -6,12 +6,12 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import AppSidebar from "./SiderAdmin";
+import AppSidebar from "./SiderLandlord";
 
 // Main Layout Component
-export default function LayoutAdmin() {
+export default function LayoutLandlord() {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <SidebarInset className="flex flex-col flex-1">
@@ -36,7 +36,7 @@ export default function LayoutAdmin() {
           {/* Footer */}
           <footer className="border-t bg-muted/40 py-4 px-4 md:px-6">
             <div className="text-center text-sm text-muted-foreground">
-              <strong>Rental Room Admin</strong> © {new Date().getFullYear()}{" "}
+              <strong>Rental Room Landlord</strong> © {new Date().getFullYear()}{" "}
               Created with <span className="text-red-500">❤️</span>
             </div>
           </footer>

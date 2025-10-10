@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
+  Home,
   Users,
   ClipboardList,
   DollarSign,
@@ -51,12 +52,23 @@ const menuItems = [
   {
     title: "Tổng quan",
     icon: LayoutDashboard,
-    path: "/admin/dashboard",
+    path: "/landlord/dashboard",
   },
   {
     title: "Quản lý nhà trọ",
     icon: Building2,
-    path: "/admin/buildings",
+    items: [
+      {
+        title: "Danh sách nhà trọ",
+        icon: Building2,
+        path: "/landlord/buildings",
+      },
+      {
+        title: "Quản lý phòng",
+        icon: Home,
+        path: "/landlord/rooms",
+      },
+    ],
   },
   {
     title: "Người thuê",
@@ -65,12 +77,12 @@ const menuItems = [
       {
         title: "Danh sách người thuê",
         icon: UserCheck,
-        path: "/admin/tenants",
+        path: "/landlord/tenants",
       },
       {
         title: "Hợp đồng thuê",
         icon: FileText,
-        path: "/admin/contracts",
+        path: "/landlord/contracts",
       },
     ],
   },
@@ -81,17 +93,17 @@ const menuItems = [
       {
         title: "Hóa đơn",
         icon: FileText,
-        path: "/admin/invoices",
+        path: "/landlord/invoices",
       },
       {
         title: "Thu chi",
         icon: ClipboardList,
-        path: "/admin/transactions",
+        path: "/landlord/transactions",
       },
       {
         title: "Báo cáo doanh thu",
         icon: BarChart3,
-        path: "/admin/revenue-reports",
+        path: "/landlord/revenue-reports",
       },
     ],
   },
@@ -102,29 +114,29 @@ const menuItems = [
       {
         title: "Dịch vụ phòng",
         icon: Wrench,
-        path: "/admin/services",
+        path: "/landlord/services",
       },
       {
         title: "Yêu cầu sửa chữa",
         icon: ClipboardList,
-        path: "/admin/maintenance",
+        path: "/landlord/maintenance",
       },
     ],
   },
   {
     title: "Thông báo",
     icon: Bell,
-    path: "/admin/notifications",
+    path: "/landlord/notifications",
   },
   {
     title: "Lịch hẹn",
     icon: Calendar,
-    path: "/admin/appointments",
+    path: "/landlord/appointments",
   },
   {
     title: "Cài đặt",
     icon: Settings,
-    path: "/admin/settings",
+    path: "/landlord/settings",
   },
 ];
 
@@ -133,13 +145,13 @@ const AppSidebar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const authState = useSelector((state: any) => state.auth);
+  console.log("authState", authState);
 
   const adminInfo = {
-    name:
-      authState.user?.name || authState.accessToken ? "Quản trị viên" : "Khách",
-    email: authState.user?.email || "admin@phongtro.com",
-    avatar: authState.user?.avatar || "/default-avatar.png",
-    role: "Chủ trọ",
+    name: authState.userInfo ? "Chủ trọ" : "Quản trị viên",
+    email: authState.userInfo?.email || "landlord@phongtro.com",
+    avatar: authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
+    role: "landlord",
   };
 
   const handleLogout = () => {

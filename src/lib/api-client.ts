@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosRequestConfig, type Method } from "axios";
+import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_APP_API_URl;
 const TIMEOUT = 15000;
@@ -14,10 +15,10 @@ const createAxiosInstance = () => {
   });
 
   instance.interceptors.request.use((config) => {
-    const accessToken = localStorage.getItem("ACCESS_TOKEN");
+    const accessToken = Cookies.get("accessToken");
 
     if (accessToken) {
-      config.headers["X-User-Header"] = accessToken;
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
     return config;
   });
@@ -25,7 +26,6 @@ const createAxiosInstance = () => {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      console.log("error222222222222", error);
       if (error.response) {
         console.error(
           "Response error:",

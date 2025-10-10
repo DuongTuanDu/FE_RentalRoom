@@ -6,18 +6,13 @@ import config from "@/config/config";
 import adminRoutes from "./admin.route";
 import LayoutAdmin from "@/layouts/LayoutAdmin";
 import { useSelector } from "react-redux";
+import LayoutLandlord from "@/layouts/LayoutLandlord";
+import landlordRoutes from "./landlord.route";
 
-// Component kiểm tra quyền Admin (role = 1)
 const RequireAdminRole = () => {
   const { accessToken, isAuthenticated, userInfo } = useSelector(
     (state: any) => state.auth
   );
-  console.log("userInfo:", userInfo);
-  console.log("accessToken:", accessToken);
-  console.log("isAuthenticated:", isAuthenticated);
-  
-  
-  
 
   // Kiểm tra xem có token không
   if (!Cookies.get("accessToken")) {
@@ -32,10 +27,30 @@ const RequireAdminRole = () => {
   return <Outlet />;
 };
 
+const RequireLandlordRole = () => {
+  const { accessToken, isAuthenticated, userInfo } = useSelector(
+    (state: any) => state.auth
+  );
+
+  // Kiểm tra xem có token không
+  if (!Cookies.get("accessToken")) {
+    return <Navigate to={config.loginPath} replace />;
+  }
+
+  if (!accessToken || !isAuthenticated || userInfo !== "landlord") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
+
 const routes = (
   <>
     <Route path="admin" element={<RequireAdminRole />}>
       <Route element={<LayoutAdmin />}>{adminRoutes}</Route>
+    </Route>
+    <Route path="landlord" element={<RequireLandlordRole />}>
+      <Route element={<LayoutLandlord />}>{landlordRoutes}</Route>
     </Route>
   </>
 ) as ReactElement;
