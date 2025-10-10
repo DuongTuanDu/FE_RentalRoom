@@ -46,10 +46,10 @@ const Login = () => {
       const res = await login(data).unwrap();
       if (res.status) {
         if (res.role === config.roleAdmin) {
-          console.log("kkkkkkkkk");
           navigate(config.adminDashboardPath);
+        } else if (res.role === config.roleLandlord) {
+          navigate(config.landlordDashboardPath);
         } else {
-          console.log("jjjjjjjjj");
           navigate(config.homePath);
         }
         toast.success(res.message);
@@ -70,8 +70,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center">
       <Card className="w-full max-w-lg shadow-xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="space-y-1 text-center pb-6">
-          <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 bg-gradient-to-br from-teal-500 via-cyan-500 to-blue-500 shadow-lg cursor-pointer hover:scale-105 hover:rotate-3 hover:shadow-2xl"
-          onClick={() => navigate(config.homePath)}>
+          <div
+            className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 bg-gradient-to-br from-teal-500 via-cyan-500 to-blue-500 shadow-lg cursor-pointer hover:scale-105 hover:rotate-3 hover:shadow-2xl"
+            onClick={() => navigate(config.homePath)}
+          >
             <Home className="w-6 h-6 text-white" />
           </div>
 
@@ -100,7 +102,7 @@ const Login = () => {
                   type="text"
                   {...emailRegister}
                   placeholder="Nhập email hoặc tên đăng nhập"
-                  className={`pl-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
+                  className={`pl-10 h-11  ${
                     errors.email
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                       : ""
