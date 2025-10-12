@@ -13,6 +13,7 @@ import {
   Calendar,
   Bell,
   BarChart3,
+  Layers,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -62,6 +63,11 @@ const menuItems = [
         title: "Danh sách nhà trọ",
         icon: Building2,
         path: "/landlord/buildings",
+      },
+      {
+        title: "Quản lý tầng",
+        icon: Layers,
+        path: "/landlord/floors",
       },
       {
         title: "Quản lý phòng",
@@ -145,7 +151,6 @@ const AppSidebar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const authState = useSelector((state: any) => state.auth);
-  console.log("authState", authState);
 
   const adminInfo = {
     name: authState.userInfo ? "Chủ trọ" : "Quản trị viên",
