@@ -166,14 +166,11 @@ const BuildingManageLandlord = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-3">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen">
+      <div className="container mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">
                 Quản lý Tòa nhà
