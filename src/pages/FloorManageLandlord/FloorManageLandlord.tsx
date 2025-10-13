@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Building2, Plus, Edit, Trash2, Layers } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +29,7 @@ import { toast } from "sonner";
 import type { CreateFloorRequest, IFloor } from "@/types/floor";
 import { ModalFloor } from "./components/ModalFloor";
 import { DeleteFloorPopover } from "./components/DeleteFloorPopover";
+import { BuildingSelectCombobox } from "./components/BuildingSelectCombobox";
 
 const FloorManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -45,12 +39,11 @@ const FloorManageLandlord = () => {
   const [floorToDelete, setFloorToDelete] = useState<IFloor | null>(null);
   const formatDate = useFormatDate();
 
-  const { data: buildingData, isLoading: isBuildingLoading } =
-    useGetBuildingsQuery({
-      q: "",
-      page: 1,
-      limit: 10,
-    });
+  const { data: initialBuildingData } = useGetBuildingsQuery({
+    q: "",
+    page: 1,
+    limit: 10,
+  });
 
   const { data: floorsData, isLoading: isFloorsLoading } = useGetFloorsQuery(
     {
@@ -68,15 +61,12 @@ const FloorManageLandlord = () => {
   const [deleteFloor, { isLoading: isDeletingFloor }] =
     useDeleteFloorMutation();
 
+  // Auto-select first building
   useEffect(() => {
-    if (buildingData?.data?.[0]?._id && !selectedBuildingId) {
-      setSelectedBuildingId(buildingData.data[0]._id);
+    if (initialBuildingData?.data?.[0]?._id && !selectedBuildingId) {
+      setSelectedBuildingId(initialBuildingData.data[0]._id);
     }
-  }, [buildingData, selectedBuildingId]);
-
-  const selectedBuilding = buildingData?.data?.find(
-    (b) => b._id === selectedBuildingId
-  );
+  }, [initialBuildingData, selectedBuildingId]);
 
   const handleOpenCreateModal = () => {
     setSelectedFloor(null);
@@ -160,47 +150,18 @@ const FloorManageLandlord = () => {
             Chọn Tòa Nhà
           </CardTitle>
           <CardDescription>
-            Chọn tòa nhà để xem và quản lý danh sách tầng
+            Tìm kiếm và chọn tòa nhà để xem danh sách tầng
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-1">
+          <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Tòa nhà</label>
-              <Select
+              <BuildingSelectCombobox
                 value={selectedBuildingId}
                 onValueChange={setSelectedBuildingId}
-                disabled={isBuildingLoading}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn tòa nhà..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {buildingData?.data?.map((building) => (
-                    <SelectItem key={building._id} value={building._id}>
-                      {building.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
-
-            {selectedBuilding && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Thông tin tòa nhà</label>
-                <div className="p-3 bg-muted rounded-lg space-y-1">
-                  <p className="text-sm font-medium">{selectedBuilding.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedBuilding.address}
-                  </p>
-                  {selectedBuilding.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {selectedBuilding.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -296,7 +257,7 @@ const FloorManageLandlord = () => {
       )}
 
       {/* No Building Selected State */}
-      {!selectedBuildingId && !isBuildingLoading && (
+      {!selectedBuildingId && (
         <Card>
           <CardContent className="text-center py-12 space-y-3">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground/50" />

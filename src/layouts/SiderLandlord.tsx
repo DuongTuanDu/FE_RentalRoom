@@ -14,6 +14,7 @@ import {
   Bell,
   BarChart3,
   Layers,
+  Package,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -118,9 +119,14 @@ const menuItems = [
     icon: Wrench,
     items: [
       {
+        title: "Gói dịch vụ",
+        icon: Package,
+        path: "/landlord/package-services",
+      },
+      {
         title: "Dịch vụ phòng",
         icon: Wrench,
-        path: "/landlord/services",
+        path: "/landlord/building-services",
       },
       {
         title: "Yêu cầu sửa chữa",

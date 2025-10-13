@@ -5,6 +5,7 @@ import DashboardLandlord from '@/pages/DashboardLandlord'
 import BuildingManageLandlord from '@/pages/BuildingManageLandlord'
 import RoomManageLandlord from '@/pages/RoomManageLandlord'
 import FloorManageLandlord from '@/pages/FloorManageLandlord'
+import ServiceManageLandlord from '@/pages/ServiceManageLandlord'
 
 const landlordRoutes = (
   <>
@@ -12,6 +13,7 @@ const landlordRoutes = (
     <Route path='buildings' element={<BuildingManageLandlord />} />
     <Route path='rooms' element={<RoomManageLandlord />} />
     <Route path='floors' element={<FloorManageLandlord />} />
+    <Route path='package-services' element={<ServiceManageLandlord />} />
   </>
 ) as ReactElement
 
