@@ -178,8 +178,8 @@ export const BuildingSelectCombobox = ({
                         value === building._id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div className="flex flex-col items-start flex-1 min-w-0">
-                      <span className="font-medium truncate w-full">
+                    <div className="flex flex-col items-start min-w-0">
+                      <span className="font-medium truncate w-full text-start">
                         {building.name}
                       </span>
                       <span className="text-xs text-muted-foreground truncate w-full">
