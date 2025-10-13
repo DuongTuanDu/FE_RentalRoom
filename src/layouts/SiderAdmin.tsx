@@ -12,6 +12,7 @@ import {
   Calendar,
   Bell,
   BarChart3,
+  Package,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -100,9 +101,14 @@ const menuItems = [
     icon: Wrench,
     items: [
       {
+        title: "Gói dịch vụ",
+        icon: Package,
+        path: "/admin/package-services",
+      },
+      {
         title: "Dịch vụ phòng",
         icon: Wrench,
-        path: "/admin/services",
+        path: "/admin/building-services",
       },
       {
         title: "Yêu cầu sửa chữa",
