@@ -1,7 +1,15 @@
 // src/layouts/header.tsx
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, Home, Handshake, Building } from "lucide-react";
+import {
+  Menu,
+  Home,
+  Handshake,
+  Building,
+  User,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
 import { Button } from "@/components/ui/button";
@@ -15,14 +23,24 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
 import config from "@/config/config";
+import { useGetProfileQuery } from "@/services/profile/profile.service";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Header = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
- 
-  
+  const {  isAuthenticated } = useSelector((state: any) => state.auth);
+  const { data } = useGetProfileQuery();
+  const userInfo = data?.user;
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -40,8 +58,19 @@ const Header = () => {
   ];
 
   const handleLogout = () => {
-    dispatch(setLogout())
-  }
+    dispatch(setLogout());
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (!userInfo) return null;
 
   return (
     <header
@@ -90,17 +119,56 @@ const Header = () => {
             </div>
 
             {isAuthenticated ? (
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                className={`hidden md:flex px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer ${
-                  isScrolled
-                    ? "text-blue-600 hover:bg-blue-100"
-                    : "text-white hover:bg-white/20"
-                }`}
-              >
-                Đăng xuất
-              </Button>
+              <div className="hidden md:flex">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center space-x-2 h-auto p-2">
+                      <Avatar className="h-8 w-8">
+                        {/* <AvatarImage
+                          src={userInfo.avatarUrl || ""}
+                          alt={userInfo.userInfo.fullName}
+                        /> */}
+                        <AvatarFallback className="bg-teal-500 text-white">
+                          {userInfo.userInfo
+                            ? getInitials(userInfo.userInfo?.fullName)
+                            : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span
+                        className={`font-medium text-sm ${
+                          isScrolled ? "text-gray-700" : "text-white"
+                        }`}
+                      >
+                        {userInfo.userInfo?.fullName}
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile")}
+                      className="cursor-pointer"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Tài khoản</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/settings")}
+                      className="cursor-pointer"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Cài đặt</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <Button
                 onClick={() => navigate(config.loginPath)}
@@ -154,22 +222,75 @@ const Header = () => {
                   </nav>
 
                   {/* Language Selector */}
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 pl-2 border-t">
                     <LanguageSelector isScrolled={true} />
                   </div>
 
                   {/* Auth Section */}
-                  <div className="pt-4 border-t space-y-2">
-                    <Button
-                      onClick={() => {
-                        navigate("/auth/login");
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-                    >
-                      Đăng nhập
-                    </Button>
-                  </div>
+                  {isAuthenticated ? (
+                    <div className="hidden md:flex">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="flex items-center space-x-2 h-auto p-2">
+                            <Avatar className="h-8 w-8">
+                              {/* <AvatarImage
+                                src={userInfo.avatarUrl}
+                                alt={userInfo.username}
+                              /> */}
+                              <AvatarFallback className="bg-teal-500 text-white">
+                                {userInfo.userInfo.fullName
+                                  ? getInitials(userInfo.userInfo.fullName)
+                                  : "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span
+                              className={`font-medium text-sm ${
+                                isScrolled ? "text-gray-700" : "text-white"
+                              }`}
+                            >
+                              {userInfo.userInfo.fullName}
+                            </span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => navigate("/profile")}
+                            className="cursor-pointer"
+                          >
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Tài khoản</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => navigate("/settings")}
+                            className="cursor-pointer"
+                          >
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Cài đặt</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={handleLogout}
+                            className="cursor-pointer text-red-600 focus:text-red-600"
+                          >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Đăng xuất</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ) : (
+                    <div className="pt-4 border-t space-y-2">
+                      <Button
+                        onClick={() => {
+                          navigate("/auth/login");
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="bg-teal-600 hover:bg-teal-700 text-white"
+                      >
+                        Đăng nhập
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

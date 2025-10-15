@@ -8,6 +8,8 @@ import LayoutAdmin from "@/layouts/LayoutAdmin";
 import { useSelector } from "react-redux";
 import LayoutLandlord from "@/layouts/LayoutLandlord";
 import landlordRoutes from "./landlord.route";
+import residentRoute from "./resident.route";
+import LayoutUser from "@/layouts/LayoutUser";
 
 const RequireAdminRole = () => {
   const { accessToken, isAuthenticated, userInfo } = useSelector(
@@ -44,8 +46,31 @@ const RequireLandlordRole = () => {
   return <Outlet />;
 };
 
+const RequireResidentRole = () => {
+  const { accessToken, isAuthenticated, userInfo } = useSelector(
+    (state: any) => state.auth
+  );
+
+  // Kiểm tra xem có token không
+  if (!Cookies.get("accessToken")) {
+    return <Navigate to={config.loginPath} replace />;
+  }
+
+  if (!accessToken || !isAuthenticated || userInfo !== "resident") {
+    if (userInfo === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    return <Navigate to="/errors/403" replace />;
+  }
+
+  return <Outlet />;
+};
+
 const routes = (
   <>
+    <Route element={<RequireResidentRole />}>
+      <Route element={<LayoutUser />}>{residentRoute}</Route>
+    </Route>
     <Route path="admin" element={<RequireAdminRole />}>
       <Route element={<LayoutAdmin />}>{adminRoutes}</Route>
     </Route>
