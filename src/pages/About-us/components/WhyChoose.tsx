@@ -79,7 +79,7 @@ const WhyChoose = () => (
 
             {/* Hiệu ứng nền chìm phía sau card */}
             <div className="absolute inset-0 flex items-center justify-center -z-0 transition-transform duration-500 group-hover:translate-y-7">
-              <div className="w-[90%] h-[90%] bg-cyan-400/80 rounded-xl rotate-12 translate-y-3 transition-transform duration-500 group-hover:rotate-6 animate-pulse"></div>
+              <div className="w-[90%] h-[90%] bg-cyan-400/80 rounded-xl rotate-12 translate-y-3 transition-transform duration-500 group-hover:rotate-6"></div>
             </div>
 
             {/* Main white card */}

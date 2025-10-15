@@ -8,7 +8,7 @@ const LayoutUser = () => {
   return (
     <div className="min-h-screen flex flex-col overflow-hidden">
       <Header />
-      <div className="flex-grow min-h-screen">
+      <div className="flex-grow min-h-screen mt-16">
         <Outlet />
       <ScrollToTopButton />
 

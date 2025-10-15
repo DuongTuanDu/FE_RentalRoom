@@ -8,7 +8,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <section className="relative pt-12 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-12 items-center">
           {/* Content Left Side */}

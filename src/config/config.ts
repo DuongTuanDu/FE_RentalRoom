@@ -7,6 +7,7 @@ export default {
   verifyPath: '/auth/verify',
   sendOtpPath: '/auth/send-otp',
   resetPasswordPath: '/auth/reset-password',
+  profilePath: '/profile',
   roleAdmin: "admin",
   roleLandlord: "landlord"
 }

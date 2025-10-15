@@ -7,16 +7,25 @@ interface IAuthState {
   emailVerify: string;
   isAuthenticated: boolean;
   userInfo: {
-    id: number;
-    name: string;
-    username: string;
+    _id: string;
     email: string;
-    phone: string;
-    avatarPublicId: string;
-    avatarUrl: string;
-    role: number;
-    status: number;
+    role: string;
+    isActivated: string;
+    userInfor: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+      dob: string;
+      gender: string;
+      address: {
+        address: string;
+        provinceName: string;
+        districtName: string;
+        wardName: string;
+      }[];
+    };
     createdAt: string;
+    updatedAt: string;
   };
 }
 
@@ -25,16 +34,27 @@ const initialState: IAuthState = {
   emailVerify: "",
   isAuthenticated: false,
   userInfo: {
-    id: 0,
-    name: "",
-    username: "",
+    _id: "",
     email: "",
-    phone: "",
-    avatarPublicId: "",
-    avatarUrl: "",
-    role: 0,
-    status: 0,
+    role: "",
+    isActivated: "",
+    userInfor: {
+      _id: "",
+      fullName: "",
+      phoneNumber: "",
+      dob: "",
+      gender: "",
+      address: [
+        {
+          address: "",
+          provinceName: "",
+          districtName: "",
+          wardName: "",
+        },
+      ],
+    },
     createdAt: "",
+    updatedAt: "",
   },
 };
 
@@ -53,16 +73,27 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.isAuthenticated = false;
       state.userInfo = {
-        id: 0,
-        name: "",
-        username: "",
+        _id: "",
         email: "",
-        phone: "",
-        avatarPublicId: "",
-        avatarUrl: "",
-        role: 0,
-        status: 0,
+        role: "",
+        isActivated: "",
+        userInfor: {
+          _id: "",
+          fullName: "",
+          phoneNumber: "",
+          dob: "",
+          gender: "",
+          address: [
+            {
+              address: "",
+              provinceName: "",
+              districtName: "",
+              wardName: "",
+            },
+          ],
+        },
         createdAt: "",
+        updatedAt: "",
       };
       Cookies.remove("accessToken");
     },
@@ -73,12 +104,17 @@ const authSlice = createSlice({
       state.isAuthenticated = action.payload;
     },
     setUserInfo(state, action) {
-      state.userInfo = action.payload
-    }
+      state.userInfo = action.payload;
+    },
   },
 });
 
-export const { setLogin, setLogout, setEmailVerify, setIsAuthenticated, setUserInfo } =
-  authSlice.actions;
+export const {
+  setLogin,
+  setLogout,
+  setEmailVerify,
+  setIsAuthenticated,
+  setUserInfo,
+} = authSlice.actions;
 
 export default authSlice.reducer;
