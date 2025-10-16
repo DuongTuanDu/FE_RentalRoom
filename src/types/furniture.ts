@@ -20,5 +20,5 @@ export interface IFurnitureRequest {
     status: "active" | "inactive";
 }
 
-export type FurnitureResponse = IFurniture[];
+export type IFurnitureResponse = IFurniture[];
 

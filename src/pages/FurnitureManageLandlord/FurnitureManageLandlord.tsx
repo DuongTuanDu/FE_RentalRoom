@@ -160,7 +160,7 @@ const FurnitureManageLandlord = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((furniture) => (
+                  {data.map((furniture: IFurniture) => (
                     <TableRow key={furniture._id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">

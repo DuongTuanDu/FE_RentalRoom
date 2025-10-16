@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { FurnitureResponse, IFurnitureRequest } from "@/types/furniture";
+import type { IFurnitureResponse, IFurnitureRequest } from "@/types/furniture";
 
 export const furnitureApi = createApi({
     reducerPath: "furnitureApi",
@@ -10,7 +10,7 @@ export const furnitureApi = createApi({
     },
     tagTypes: ["Furniture"],
     endpoints: (builder) => ({
-        getFurnitures: builder.query<FurnitureResponse, void>({
+        getFurnitures: builder.query<IFurnitureResponse, void>({
             query: () => {
                 return {
                     url: "/furnitures",
@@ -19,7 +19,7 @@ export const furnitureApi = createApi({
             },
             providesTags: ["Furniture"],
         }),
-        createFurniture: builder.mutation<FurnitureResponse, IFurnitureRequest>({
+        createFurniture: builder.mutation<IFurnitureResponse, IFurnitureRequest>({
             query: (data) => ({
                 url: "/furnitures",
                 method: "POST",
@@ -27,7 +27,7 @@ export const furnitureApi = createApi({
             }),
             invalidatesTags: ["Furniture"],
         }),
-        updateFurniture: builder.mutation<FurnitureResponse, {id: string; data: IFurnitureRequest}>({
+        updateFurniture: builder.mutation<IFurnitureResponse, {id: string; data: IFurnitureRequest}>({
             query: ({id, data}) => ({
                 url: `/furnitures/${id}`,
                 method: "PUT",
@@ -35,7 +35,7 @@ export const furnitureApi = createApi({
             }),
             invalidatesTags: ["Furniture"],
         }),
-        deleteFurniture: builder.mutation<FurnitureResponse, string>({
+        deleteFurniture: builder.mutation<IFurnitureResponse, string>({
             query: (id) => ({
                 url: `/furnitures/${id}`,
                 method: "DELETE",
