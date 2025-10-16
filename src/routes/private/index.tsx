@@ -21,8 +21,10 @@ const RequireAdminRole = () => {
     return <Navigate to={config.loginPath} replace />;
   }
 
+  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
+
   // Nếu chưa có thông tin auth hoặc role không phải là admin
-  if (!accessToken || !isAuthenticated || userInfo !== "admin") {
+  if (!accessToken || !isAuthenticated || role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
@@ -39,7 +41,9 @@ const RequireLandlordRole = () => {
     return <Navigate to={config.loginPath} replace />;
   }
 
-  if (!accessToken || !isAuthenticated || userInfo !== "landlord") {
+  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
+
+  if (!accessToken || !isAuthenticated || role !== "landlord") {
     return <Navigate to="/" replace />;
   }
 
@@ -56,7 +60,9 @@ const RequireResidentRole = () => {
     return <Navigate to={config.loginPath} replace />;
   }
 
-  if (!accessToken || !isAuthenticated || userInfo !== "resident") {
+  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
+
+  if (!accessToken || !isAuthenticated || role !== "resident") {
     if (userInfo === "admin") {
       return <Navigate to="/admin/dashboard" replace />;
     }

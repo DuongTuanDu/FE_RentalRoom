@@ -6,6 +6,8 @@ import { roomApi } from "../services/room/room.service";
 import { floorApi } from "../services/floor/floor.service";
 import { packageServicesApi } from "../services/package-services/package-services.service";
 import { profileApi } from "../services/profile/profile.service";
+import { furnitureApi } from "../services/furniture/furniture.service";
+import { buildingFurnitureApi } from "../services/building-furniture/building-furniture.service";
 import authReducer from "../services/auth/auth.slice";
 import storage from "redux-persist/lib/storage";
 
@@ -27,6 +29,8 @@ export const store = configureStore({
     [floorApi.reducerPath]: floorApi.reducer,
     [packageServicesApi.reducerPath]: packageServicesApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
+    [furnitureApi.reducerPath]: furnitureApi.reducer,
+    [buildingFurnitureApi.reducerPath]: buildingFurnitureApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -39,7 +43,9 @@ export const store = configureStore({
       roomApi.middleware,
       floorApi.middleware,
       packageServicesApi.middleware,
-      profileApi.middleware
+      profileApi.middleware,
+      furnitureApi.middleware,
+      buildingFurnitureApi.middleware
     ),
 });
 
