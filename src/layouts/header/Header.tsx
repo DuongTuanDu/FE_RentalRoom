@@ -37,8 +37,10 @@ const Header = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const {  isAuthenticated } = useSelector((state: any) => state.auth);
-  const { data } = useGetProfileQuery();
+  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const { data } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
   const userInfo = data?.user;
 
   const dispatch = useDispatch();
@@ -69,8 +71,6 @@ const Header = () => {
       .toUpperCase()
       .slice(0, 2);
   };
-
-  if (!userInfo) return null;
 
   return (
     <header
@@ -118,7 +118,7 @@ const Header = () => {
               <LanguageSelector isScrolled={isScrolled} />
             </div>
 
-            {isAuthenticated ? (
+            {isAuthenticated && userInfo ? (
               <div className="hidden md:flex">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -238,8 +238,8 @@ const Header = () => {
                                 alt={userInfo.username}
                               /> */}
                               <AvatarFallback className="bg-teal-500 text-white">
-                                {userInfo.userInfo.fullName
-                                  ? getInitials(userInfo.userInfo.fullName)
+                                {userInfo?.userInfo?.fullName
+                                  ? getInitials(userInfo?.userInfo?.fullName)
                                   : "U"}
                               </AvatarFallback>
                             </Avatar>
@@ -248,7 +248,7 @@ const Header = () => {
                                 isScrolled ? "text-gray-700" : "text-white"
                               }`}
                             >
-                              {userInfo.userInfo.fullName}
+                              {userInfo?.userInfo?.fullName}
                             </span>
                           </button>
                         </DropdownMenuTrigger>

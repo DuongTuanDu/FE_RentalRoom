@@ -24,6 +24,7 @@ import useValidateLoginFormHook from "@/hooks/login/useValidateLoginForm.hook";
 import { useDispatch } from "react-redux";
 import { setIsAuthenticated, setUserInfo } from "@/services/auth/auth.slice";
 import { toast } from "sonner";
+import { profileApi } from "@/services/profile/profile.service";
 
 const BE_URL = import.meta.env.ENV_ENDPOINT_API;
 
@@ -31,6 +32,7 @@ const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
+  const [triggerGetProfile] = profileApi.endpoints.getProfile.useLazyQuery();
   const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +47,9 @@ const Login = () => {
     try {
       const res = await login(data).unwrap();
       if (res.status) {
+        dispatch(setIsAuthenticated(true));
+        dispatch(setUserInfo(res.role));
+        await triggerGetProfile();
         if (res.role === config.roleAdmin) {
           navigate(config.adminDashboardPath);
         } else if (res.role === config.roleLandlord) {
@@ -53,8 +58,6 @@ const Login = () => {
           navigate(config.homePath);
         }
         toast.success(res.message);
-        dispatch(setIsAuthenticated(true));
-        dispatch(setUserInfo(res.role));
       }
     } catch (err: any) {
       console.log("err", err);
@@ -102,11 +105,10 @@ const Login = () => {
                   type="text"
                   {...emailRegister}
                   placeholder="Nhập email hoặc tên đăng nhập"
-                  className={`pl-10 h-11  ${
-                    errors.email
+                  className={`pl-10 h-11  ${errors.email
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                       : ""
-                  }`}
+                    }`}
                 />
               </div>
               {errors.email && (
@@ -131,11 +133,10 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   {...passwordRegister}
                   placeholder="Nhập mật khẩu"
-                  className={`pl-10 pr-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
-                    errors.password
+                  className={`pl-10 pr-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.password
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                       : ""
-                  }`}
+                    }`}
                 />
                 <button
                   type="button"

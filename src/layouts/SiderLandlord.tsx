@@ -136,6 +136,27 @@ const menuItems = [
     ],
   },
   {
+    title: "Quản lý nội thất",
+    icon: Layers,
+    items : [
+      {
+        title: "Danh mục nội thất",
+        icon: Layers,
+        path: "/landlord/furnitures",
+      },
+      {
+        title: "Quản lý theo tòa nhà",
+        icon: Layers,
+        path: "/landlord/building-furniture",
+      },
+      {
+        title: "Quản lý theo phòng",
+        icon: Layers,
+        path: "/landlord/room-furniture",
+      }
+    ]
+  },
+  {
     title: "Thông báo",
     icon: Bell,
     path: "/landlord/notifications",
