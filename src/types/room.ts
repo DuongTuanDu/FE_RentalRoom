@@ -2,14 +2,25 @@
 
 export interface IRoom {
   id: string;
-  buildingId: string;
-  floorId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+    address: string;
+    description: string;
+    ePrice: number;
+    wPrice: number;
+  };
+  floorId: {
+    id: string;
+    label: string;
+  };
   roomNumber: string;
   area: number;
   price: number;
   maxTenants: number;
   status: "available" | "rented" | "maintenance";
   description: string;
+  images?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +41,7 @@ export interface CreateRoomRequest {
   maxTenants: number;
   status: "available" | "rented" | "maintenance";
   description?: string;
+  images?: File[];
 }
 
 export interface UpdateRoomRequest {
@@ -41,5 +53,8 @@ export interface UpdateRoomRequest {
     maxTenants: number;
     status: "available" | "rented" | "maintenance";
     description: string;
+    images?: File[];
+    removeUrls?: string[];
+    replaceAllImages?: boolean;
   }>;
 }

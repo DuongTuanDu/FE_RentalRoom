@@ -65,13 +65,45 @@ export const baseQuery = async <T = any>({
   config = {},
 }: BaseQueryArgs): Promise<BaseQueryResult<T>> => {
   try {
-    const response = await axiosInstance({
-      url,
-      method,
-      data,
-      params,
-      ...config,
-    });
+    // Check if data is FormData to handle multipart/form-data
+    const isFormData = data instanceof FormData;
+    
+    let response;
+    
+    if (isFormData) {
+      // For FormData, create a new axios instance without default headers
+      const formDataInstance = axios.create({
+        baseURL: API_URL,
+        timeout: TIMEOUT,
+        headers: {
+          Accept: "application/json",
+          // Don't set Content-Type for FormData - let axios handle it
+        },
+      });
+      
+      // Add auth token if available
+      const accessToken = Cookies.get("accessToken");
+      if (accessToken) {
+        formDataInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      }
+      
+      response = await formDataInstance({
+        url,
+        method,
+        data,
+        params,
+        ...config,
+      });
+    } else {
+      // Use regular instance for JSON data
+      response = await axiosInstance({
+        url,
+        method,
+        data,
+        params,
+        ...config,
+      });
+    }
 
     return { data: response.data as T };
   } catch (error) {

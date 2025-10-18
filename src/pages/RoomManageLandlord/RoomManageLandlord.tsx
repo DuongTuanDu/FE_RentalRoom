@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, DoorOpen } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, DoorOpen, Image as ImageIcon } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -41,8 +41,9 @@ import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from "./const/data";
 import { Spinner } from "@/components/ui/spinner";
 import { ModalRoom } from "./components/ModalRoom";
 import { DeleteRoomPopover } from "./components/DeleteRoomPopover";
+import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
-import type { IRoom, CreateRoomRequest } from "@/types/room";
+import type { IRoom } from "@/types/room";
 
 const RoomManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -60,6 +61,10 @@ const RoomManageLandlord = () => {
   // Delete dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingRoom, setDeletingRoom] = useState<IRoom | null>(null);
+
+  // Room detail drawer states
+  const [isRoomDetailOpen, setIsRoomDetailOpen] = useState(false);
+  const [viewingRoomId, setViewingRoomId] = useState<string | null>(null);
 
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
@@ -143,12 +148,32 @@ const RoomManageLandlord = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSubmitRoom = async (data: CreateRoomRequest) => {
+  const handleOpenRoomDetail = (room: IRoom) => {
+    setViewingRoomId(room.id);
+    setIsRoomDetailOpen(true);
+  };
+
+  const handleSubmitRoom = async (data: any) => {
     try {
       if (editingRoom) {
+        // For edit mode, only send the fields that can be updated
+        const updateData = {
+          roomNumber: data.roomNumber,
+          area: data.area,
+          price: data.price,
+          maxTenants: data.maxTenants,
+          status: data.status,
+          description: data.description,
+          images: data.images,
+          removeUrls: data.removeUrls,
+          replaceAllImages: data.replaceAllImages,
+        };
+        
+        console.log('Updating room with filtered data:', updateData);
+        
         await updateRoom({
           id: editingRoom.id,
-          data,
+          data: updateData,
         }).unwrap();
         toast.success("Cập nhật phòng thành công!");
       } else {
@@ -211,6 +236,7 @@ const RoomManageLandlord = () => {
           Thêm Phòng Mới
         </Button>
       </div>
+
 
       {/* Filters Card */}
       <Card>
@@ -322,6 +348,7 @@ const RoomManageLandlord = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Số phòng</TableHead>
+                      <TableHead>Hình ảnh</TableHead>
                       <TableHead>Diện tích</TableHead>
                       <TableHead>Giá thuê</TableHead>
                       <TableHead>Sức chứa</TableHead>
@@ -337,6 +364,31 @@ const RoomManageLandlord = () => {
                           <div className="flex items-center gap-2">
                             <DoorOpen className="h-4 w-4 text-muted-foreground" />
                             {room.roomNumber}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {room.images && room.images.length > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <div className="w-8 h-8 rounded-md overflow-hidden border">
+                                  <img
+                                    src={room.images[0]}
+                                    alt={`${room.roomNumber} image`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                {room.images.length > 1 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{room.images.length - 1}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <ImageIcon className="h-4 w-4" />
+                                <span className="text-xs">Chưa có ảnh</span>
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>{room.area} m²</TableCell>
@@ -361,6 +413,8 @@ const RoomManageLandlord = () => {
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
+                              onClick={() => handleOpenRoomDetail(room)}
+                              title="Xem chi tiết"
                             >
                               <Eye className="h-4 w-4 text-blue-600" />
                             </Button>
@@ -369,6 +423,7 @@ const RoomManageLandlord = () => {
                               size="sm"
                               className="h-8 w-8 p-0"
                               onClick={() => handleOpenEditModal(room)}
+                              title="Chỉnh sửa"
                             >
                               <Edit className="h-4 w-4 text-amber-600" />
                             </Button>
@@ -377,6 +432,7 @@ const RoomManageLandlord = () => {
                               size="sm"
                               className="h-8 w-8 p-0"
                               onClick={() => handleOpenDeleteDialog(room)}
+                              title="Xóa phòng"
                             >
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
@@ -503,6 +559,18 @@ const RoomManageLandlord = () => {
         room={deletingRoom}
         onConfirm={handleConfirmDelete}
         isLoading={isDeleting}
+      />
+
+      {/* Room Detail Drawer */}
+      <RoomDetail
+        open={isRoomDetailOpen}
+        onOpenChange={(open) => {
+          setIsRoomDetailOpen(open);
+          if (!open) {
+            setViewingRoomId(null);
+          }
+        }}
+        roomId={viewingRoomId}
       />
     </div>
   );
