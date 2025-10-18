@@ -135,12 +135,17 @@ const menuItems = [
         icon: ClipboardList,
         path: "/landlord/maintenance",
       },
+      {
+        title: "Quản lý quy định tòa",
+        icon: FileText,
+        path: "/landlord/regulations",
+      },
     ],
   },
   {
     title: "Quản lý nội thất",
     icon: Layers,
-    items : [
+    items: [
       {
         title: "Danh mục nội thất",
         icon: ListChecks,
@@ -155,8 +160,8 @@ const menuItems = [
         title: "Quản lý theo phòng",
         icon: BedDouble,
         path: "/landlord/room-furniture",
-      }
-    ]
+      },
+    ],
   },
   {
     title: "Thông báo",
@@ -184,7 +189,8 @@ const AppSidebar = () => {
   const adminInfo = {
     name: authState.userInfo ? "Chủ trọ" : "Quản trị viên",
     email: authState.userInfo?.email || "landlord@phongtro.com",
-    avatar: authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
+    avatar:
+      authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
     role: "landlord",
   };
 
