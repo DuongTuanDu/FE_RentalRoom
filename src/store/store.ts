@@ -10,6 +10,7 @@ import { furnitureApi } from "../services/furniture/furniture.service";
 import { buildingFurnitureApi } from "../services/building-furniture/building-furniture.service";
 import { roomFurnitureApi } from "../services/room-furniture/room-furniture.service";
 import { regulationApi } from "../services/regulation/regulation.service";
+import { buildingServicesApi } from "../services/building-services/building-services.service";
 import authReducer from "../services/auth/auth.slice";
 import storage from "redux-persist/lib/storage";
 
@@ -34,7 +35,8 @@ export const store = configureStore({
     [furnitureApi.reducerPath]: furnitureApi.reducer,
     [buildingFurnitureApi.reducerPath]: buildingFurnitureApi.reducer,
     [roomFurnitureApi.reducerPath]: roomFurnitureApi.reducer,
-    [regulationApi.reducerPath]: regulationApi.reducer
+    [regulationApi.reducerPath]: regulationApi.reducer,
+    [buildingServicesApi.reducerPath]: buildingServicesApi.reducer
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -51,7 +53,8 @@ export const store = configureStore({
       furnitureApi.middleware,
       buildingFurnitureApi.middleware,
       roomFurnitureApi.middleware,
-      regulationApi.middleware
+      regulationApi.middleware,
+      buildingServicesApi.middleware
     ),
 });
 
