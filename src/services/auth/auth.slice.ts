@@ -27,6 +27,7 @@ interface IAuthState {
     createdAt: string;
     updatedAt: string;
   };
+  role: string;
 }
 
 const initialState: IAuthState = {
@@ -56,6 +57,7 @@ const initialState: IAuthState = {
     createdAt: "",
     updatedAt: "",
   },
+  role: "",
 };
 
 const authSlice = createSlice({
@@ -72,6 +74,7 @@ const authSlice = createSlice({
     setLogout: (state) => {
       state.accessToken = null;
       state.isAuthenticated = false;
+      state.role = "";
       state.userInfo = {
         _id: "",
         email: "",
@@ -103,6 +106,9 @@ const authSlice = createSlice({
     setIsAuthenticated(state, action) {
       state.isAuthenticated = action.payload;
     },
+    setRole(state, action) {
+      state.role = action.payload;
+    },
     setUserInfo(state, action) {
       state.userInfo = action.payload;
     },
@@ -115,6 +121,7 @@ export const {
   setEmailVerify,
   setIsAuthenticated,
   setUserInfo,
+  setRole
 } = authSlice.actions;
 
 export default authSlice.reducer;

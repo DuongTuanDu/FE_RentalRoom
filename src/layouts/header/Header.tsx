@@ -118,7 +118,7 @@ const Header = () => {
               <LanguageSelector isScrolled={isScrolled} />
             </div>
 
-            {isAuthenticated && userInfo ? (
+            {isAuthenticated ? (
               <div className="hidden md:flex">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -129,7 +129,7 @@ const Header = () => {
                           alt={userInfo.userInfo.fullName}
                         /> */}
                         <AvatarFallback className="bg-teal-500 text-white">
-                          {userInfo.userInfo
+                          {userInfo?.userInfo
                             ? getInitials(userInfo.userInfo?.fullName)
                             : "U"}
                         </AvatarFallback>
@@ -139,7 +139,7 @@ const Header = () => {
                           isScrolled ? "text-gray-700" : "text-white"
                         }`}
                       >
-                        {userInfo.userInfo?.fullName}
+                        {userInfo?.userInfo?.fullName}
                       </span>
                     </button>
                   </DropdownMenuTrigger>

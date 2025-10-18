@@ -15,6 +15,8 @@ import {
   BarChart3,
   Layers,
   Package,
+  ListChecks,
+  BedDouble,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -133,28 +135,33 @@ const menuItems = [
         icon: ClipboardList,
         path: "/landlord/maintenance",
       },
+      {
+        title: "Quản lý quy định tòa",
+        icon: FileText,
+        path: "/landlord/regulations",
+      },
     ],
   },
   {
     title: "Quản lý nội thất",
     icon: Layers,
-    items : [
+    items: [
       {
         title: "Danh mục nội thất",
-        icon: Layers,
+        icon: ListChecks,
         path: "/landlord/furnitures",
       },
       {
         title: "Quản lý theo tòa nhà",
-        icon: Layers,
+        icon: Building2,
         path: "/landlord/building-furniture",
       },
       {
         title: "Quản lý theo phòng",
-        icon: Layers,
+        icon: BedDouble,
         path: "/landlord/room-furniture",
-      }
-    ]
+      },
+    ],
   },
   {
     title: "Thông báo",
@@ -182,7 +189,8 @@ const AppSidebar = () => {
   const adminInfo = {
     name: authState.userInfo ? "Chủ trọ" : "Quản trị viên",
     email: authState.userInfo?.email || "landlord@phongtro.com",
-    avatar: authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
+    avatar:
+      authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
     role: "landlord",
   };
 
