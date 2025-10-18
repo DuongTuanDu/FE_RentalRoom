@@ -129,7 +129,6 @@ const BuildingFurnitureLandlord = () => {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Building2 className="h-8 w-8" />
             Quản lý Nội Thất Theo Tòa
           </h1>
           <p className="text-muted-foreground">

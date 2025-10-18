@@ -196,7 +196,6 @@ const RoomManageLandlord = () => {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <DoorOpen className="h-8 w-8" />
             Quản lý Phòng
           </h1>
           <p className="text-muted-foreground">
