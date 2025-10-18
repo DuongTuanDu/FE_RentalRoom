@@ -12,7 +12,7 @@ import residentRoute from "./resident.route";
 import LayoutUser from "@/layouts/LayoutUser";
 
 const RequireAdminRole = () => {
-  const { accessToken, isAuthenticated, userInfo } = useSelector(
+  const { accessToken, isAuthenticated, role } = useSelector(
     (state: any) => state.auth
   );
 
@@ -20,8 +20,6 @@ const RequireAdminRole = () => {
   if (!Cookies.get("accessToken")) {
     return <Navigate to={config.loginPath} replace />;
   }
-
-  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
 
   // Nếu chưa có thông tin auth hoặc role không phải là admin
   if (!accessToken || !isAuthenticated || role !== "admin") {
@@ -32,7 +30,7 @@ const RequireAdminRole = () => {
 };
 
 const RequireLandlordRole = () => {
-  const { accessToken, isAuthenticated, userInfo } = useSelector(
+  const { accessToken, isAuthenticated, role } = useSelector(
     (state: any) => state.auth
   );
 
@@ -40,8 +38,6 @@ const RequireLandlordRole = () => {
   if (!Cookies.get("accessToken")) {
     return <Navigate to={config.loginPath} replace />;
   }
-
-  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
 
   if (!accessToken || !isAuthenticated || role !== "landlord") {
     return <Navigate to="/" replace />;
@@ -51,7 +47,7 @@ const RequireLandlordRole = () => {
 };
 
 const RequireResidentRole = () => {
-  const { accessToken, isAuthenticated, userInfo } = useSelector(
+  const { accessToken, isAuthenticated, role } = useSelector(
     (state: any) => state.auth
   );
 
@@ -60,10 +56,8 @@ const RequireResidentRole = () => {
     return <Navigate to={config.loginPath} replace />;
   }
 
-  const role = typeof userInfo === 'string' ? userInfo : userInfo?.role;
-
   if (!accessToken || !isAuthenticated || role !== "resident") {
-    if (userInfo === "admin") {
+    if (role === "admin") {
       return <Navigate to="/admin/dashboard" replace />;
     }
     return <Navigate to="/errors/403" replace />;

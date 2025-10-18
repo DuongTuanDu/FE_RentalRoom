@@ -22,7 +22,7 @@ import {
 } from "@/services/auth/auth.service";
 import useValidateLoginFormHook from "@/hooks/login/useValidateLoginForm.hook";
 import { useDispatch } from "react-redux";
-import { setIsAuthenticated, setUserInfo } from "@/services/auth/auth.slice";
+import { setIsAuthenticated, setRole } from "@/services/auth/auth.slice";
 import { toast } from "sonner";
 import { profileApi } from "@/services/profile/profile.service";
 
@@ -47,8 +47,10 @@ const Login = () => {
     try {
       const res = await login(data).unwrap();
       if (res.status) {
+        console.log("res", res);
+        
         dispatch(setIsAuthenticated(true));
-        dispatch(setUserInfo(res.role));
+        dispatch(setRole(res.role));
         await triggerGetProfile();
         if (res.role === config.roleAdmin) {
           navigate(config.adminDashboardPath);

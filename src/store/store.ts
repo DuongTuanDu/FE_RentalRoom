@@ -8,6 +8,7 @@ import { packageServicesApi } from "../services/package-services/package-service
 import { profileApi } from "../services/profile/profile.service";
 import { furnitureApi } from "../services/furniture/furniture.service";
 import { buildingFurnitureApi } from "../services/building-furniture/building-furniture.service";
+import { roomFurnitureApi } from "../services/room-furniture/room-furniture.service";
 import authReducer from "../services/auth/auth.slice";
 import storage from "redux-persist/lib/storage";
 
@@ -15,7 +16,7 @@ import storage from "redux-persist/lib/storage";
 const persistConfig = {
   key: "auth",
   storage,
-  whitelist: ["isAuthenticated", "accessToken", "userInfo"],
+  whitelist: ["isAuthenticated", "accessToken", "role", "userInfo"],
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
@@ -31,6 +32,7 @@ export const store = configureStore({
     [profileApi.reducerPath]: profileApi.reducer,
     [furnitureApi.reducerPath]: furnitureApi.reducer,
     [buildingFurnitureApi.reducerPath]: buildingFurnitureApi.reducer,
+    [roomFurnitureApi.reducerPath]: roomFurnitureApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -45,7 +47,8 @@ export const store = configureStore({
       packageServicesApi.middleware,
       profileApi.middleware,
       furnitureApi.middleware,
-      buildingFurnitureApi.middleware
+      buildingFurnitureApi.middleware,
+      roomFurnitureApi.middleware
     ),
 });
 

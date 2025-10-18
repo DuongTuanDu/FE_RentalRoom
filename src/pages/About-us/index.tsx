@@ -19,11 +19,8 @@ import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import Testimonials from "./components/Testimonials";
 import WhyChoose from "./components/WhyChoose";
-import { useGetProfileQuery } from "@/services/profile/profile.service";
 
 const AboutUsPage = () => {
-  const {data} = useGetProfileQuery();
-  
   useEffect(() => {
     AOS.init({
       duration: 600,

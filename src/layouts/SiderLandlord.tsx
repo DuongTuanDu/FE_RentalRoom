@@ -15,6 +15,8 @@ import {
   BarChart3,
   Layers,
   Package,
+  ListChecks,
+  BedDouble,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -141,17 +143,17 @@ const menuItems = [
     items : [
       {
         title: "Danh mục nội thất",
-        icon: Layers,
+        icon: ListChecks,
         path: "/landlord/furnitures",
       },
       {
         title: "Quản lý theo tòa nhà",
-        icon: Layers,
+        icon: Building2,
         path: "/landlord/building-furniture",
       },
       {
         title: "Quản lý theo phòng",
-        icon: Layers,
+        icon: BedDouble,
         path: "/landlord/room-furniture",
       }
     ]
