@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { DoorOpen, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { DoorOpen, Loader2, Upload, X } from "lucide-react";
 import { BuildingSelectCombobox } from "../../FloorManageLandlord/components/BuildingSelectCombobox";
 import { useGetFloorsQuery } from "@/services/floor/floor.service";
 import type { IRoom, CreateRoomRequest } from "@/types/room";
@@ -82,6 +84,12 @@ export const ModalRoom = ({
   defaultBuildingId = "",
 }: ModalRoomProps) => {
   const isEditMode = !!room;
+  
+  // Image management states
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
+  const [replaceAllImages, setReplaceAllImages] = useState(false);
 
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema) as any,
@@ -107,9 +115,11 @@ export const ModalRoom = ({
   useEffect(() => {
     if (open) {
       if (room) {
+        console.log("room", room);
+        
         form.reset({
-          buildingId: room.buildingId,
-          floorId: room.floorId,
+          buildingId: room.buildingId._id,
+          floorId: room.floorId.id,
           roomNumber: room.roomNumber,
           area: room.area,
           price: room.price,
@@ -117,6 +127,8 @@ export const ModalRoom = ({
           status: room.status,
           description: room.description || "",
         });
+        // Set existing images
+        setExistingImages(room.images || []);
       } else {
         form.reset({
           buildingId: defaultBuildingId,
@@ -128,7 +140,13 @@ export const ModalRoom = ({
           status: "available",
           description: "",
         });
+        // Reset image states
+        setExistingImages([]);
       }
+      // Reset image management states
+      setSelectedFiles([]);
+      setImagesToRemove([]);
+      setReplaceAllImages(false);
     }
   }, [open, room, defaultBuildingId, form]);
 
@@ -138,8 +156,40 @@ export const ModalRoom = ({
     }
   }, [selectedBuildingId, isEditMode, form]);
 
+  // Image handling functions
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (imageUrl: string) => {
+    setImagesToRemove(prev => [...prev, imageUrl]);
+    setExistingImages(prev => prev.filter(img => img !== imageUrl));
+  };
+
+
   const handleSubmit = async (data: RoomFormValues) => {
-    await onSubmit(data);
+    const submitData: any = {
+      ...data,
+      images: selectedFiles,
+    };
+
+    if (isEditMode) {
+      submitData.removeUrls = imagesToRemove;
+      submitData.replaceAllImages = replaceAllImages;
+    }
+
+    // Debug: Log the data being submitted
+    console.log('Submitting room data:', {
+      ...submitData,
+      images: selectedFiles.map(f => ({ name: f.name, size: f.size, type: f.type }))
+    });
+
+    await onSubmit(submitData);
   };
 
   return (
@@ -380,6 +430,138 @@ export const ModalRoom = ({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Images Section */}
+            <div className="space-y-4 p-4 bg-secondary/50 rounded-lg border">
+              <h3 className="text-sm font-semibold">Hình ảnh phòng</h3>
+              
+              {/* Existing Images (Edit Mode) */}
+              {isEditMode && existingImages.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Ảnh hiện tại</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {existingImages.map((imageUrl, index) => (
+                      <Card key={index} className="relative group">
+                        <CardContent className="p-2">
+                          <div className="aspect-square relative overflow-hidden rounded-md">
+                            <img
+                              src={imageUrl}
+                              alt={`Room image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeExistingImage(imageUrl)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {imagesToRemove.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      <Badge variant="outline" className="mr-2">
+                        {imagesToRemove.length} ảnh sẽ bị xóa
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setImagesToRemove([]);
+                          setExistingImages(room?.images || []);
+                        }}
+                      >
+                        Hoàn tác
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* File Upload */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {isEditMode ? "Thêm ảnh mới" : "Tải lên ảnh"}
+                </label>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="image-upload"
+                    disabled={isLoading}
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center space-y-2 cursor-pointer"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <div className="text-sm text-muted-foreground text-center">
+                      <p>Nhấp để chọn ảnh hoặc kéo thả vào đây</p>
+                      <p className="text-xs">Hỗ trợ: JPG, PNG, WEBP (tối đa 10MB mỗi ảnh)</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Selected Files Preview */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Ảnh đã chọn</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedFiles.map((file, index) => (
+                      <Card key={index} className="relative group">
+                        <CardContent className="p-2">
+                          <div className="aspect-square relative overflow-hidden rounded-md">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Selected ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeSelectedFile(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                            {file.name}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Replace All Images Option (Edit Mode) */}
+              {isEditMode && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="replace-all"
+                    checked={replaceAllImages}
+                    onChange={(e) => setReplaceAllImages(e.target.checked)}
+                    className="rounded"
+                  />
+                  <label htmlFor="replace-all" className="text-sm">
+                    Thay thế toàn bộ ảnh cũ bằng ảnh mới
+                  </label>
+                </div>
+              )}
             </div>
 
             <DialogFooter>
