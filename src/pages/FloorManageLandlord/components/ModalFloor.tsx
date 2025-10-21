@@ -42,7 +42,6 @@ export const ModalFloor = ({
   } = useForm<CreateFloorRequest>({
     defaultValues: {
       buildingId,
-      label: "",
       level: 1,
       description: "",
     },
@@ -52,14 +51,12 @@ export const ModalFloor = ({
     if (floor) {
       reset({
         buildingId: floor.buildingId,
-        label: floor.label,
         level: floor.level,
         description: floor.description || "",
       });
     } else {
       reset({
         buildingId: buildingId,
-        label: "",
         level: 1,
         description: "",
       });
@@ -69,7 +66,6 @@ export const ModalFloor = ({
   const handleFormSubmit = (data: CreateFloorRequest) => {
     const payload = isEdit 
       ? {
-          label: data.label,
           level: data.level,
           description: data.description,
         }
@@ -97,35 +93,19 @@ export const ModalFloor = ({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="label">
-              Tên tầng <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="label"
-              placeholder="Ví dụ: Tầng 1, Tầng trệt..."
-              {...register("label", {
-                required: "Tên tầng là bắt buộc",
-              })}
-            />
-            {errors.label && (
-              <p className="text-sm text-destructive">{errors.label.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="level">
-              Cấp độ <span className="text-destructive">*</span>
+              Tầng <span className="text-destructive">*</span>
             </Label>
             <Input
               id="level"
               type="number"
               placeholder="Ví dụ: 1, 2, 3..."
               {...register("level", {
-                required: "Cấp độ là bắt buộc",
+                required: "Tầng là bắt buộc",
                 valueAsNumber: true,
                 min: {
                   value: -2,
-                  message: "Cấp độ phải lớn hơn hoặc bằng -2",
+                  message: "Tầng phải lớn hơn hoặc bằng -2",
                 },
               })}
             />

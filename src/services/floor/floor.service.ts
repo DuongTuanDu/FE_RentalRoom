@@ -14,11 +14,15 @@ export const floorApi = createApi({
       IFloorListResponse,
       {
         buildingId?: string;
+        page?: number;
+        limit?: number;
       }
     >({
-      query: ({ buildingId }) => {
+      query: ({ buildingId, page = 1, limit = 10 }) => {
         const params = new URLSearchParams({
           buildingId: buildingId || "",
+          page: page.toString(),
+          limit: limit.toString(),
         });
         return {
           url: `/floors?${params.toString()}`,
@@ -37,7 +41,7 @@ export const floorApi = createApi({
     }),
     updateFloor: builder.mutation<
       IFloorListResponse,
-      { id: string; label: string; level: number; description?: string }
+      { id: string; level: number; description?: string }
     >({
       query: ({ id, ...updateData }) => ({
         url: `/floors/${id}`,
@@ -53,6 +57,21 @@ export const floorApi = createApi({
       }),
       invalidatesTags: ["Floor"],
     }),
+    restoreFloor: builder.mutation<IFloorListResponse, string>({
+      query: (id) => ({
+        url: `/floors/${id}/restore`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Floor"],
+    }),
+    updateStatusFloor: builder.mutation<IFloorListResponse, { id: string; status: "active" | "inactive" }>({
+      query: ({ id, status }) => ({
+        url: `/floors/${id}/status`,
+        method: "PATCH",
+        data: { status },
+      }),
+      invalidatesTags: ["Floor"],
+    })
   }),
 });
 
@@ -61,4 +80,6 @@ export const {
   useCreateFloorMutation,
   useUpdateFloorMutation,
   useDeleteFloorMutation,
+  useRestoreFloorMutation,
+  useUpdateStatusFloorMutation
 } = floorApi;

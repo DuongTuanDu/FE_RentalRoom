@@ -3,7 +3,14 @@ export interface IBuilding {
   _id: string;
   name: string;
   address: string;
-  landlordId: string;
+  landlordId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+    }
+  };
   description?: string;
   eIndexType: "byNumber" | "byPerson" | "included";
   ePrice: number;
@@ -32,7 +39,33 @@ export interface CreateBuildingRequest {
   description?: string;
 }
 
+export interface CreateQuickBuildingRequest {
+  name: string;
+  address: string;
+  floors: {
+    count: number;
+    startLevel: number;
+    description?: string;
+  };
+  rooms: {
+    perFloor: number;
+    seqStart: number;
+    roomNumberTemplate: string;
+    defaults: {
+      area: number;
+      price: number;
+      maxTenants: number;
+      status: "available" | "rented" | "maintenance";
+      description?: string;
+    },
+    templateVars: {
+      block: string;
+    }
+  };
+}
+
 export interface CreateBuildingResponse {
   success: boolean;
   data: IBuilding;
+  message: string;
 }
