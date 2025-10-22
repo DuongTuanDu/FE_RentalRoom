@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,31 +29,45 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Zap } from "lucide-react";
-import type { CreateQuickBuildingRequest } from "@/types/building";
 
+// ----- Zod schema khớp với JSON body -----
 const quickBuildingSchema = z.object({
   name: z.string().min(1, "Tên tòa nhà là bắt buộc"),
   address: z.string().min(1, "Địa chỉ là bắt buộc"),
+
+  // Cấu hình điện nước ở cấp tòa nhà
+  eIndexType: z.enum(["byNumber", "byMoney"], {
+    required_error: "Hình thức tính điện là bắt buộc",
+  }),
+  ePrice: z.number().min(0, "Đơn giá điện không được âm"),
+  wIndexType: z.enum(["byNumber", "byMoney"], {
+    required_error: "Hình thức tính nước là bắt buộc",
+  }),
+  wPrice: z.number().min(0, "Đơn giá nước không được âm"),
+
   floors: z.object({
     count: z.number().min(1, "Số tầng phải lớn hơn 0"),
     startLevel: z.number().min(0, "Tầng bắt đầu không được âm"),
     description: z.string().optional(),
   }),
+
   rooms: z.object({
     perFloor: z.number().min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
     seqStart: z.number().min(1, "Số thứ tự bắt đầu phải lớn hơn 0"),
-    roomNumberTemplate: z.string().min(1, "Mẫu số phòng là bắt buộc"),
     defaults: z.object({
       area: z.number().min(1, "Diện tích phải lớn hơn 0"),
       price: z.number().min(0, "Giá phòng không được âm"),
       maxTenants: z.number().min(1, "Số người tối đa phải lớn hơn 0"),
       status: z.enum(["available", "rented", "maintenance"]),
       description: z.string().optional(),
-    }),
-    templateVars: z.object({
-      block: z.string().min(1, "Ký hiệu khối là bắt buộc"),
+
+      // Chỉ số khởi điểm điện/nước theo phòng
+      eStart: z.number().min(0, "Chỉ số điện bắt đầu không được âm"),
+      wStart: z.number().min(0, "Chỉ số nước bắt đầu không được âm"),
     }),
   }),
+
+  dryRun: z.boolean().default(false),
 });
 
 type QuickBuildingFormData = z.infer<typeof quickBuildingSchema>;
@@ -62,7 +75,7 @@ type QuickBuildingFormData = z.infer<typeof quickBuildingSchema>;
 interface ModalQuickBuildingProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateQuickBuildingRequest) => void;
+  onSubmit: (data: QuickBuildingFormData) => void; // hoặc CreateQuickBuildingRequest nếu type của bạn trùng schema
   isLoading?: boolean;
 }
 
@@ -75,28 +88,36 @@ const ModalQuickBuilding = ({
   const form = useForm<QuickBuildingFormData>({
     resolver: zodResolver(quickBuildingSchema),
     defaultValues: {
+      // Bạn có thể thay bằng dữ liệu mẫu bạn gửi
       name: "",
       address: "",
+
+      eIndexType: "byNumber",
+      ePrice: 0,
+      wIndexType: "byNumber",
+      wPrice: 0,
+
       floors: {
-        count: 1,
-        startLevel: 1,
+        count: 0,
+        startLevel: 0,
         description: "",
       },
+
       rooms: {
-        perFloor: 1,
-        seqStart: 1,
-        roomNumberTemplate: "{block}{floor:02d}{room:02d}",
+        perFloor: 0,
+        seqStart: 0,
         defaults: {
-          area: 20,
-          price: 2000000,
+          area: 0,
+          price: 0,
           maxTenants: 2,
           status: "available",
           description: "",
-        },
-        templateVars: {
-          block: "A",
+          eStart: 0,
+          wStart: 0,
         },
       },
+
+      dryRun: false,
     },
   });
 
@@ -118,7 +139,10 @@ const ModalQuickBuilding = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Thông tin cơ bản */}
             <Card>
               <CardHeader>
@@ -159,6 +183,118 @@ const ModalQuickBuilding = ({
               </CardContent>
             </Card>
 
+            {/* Điện & Nước */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Cấu hình điện & nước</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="eIndexType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hình thức tính điện *</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn hình thức" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="byNumber">
+                              Theo số (kWh)
+                            </SelectItem>
+                            <SelectItem value="byMoney">
+                              Theo tiền cố định
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="ePrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đơn giá điện *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="VD: 3500"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="wIndexType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hình thức tính nước *</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn hình thức" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="byNumber">
+                              Theo số (m³)
+                            </SelectItem>
+                            <SelectItem value="byMoney">
+                              Theo tiền cố định
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="wPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Đơn giá nước *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="VD: 15000"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Cấu hình tầng */}
             <Card>
               <CardHeader>
@@ -178,7 +314,9 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số tầng"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -197,7 +335,9 @@ const ModalQuickBuilding = ({
                             min="0"
                             placeholder="Tầng bắt đầu"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -243,7 +383,9 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số phòng mỗi tầng"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -262,43 +404,10 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số thứ tự bắt đầu"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="rooms.roomNumberTemplate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mẫu số phòng *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ví dụ: {block}{floor:02d}{room:02d}"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                        <p className="text-xs text-slate-500">
-                          Sử dụng: {`{block}`} cho ký hiệu khối, {`{floor:02d}`} cho tầng, {`{room:02d}`} cho phòng
-                        </p>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="rooms.templateVars.block"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ký hiệu khối *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ví dụ: A, B, C" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -309,7 +418,9 @@ const ModalQuickBuilding = ({
                 <Separator />
 
                 <div className="space-y-4">
-                  <h4 className="font-medium text-slate-900">Thông tin mặc định cho phòng</h4>
+                  <h4 className="font-medium text-slate-900">
+                    Thông tin mặc định cho phòng
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -323,7 +434,9 @@ const ModalQuickBuilding = ({
                               min="1"
                               placeholder="Diện tích phòng"
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -342,7 +455,9 @@ const ModalQuickBuilding = ({
                               min="0"
                               placeholder="Giá thuê phòng"
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -364,7 +479,9 @@ const ModalQuickBuilding = ({
                               min="1"
                               placeholder="Số người tối đa"
                               {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -377,7 +494,10 @@ const ModalQuickBuilding = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Trạng thái mặc định *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Chọn trạng thái" />
@@ -386,9 +506,56 @@ const ModalQuickBuilding = ({
                             <SelectContent>
                               <SelectItem value="available">Có sẵn</SelectItem>
                               <SelectItem value="rented">Đã thuê</SelectItem>
-                              <SelectItem value="maintenance">Bảo trì</SelectItem>
+                              <SelectItem value="maintenance">
+                                Bảo trì
+                              </SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.eStart"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chỉ số điện bắt đầu *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="VD: 0"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.wStart"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chỉ số nước bắt đầu *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="VD: 0"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
