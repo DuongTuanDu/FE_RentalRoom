@@ -32,9 +32,9 @@ export const DeleteFloorPopover = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Xác nhận xóa tầng</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn có chắc chắn muốn xóa tầng{" "}
+            Bạn có chắc chắn muốn xóa{" "}
             <span className="font-semibold text-foreground">
-              {floor?.label}
+              Tầng {floor?.level}
             </span>
             ? Hành động này không thể hoàn tác.
           </AlertDialogDescription>

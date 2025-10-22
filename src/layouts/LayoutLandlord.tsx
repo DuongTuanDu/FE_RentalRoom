@@ -1,6 +1,7 @@
-import { Outlet } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { Search, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -10,6 +11,12 @@ import AppSidebar from "./SiderLandlord";
 
 // Main Layout Component
 export default function LayoutLandlord() {
+  const navigate = useNavigate();
+
+  const handlePackageServiceClick = () => {
+    navigate("/landlord/package-services");
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
@@ -23,6 +30,18 @@ export default function LayoutLandlord() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input placeholder="Tìm kiếm..." className="pl-10 w-full" />
               </div>
+            </div>
+            
+            {/* Package Service Button */}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handlePackageServiceClick}
+                className="mr-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                size="sm"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                <span className="font-medium">Gói Dịch Vụ</span>
+              </Button>
             </div>
           </header>
 

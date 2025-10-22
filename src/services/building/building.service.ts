@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { CreateBuildingRequest, CreateBuildingResponse, IBuildingResponse } from "@/types/building"; // bạn có thể lưu type trong thư mục riêng
+import type { CreateBuildingRequest, CreateBuildingResponse, CreateQuickBuildingRequest, IBuildingResponse } from "@/types/building"; // bạn có thể lưu type trong thư mục riêng
 
 export const buildingApi = createApi({
   reducerPath: "buildingApi",
@@ -54,7 +54,15 @@ export const buildingApi = createApi({
       }),
       invalidatesTags: ["Building"],
     }),
+    createQuickBuilding: builder.mutation<CreateBuildingResponse, CreateQuickBuildingRequest>({
+      query: (data) => ({
+        url: "/buildings/quick-setup",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Building"],
+    })
   }),
 });
 
-export const { useGetBuildingsQuery, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation } = buildingApi;
+export const { useGetBuildingsQuery, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation, useCreateQuickBuildingMutation } = buildingApi;

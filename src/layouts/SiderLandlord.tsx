@@ -14,7 +14,6 @@ import {
   Bell,
   BarChart3,
   Layers,
-  Package,
   ListChecks,
   BedDouble,
 } from "lucide-react";
@@ -120,11 +119,6 @@ const menuItems = [
     title: "Dịch vụ & Tiện ích",
     icon: Wrench,
     items: [
-      {
-        title: "Gói dịch vụ",
-        icon: Package,
-        path: "/landlord/package-services",
-      },
       {
         title: "Dịch vụ phòng",
         icon: Wrench,

@@ -1,0 +1,439 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Building2, Zap } from "lucide-react";
+import type { CreateQuickBuildingRequest } from "@/types/building";
+
+const quickBuildingSchema = z.object({
+  name: z.string().min(1, "Tên tòa nhà là bắt buộc"),
+  address: z.string().min(1, "Địa chỉ là bắt buộc"),
+  floors: z.object({
+    count: z.number().min(1, "Số tầng phải lớn hơn 0"),
+    startLevel: z.number().min(0, "Tầng bắt đầu không được âm"),
+    description: z.string().optional(),
+  }),
+  rooms: z.object({
+    perFloor: z.number().min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
+    seqStart: z.number().min(1, "Số thứ tự bắt đầu phải lớn hơn 0"),
+    roomNumberTemplate: z.string().min(1, "Mẫu số phòng là bắt buộc"),
+    defaults: z.object({
+      area: z.number().min(1, "Diện tích phải lớn hơn 0"),
+      price: z.number().min(0, "Giá phòng không được âm"),
+      maxTenants: z.number().min(1, "Số người tối đa phải lớn hơn 0"),
+      status: z.enum(["available", "rented", "maintenance"]),
+      description: z.string().optional(),
+    }),
+    templateVars: z.object({
+      block: z.string().min(1, "Ký hiệu khối là bắt buộc"),
+    }),
+  }),
+});
+
+type QuickBuildingFormData = z.infer<typeof quickBuildingSchema>;
+
+interface ModalQuickBuildingProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: CreateQuickBuildingRequest) => void;
+  isLoading?: boolean;
+}
+
+const ModalQuickBuilding = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading = false,
+}: ModalQuickBuildingProps) => {
+  const form = useForm<QuickBuildingFormData>({
+    resolver: zodResolver(quickBuildingSchema),
+    defaultValues: {
+      name: "",
+      address: "",
+      floors: {
+        count: 1,
+        startLevel: 1,
+        description: "",
+      },
+      rooms: {
+        perFloor: 1,
+        seqStart: 1,
+        roomNumberTemplate: "{block}{floor:02d}{room:02d}",
+        defaults: {
+          area: 20,
+          price: 2000000,
+          maxTenants: 2,
+          status: "available",
+          description: "",
+        },
+        templateVars: {
+          block: "A",
+        },
+      },
+    },
+  });
+
+  const handleSubmit = (data: QuickBuildingFormData) => {
+    onSubmit(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-600" />
+            Thiết lập nhanh tòa nhà
+          </DialogTitle>
+          <DialogDescription>
+            Tạo tòa nhà với các tầng và phòng tự động theo cấu hình
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Thông tin cơ bản */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Thông tin tòa nhà
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tên tòa nhà *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập tên tòa nhà" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Địa chỉ *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập địa chỉ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cấu hình tầng */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Cấu hình tầng</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="floors.count"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Số tầng *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Số tầng"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="floors.startLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tầng bắt đầu *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Tầng bắt đầu"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="floors.description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mô tả tầng</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Mô tả về các tầng (tùy chọn)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Cấu hình phòng */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Cấu hình phòng</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="rooms.perFloor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Số phòng mỗi tầng *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Số phòng mỗi tầng"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="rooms.seqStart"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Số thứ tự bắt đầu *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Số thứ tự bắt đầu"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="rooms.roomNumberTemplate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mẫu số phòng *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ví dụ: {block}{floor:02d}{room:02d}"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-slate-500">
+                          Sử dụng: {`{block}`} cho ký hiệu khối, {`{floor:02d}`} cho tầng, {`{room:02d}`} cho phòng
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="rooms.templateVars.block"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ký hiệu khối *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ví dụ: A, B, C" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-slate-900">Thông tin mặc định cho phòng</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.area"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Diện tích (m²) *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              placeholder="Diện tích phòng"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Giá thuê (VNĐ) *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="Giá thuê phòng"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.maxTenants"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Số người tối đa *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              placeholder="Số người tối đa"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="rooms.defaults.status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Trạng thái mặc định *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn trạng thái" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="available">Có sẵn</SelectItem>
+                              <SelectItem value="rented">Đã thuê</SelectItem>
+                              <SelectItem value="maintenance">Bảo trì</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="rooms.defaults.description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mô tả phòng</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Mô tả mặc định cho các phòng (tùy chọn)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
+                Hủy
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Đang tạo..." : "Tạo tòa nhà"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default ModalQuickBuilding;

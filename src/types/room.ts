@@ -11,8 +11,8 @@ export interface IRoom {
     wPrice: number;
   };
   floorId: {
-    id: string;
-    label: string;
+    _id: string;
+    level: number;
   };
   roomNumber: string;
   area: number;
@@ -21,6 +21,8 @@ export interface IRoom {
   status: "available" | "rented" | "maintenance";
   description: string;
   images?: string[];
+  isDeleted: boolean;
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

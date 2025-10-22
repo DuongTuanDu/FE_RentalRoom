@@ -190,6 +190,23 @@ export const roomApi = createApi({
       }),
       providesTags: ["Room"],
     }),
+
+    restoreRoom: builder.mutation<IRoomListResponse, string>({
+      query: (id) => ({
+        url: `/rooms/${id}/restore`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Room"],
+    }),
+
+    updateStatusRoom: builder.mutation<IRoomListResponse, { id: string; status: "available" | "rented" | "maintenance" }>({
+      query: ({ id, status }) => ({
+        url: `/rooms/${id}/status`,
+        method: "PATCH",
+        data: { status },
+      }),
+      invalidatesTags: ["Room"],
+    }),
   }),
 });
 
@@ -200,5 +217,7 @@ export const {
   useDeleteRoomMutation,
   useAddRoomImagesMutation,
   useRemoveRoomImagesMutation,
-  useGetRoomByIdQuery
+  useGetRoomByIdQuery,
+  useRestoreRoomMutation,
+  useUpdateStatusRoomMutation
 } = roomApi;

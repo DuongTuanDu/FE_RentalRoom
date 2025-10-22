@@ -143,9 +143,7 @@ const BuildingManagement = () => {
                   Không tìm thấy tòa nhà nào
                 </p>
                 <p className="text-slate-500 text-sm mt-2">
-                  {searchQuery
-                    ? "Thử thay đổi từ khóa tìm kiếm"
-                    : ""}
+                  {searchQuery ? "Thử thay đổi từ khóa tìm kiếm" : ""}
                 </p>
               </div>
             ) : (
@@ -157,6 +155,7 @@ const BuildingManagement = () => {
                         <TableHead className="font-semibold">
                           Tên tòa nhà
                         </TableHead>
+                        <TableHead className="font-semibold">Chủ trọ</TableHead>
                         <TableHead className="font-semibold">Địa chỉ</TableHead>
                         <TableHead className="font-semibold">Mô tả</TableHead>
                         <TableHead className="font-semibold">
@@ -188,6 +187,13 @@ const BuildingManagement = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-slate-600">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">
+                                {building.landlordId?.userInfo?.fullName || "—"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-600">
                             {building.address}
                           </TableCell>
                           <TableCell className="text-slate-600 max-w-xs truncate">
@@ -203,6 +209,7 @@ const BuildingManagement = () => {
                               {formatPrice(building.wPrice)}
                             </Badge>
                           </TableCell>
+
                           <TableCell className="text-slate-600 text-sm">
                             {formatDate(building.createdAt)}
                           </TableCell>

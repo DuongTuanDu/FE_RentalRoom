@@ -4,8 +4,9 @@ import {
   useGetBuildingsQuery,
   useUpdateBuildingMutation,
   useDeleteBuildingMutation,
+  useCreateQuickBuildingMutation,
 } from "@/services/building/building.service";
-import { Building2, Search, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Building2, Search, Plus, Edit, Trash2, Eye, Zap } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -31,7 +32,8 @@ import { useFormatPrice } from "@/hooks/useFormatPrice";
 import ModalBuilding from "./components/ModalBuilding";
 import AlertDeleteBuilding from "./components/AlertDeleteBuilding";
 import DrawerBuildingDetail from "./components/DrawerBuildingDetail";
-import type { CreateBuildingRequest, IBuilding } from "@/types/building";
+import ModalQuickBuilding from "./components/ModalQuickBuilding";
+import type { CreateBuildingRequest, CreateQuickBuildingRequest, IBuilding } from "@/types/building";
 import { toast } from "sonner";
 
 const BuildingManageLandlord = () => {
@@ -45,6 +47,7 @@ const BuildingManageLandlord = () => {
   const [deletingBuilding, setDeletingBuilding] = useState<IBuilding | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [viewingBuilding, setViewingBuilding] = useState<IBuilding | null>(null);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
 
@@ -75,6 +78,7 @@ const BuildingManageLandlord = () => {
   const [createBuilding, { isLoading: isCreating }] = useCreateBuildingMutation();
   const [updateBuilding, { isLoading: isUpdating }] = useUpdateBuildingMutation();
   const [deleteBuilding, { isLoading: isDeleting }] = useDeleteBuildingMutation();
+  const [createQuickBuilding, { isLoading: isCreatingQuick }] = useCreateQuickBuildingMutation();
 
   const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
 
@@ -96,6 +100,10 @@ const BuildingManageLandlord = () => {
   const handleOpenDrawer = (building: IBuilding) => {
     setViewingBuilding(building);
     setIsDrawerOpen(true);
+  };
+
+  const handleOpenQuickModal = () => {
+    setIsQuickModalOpen(true);
   };
 
   const handleCreateBuilding = async (formData: CreateBuildingRequest) => {
@@ -165,6 +173,23 @@ const BuildingManageLandlord = () => {
     }
   };
 
+  const handleCreateQuickBuilding = async (formData: CreateQuickBuildingRequest) => {
+    try {
+      const res = await createQuickBuilding(formData).unwrap();
+      console.log("res", res);
+      
+      // Đóng modal và refresh data khi API call thành công
+      setIsQuickModalOpen(false);
+      toast.success("Thành công", {
+        description: res.message,
+      });
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra", {
+        description: error?.data?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <div className="container mx-auto space-y-6">
@@ -180,10 +205,16 @@ const BuildingManageLandlord = () => {
               </p>
             </div>
           </div>
-          <Button className="gap-2" onClick={handleOpenCreateModal}>
-            <Plus className="w-4 h-4" />
-            Thêm tòa nhà
-          </Button>
+          <div className="flex gap-3">
+            <Button className="gap-2" onClick={handleOpenCreateModal}>
+              <Plus className="w-4 h-4" />
+              Thêm tòa nhà
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={handleOpenQuickModal}>
+              <Zap className="w-4 h-4" />
+              Thiết lập nhanh
+            </Button>
+          </div>
         </div>
 
         {/* Filter Section */}
@@ -458,6 +489,16 @@ const BuildingManageLandlord = () => {
           }
         }}
         building={viewingBuilding}
+      />
+
+      {/* Modal Quick Building */}
+      <ModalQuickBuilding
+        open={isQuickModalOpen}
+        onOpenChange={(open) => {
+          setIsQuickModalOpen(open);
+        }}
+        onSubmit={handleCreateQuickBuilding}
+        isLoading={isCreatingQuick}
       />
     </div>
   );

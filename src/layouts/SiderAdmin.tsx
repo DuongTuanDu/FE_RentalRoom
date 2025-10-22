@@ -13,6 +13,10 @@ import {
   Bell,
   BarChart3,
   Package,
+  Layers,
+  Home,
+  ListChecks,
+  BedDouble,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -57,7 +61,23 @@ const menuItems = [
   {
     title: "Quản lý nhà trọ",
     icon: Building2,
-    path: "/admin/buildings",
+    items: [
+      {
+        title: "Danh sách nhà trọ",
+        icon: Building2,
+        path: "/admin/buildings",
+      },
+      {
+        title: "Quản lý tầng",
+        icon: Layers,
+        path: "/admin/floors",
+      },
+      {
+        title: "Quản lý phòng",
+        icon: Home,
+        path: "/admin/rooms",
+      },
+    ],
   },
   {
     title: "Người thuê",
@@ -114,6 +134,27 @@ const menuItems = [
         title: "Yêu cầu sửa chữa",
         icon: ClipboardList,
         path: "/admin/maintenance",
+      },
+    ],
+  },
+  {
+    title: "Quản lý nội thất",
+    icon: Layers,
+    items: [
+      {
+        title: "Danh mục nội thất",
+        icon: ListChecks,
+        path: "/admin/furnitures",
+      },
+      {
+        title: "Quản lý theo tòa nhà",
+        icon: Building2,
+        path: "/admin/building-furniture",
+      },
+      {
+        title: "Quản lý theo phòng",
+        icon: BedDouble,
+        path: "/admin/room-furniture",
       },
     ],
   },

@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Building2, Plus, Edit, Trash2, Layers } from "lucide-react";
+import {
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,12 +25,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGetBuildingsQuery } from "@/services/building/building.service";
 import {
   useCreateFloorMutation,
   useDeleteFloorMutation,
   useGetFloorsQuery,
   useUpdateFloorMutation,
+  useRestoreFloorMutation,
+  useUpdateStatusFloorMutation,
 } from "@/services/floor/floor.service";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { toast } from "sonner";
@@ -37,6 +55,8 @@ const FloorManageLandlord = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState<IFloor | null>(null);
   const [floorToDelete, setFloorToDelete] = useState<IFloor | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const formatDate = useFormatDate();
 
   const { data: initialBuildingData } = useGetBuildingsQuery({
@@ -48,11 +68,15 @@ const FloorManageLandlord = () => {
   const { data: floorsData, isLoading: isFloorsLoading } = useGetFloorsQuery(
     {
       buildingId: selectedBuildingId,
+      page: currentPage,
+      limit: pageSize,
     },
     {
       skip: !selectedBuildingId,
     }
   );
+
+  console.log("floorsData", floorsData);
 
   const [createFloor, { isLoading: isCreatingFloor }] =
     useCreateFloorMutation();
@@ -60,6 +84,10 @@ const FloorManageLandlord = () => {
     useUpdateFloorMutation();
   const [deleteFloor, { isLoading: isDeletingFloor }] =
     useDeleteFloorMutation();
+  const [restoreFloor, { isLoading: isRestoringFloor }] =
+    useRestoreFloorMutation();
+  const [updateStatusFloor, { isLoading: isUpdatingStatusFloor }] =
+    useUpdateStatusFloorMutation();
 
   // Auto-select first building
   useEffect(() => {
@@ -67,6 +95,11 @@ const FloorManageLandlord = () => {
       setSelectedBuildingId(initialBuildingData.data[0]._id);
     }
   }, [initialBuildingData, selectedBuildingId]);
+
+  // Reset page when building changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedBuildingId]);
 
   const handleOpenCreateModal = () => {
     setSelectedFloor(null);
@@ -87,8 +120,7 @@ const FloorManageLandlord = () => {
     try {
       if (selectedFloor) {
         await updateFloor({
-          id: selectedFloor.id,
-          label: data.label,
+          id: selectedFloor._id,
           level: data.level,
           description: data.description || "",
         }).unwrap();
@@ -99,11 +131,9 @@ const FloorManageLandlord = () => {
       }
       setIsModalOpen(false);
       setSelectedFloor(null);
-    } catch (error) {
-      toast.error(
-        selectedFloor ? "Cập nhật tầng thất bại!" : "Thêm tầng mới thất bại!"
-      );
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message.message);
+      console.error("error", error);
     }
   };
 
@@ -111,7 +141,7 @@ const FloorManageLandlord = () => {
     if (!floorToDelete) return;
 
     try {
-      await deleteFloor(floorToDelete.id).unwrap();
+      await deleteFloor(floorToDelete._id).unwrap();
       toast.success("Xóa tầng thành công!");
       setIsDeleteDialogOpen(false);
       setFloorToDelete(null);
@@ -120,6 +150,43 @@ const FloorManageLandlord = () => {
       console.error(error);
     }
   };
+
+  const handleRestoreFloor = async (floor: IFloor) => {
+    try {
+      await restoreFloor(floor._id).unwrap();
+      toast.success("Khôi phục tầng thành công!");
+    } catch (error) {
+      toast.error("Khôi phục tầng thất bại!");
+      console.error(error);
+    }
+  };
+
+  const handleToggleStatus = async (floor: IFloor) => {
+    try {
+      const newStatus = floor.status === "active" ? "inactive" : "active";
+      await updateStatusFloor({
+        id: floor._id,
+        status: newStatus,
+      }).unwrap();
+      toast.success(
+        `Tầng đã được ${newStatus === "active" ? "kích hoạt" : "vô hiệu hóa"}!`
+      );
+    } catch (error) {
+      toast.error("Cập nhật trạng thái thất bại!");
+      console.error(error);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
+
+  const totalPages = floorsData ? Math.ceil(floorsData.total / pageSize) : 0;
 
   return (
     <div className="container mx-auto space-y-6">
@@ -175,7 +242,7 @@ const FloorManageLandlord = () => {
                 <CardTitle>Danh Sách Tầng</CardTitle>
               </div>
               <Badge variant="secondary" className="text-base px-3 py-1">
-                {floorsData?.length || 0} tầng
+                {floorsData?.total || 0} tầng
               </Badge>
             </div>
           </CardHeader>
@@ -184,58 +251,192 @@ const FloorManageLandlord = () => {
               <div className="text-center py-8 text-muted-foreground">
                 Đang tải dữ liệu...
               </div>
-            ) : floorsData && floorsData.length > 0 ? (
-              <div className="border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">Cấp độ</TableHead>
-                      <TableHead>Tên tầng</TableHead>
-                      <TableHead>Mô tả</TableHead>
-                      <TableHead>Ngày tạo</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {floorsData.map((floor) => (
-                      <TableRow key={floor.id}>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono">
-                            {floor.level}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {floor.label}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {floor.description || "—"}
-                        </TableCell>
-                        <TableCell>{formatDate(floor.createdAt)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleOpenEditModal(floor)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => handleOpenDeleteDialog(floor)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+            ) : floorsData && floorsData.data.length > 0 ? (
+              <>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tầng</TableHead>
+                        <TableHead>Mô tả</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                        <TableHead>Ngày tạo</TableHead>
+                        <TableHead>Thao tác</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {floorsData.data.map((floor) => (
+                        <TableRow key={floor._id}>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono">
+                              Tầng {floor.level}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {floor.description || "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                floor.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={
+                                floor.status === "active"
+                                  ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                  : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                              }
+                            >
+                              {floor.status === "active"
+                                ? "Hoạt động"
+                                : "Không hoạt động"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDate(floor.createdAt)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <div className="flex items-center">
+                                <Switch
+                                  checked={floor.status === "active"}
+                                  onCheckedChange={() =>
+                                    handleToggleStatus(floor)
+                                  }
+                                  disabled={isUpdatingStatusFloor}
+                                  title={
+                                    floor.status === "active"
+                                      ? "Vô hiệu hóa"
+                                      : "Kích hoạt"
+                                  }
+                                />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleOpenEditModal(floor)}
+                                title="Chỉnh sửa"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              {floor.isDeleted ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
+                                  onClick={() => handleRestoreFloor(floor)}
+                                  disabled={isRestoringFloor}
+                                  title="Khôi phục"
+                                >
+                                  <span className="text-blue-500">↻</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  onClick={() => handleOpenDeleteDialog(floor)}
+                                  title="Xóa"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center space-x-4">
+                      <p className="text-sm text-muted-foreground">
+                        Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
+                        {Math.min(
+                          currentPage * pageSize,
+                          floorsData?.total || 0
+                        )}{" "}
+                        trong tổng số {floorsData?.total || 0} tầng
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">
+                          Hiển thị:
+                        </span>
+                        <Select
+                          value={pageSize.toString()}
+                          onValueChange={(value) =>
+                            handlePageSizeChange(Number(value))
+                          }
+                        >
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Trước
+                      </Button>
+
+                      <div className="flex items-center space-x-1">
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            const pageNumber =
+                              Math.max(
+                                1,
+                                Math.min(totalPages - 4, currentPage - 2)
+                              ) + i;
+                            if (pageNumber > totalPages) return null;
+
+                            return (
+                              <Button
+                                key={pageNumber}
+                                variant={
+                                  currentPage === pageNumber
+                                    ? "default"
+                                    : "outline"
+                                }
+                                size="sm"
+                                onClick={() => handlePageChange(pageNumber)}
+                                className="w-8 h-8 p-0"
+                              >
+                                {pageNumber}
+                              </Button>
+                            );
+                          }
+                        )}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                      >
+                        Sau
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-12 space-y-3">
                 <Layers className="h-12 w-12 mx-auto text-muted-foreground/50" />

@@ -274,9 +274,9 @@ const RoomManageLandlord = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
                   <SelectItem value="all">Tất cả tầng</SelectItem>
-                  {floorsData?.map((floor) => (
-                    <SelectItem key={floor.id} value={floor.id}>
-                      {floor.label}
+                  {floorsData?.data?.map((floor: any) => (
+                    <SelectItem key={floor._id} value={floor._id}>
+                      Tầng {floor.level}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -354,7 +354,7 @@ const RoomManageLandlord = () => {
                       <TableHead>Sức chứa</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Ngày tạo</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
+                      <TableHead>Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -408,7 +408,7 @@ const RoomManageLandlord = () => {
                           {formatDate(room.createdAt)}
                         </TableCell>
                         <TableCell>
-                          <div className="flex justify-end gap-2">
+                          <div className="flex gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
