@@ -189,7 +189,7 @@ const BuildingManagement = () => {
                           <TableCell className="text-slate-600">
                             <div className="flex items-center gap-2">
                               <span className="text-sm">
-                                {building.landlordId.userInfo.fullName || "—"}
+                                {building.landlordId?.userInfo?.fullName || "—"}
                               </span>
                             </div>
                           </TableCell>

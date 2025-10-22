@@ -83,6 +83,8 @@ export const ModalRoom = ({
   isLoading = false,
   defaultBuildingId = "",
 }: ModalRoomProps) => {
+  console.log("room", room);
+  
   const isEditMode = !!room;
   
   // Image management states
@@ -118,8 +120,8 @@ export const ModalRoom = ({
         console.log("room", room);
         
         form.reset({
-          buildingId: room.buildingId._id,
-          floorId: room.floorId.id,
+          buildingId: (room.buildingId as any).id,
+          floorId: (room.floorId as any).id,
           roomNumber: room.roomNumber,
           area: room.area,
           price: room.price,
@@ -273,9 +275,9 @@ export const ModalRoom = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="max-h-[200px] overflow-y-auto">
-                            {floorsData?.map((floor) => (
-                              <SelectItem key={floor.id} value={floor.id}>
-                                {floor.label}
+                            {floorsData?.data?.map((floor: any) => (
+                              <SelectItem key={floor._id} value={floor._id}>
+                                Tầng {floor.level}
                               </SelectItem>
                             ))}
                           </SelectContent>
