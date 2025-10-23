@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, DoorOpen, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, DoorOpen, Image as ImageIcon, Zap } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -35,11 +35,13 @@ import {
   useCreateRoomMutation,
   useUpdateRoomMutation,
   useDeleteRoomMutation,
+  useAddRoomImagesMutation,
 } from "@/services/room/room.service";
 import { useGetFloorsQuery } from "@/services/floor/floor.service";
 import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from "./const/data";
 import { Spinner } from "@/components/ui/spinner";
 import { ModalRoom } from "./components/ModalRoom";
+import { ModalQuickRoom } from "./components/ModalQuickRoom";
 import { DeleteRoomPopover } from "./components/DeleteRoomPopover";
 import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
@@ -56,6 +58,7 @@ const RoomManageLandlord = () => {
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
 
   // Delete dialog states
@@ -116,7 +119,7 @@ const RoomManageLandlord = () => {
   // Fetch rooms
   const { data: roomsData, isLoading: isRoomsLoading } = useGetRoomsQuery({
     buildingId: selectedBuildingId,
-    floorId: selectedFloorId || undefined,
+    floorId: selectedFloorId && selectedFloorId !== "all" ? selectedFloorId : undefined,
     status: selectedStatus === "all" ? undefined : (selectedStatus as any),
     q: debouncedSearch,
     page: currentPage,
@@ -127,6 +130,7 @@ const RoomManageLandlord = () => {
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
+  const [addRoomImages, { isLoading: isUploadingImages }] = useAddRoomImagesMutation();
 
   const totalPages = roomsData?.total
     ? Math.ceil(roomsData.total / pageLimit)
@@ -136,6 +140,10 @@ const RoomManageLandlord = () => {
   const handleOpenCreateModal = () => {
     setEditingRoom(null);
     setIsModalOpen(true);
+  };
+
+  const handleOpenQuickModal = () => {
+    setIsQuickModalOpen(true);
   };
 
   const handleOpenEditModal = (room: IRoom) => {
@@ -177,8 +185,36 @@ const RoomManageLandlord = () => {
         }).unwrap();
         toast.success("Cập nhật phòng thành công!");
       } else {
-        await createRoom(data).unwrap();
+        // For create mode, create room first then upload images if any
+        const roomData = {
+          buildingId: data.buildingId,
+          floorId: data.floorId,
+          roomNumber: data.roomNumber,
+          area: data.area,
+          price: data.price,
+          maxTenants: data.maxTenants,
+          status: data.status,
+          description: data.description,
+        };
+        
+        console.log('Creating room with data:', roomData);
+        
+        const createdRoom = await createRoom(roomData).unwrap();
         toast.success("Thêm phòng mới thành công!");
+        
+        // Upload images if any were selected
+        if (data.images && data.images.length > 0) {
+          try {
+            await addRoomImages({
+              id: createdRoom.id,
+              images: data.images,
+            }).unwrap();
+            toast.success("Tải lên ảnh thành công!");
+          } catch (imageError) {
+            console.error('Image upload failed:', imageError);
+            toast.error("Tải lên ảnh thất bại!");
+          }
+        }
       }
       setIsModalOpen(false);
       setEditingRoom(null);
@@ -227,14 +263,25 @@ const RoomManageLandlord = () => {
             Quản lý thông tin các phòng trong tòa nhà
           </p>
         </div>
-        <Button
-          className="gap-2"
-          disabled={!selectedBuildingId}
-          onClick={handleOpenCreateModal}
-        >
-          <Plus className="h-4 w-4" />
-          Thêm Phòng Mới
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="gap-2"
+            disabled={!selectedBuildingId}
+            onClick={handleOpenCreateModal}
+          >
+            <Plus className="h-4 w-4" />
+            Thêm Phòng Mới
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2"
+            disabled={!selectedBuildingId}
+            onClick={handleOpenQuickModal}
+          >
+            <Zap className="h-4 w-4" />
+            Thiết lập nhanh
+          </Button>
+        </div>
       </div>
 
 
@@ -543,7 +590,7 @@ const RoomManageLandlord = () => {
         }}
         room={editingRoom}
         onSubmit={handleSubmitRoom}
-        isLoading={isCreating || isUpdating}
+        isLoading={isCreating || isUpdating || isUploadingImages}
         defaultBuildingId={selectedBuildingId}
       />
 
@@ -571,6 +618,15 @@ const RoomManageLandlord = () => {
           }
         }}
         roomId={viewingRoomId}
+      />
+
+      {/* Quick Create Modal */}
+      <ModalQuickRoom
+        open={isQuickModalOpen}
+        onOpenChange={(open) => {
+          setIsQuickModalOpen(open);
+        }}
+        defaultBuildingId={selectedBuildingId}
       />
     </div>
   );

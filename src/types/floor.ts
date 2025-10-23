@@ -16,6 +16,15 @@ export interface CreateFloorRequest {
   description?: string;
 }
 
+export interface QuiclCreateFloorRequest {
+  buildingId: string,
+  fromLevel: number,
+  toLevel: number,
+  count: number,
+  startLevel: number,
+  description: string
+}
+
 export interface UpdateFloorRequest extends CreateFloorRequest {
   id: string;
 }

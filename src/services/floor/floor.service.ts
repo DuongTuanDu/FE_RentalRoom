@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { CreateFloorRequest, IFloorListResponse } from "@/types/floor";
+import type { CreateFloorRequest, IFloorListResponse, QuiclCreateFloorRequest } from "@/types/floor";
 
 export const floorApi = createApi({
   reducerPath: "floorApi",
@@ -52,15 +52,8 @@ export const floorApi = createApi({
     }),
     deleteFloor: builder.mutation<IFloorListResponse, string>({
       query: (id) => ({
-        url: `/floors/${id}`,
+        url: `/floors/${id}/hard-delete`,
         method: "DELETE",
-      }),
-      invalidatesTags: ["Floor"],
-    }),
-    restoreFloor: builder.mutation<IFloorListResponse, string>({
-      query: (id) => ({
-        url: `/floors/${id}/restore`,
-        method: "POST",
       }),
       invalidatesTags: ["Floor"],
     }),
@@ -69,6 +62,14 @@ export const floorApi = createApi({
         url: `/floors/${id}/status`,
         method: "PATCH",
         data: { status },
+      }),
+      invalidatesTags: ["Floor"],
+    }),
+    quickCreateFloor: builder.mutation<IFloorListResponse, QuiclCreateFloorRequest>({
+      query: (data) => ({
+        url: "/floors/quick-create",
+        method: "POST",
+        data
       }),
       invalidatesTags: ["Floor"],
     })
@@ -80,6 +81,6 @@ export const {
   useCreateFloorMutation,
   useUpdateFloorMutation,
   useDeleteFloorMutation,
-  useRestoreFloorMutation,
-  useUpdateStatusFloorMutation
+  useUpdateStatusFloorMutation,
+  useQuickCreateFloorMutation
 } = floorApi;

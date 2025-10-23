@@ -1,6 +1,4 @@
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -30,52 +28,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Zap } from "lucide-react";
 
-// ----- Zod schema khớp với JSON body -----
-const quickBuildingSchema = z.object({
-  name: z.string().min(1, "Tên tòa nhà là bắt buộc"),
-  address: z.string().min(1, "Địa chỉ là bắt buộc"),
-
-  // Cấu hình điện nước ở cấp tòa nhà
-  eIndexType: z.enum(["byNumber", "byMoney"], {
-    required_error: "Hình thức tính điện là bắt buộc",
-  }),
-  ePrice: z.number().min(0, "Đơn giá điện không được âm"),
-  wIndexType: z.enum(["byNumber", "byMoney"], {
-    required_error: "Hình thức tính nước là bắt buộc",
-  }),
-  wPrice: z.number().min(0, "Đơn giá nước không được âm"),
-
-  floors: z.object({
-    count: z.number().min(1, "Số tầng phải lớn hơn 0"),
-    startLevel: z.number().min(0, "Tầng bắt đầu không được âm"),
-    description: z.string().optional(),
-  }),
-
-  rooms: z.object({
-    perFloor: z.number().min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
-    seqStart: z.number().min(1, "Số thứ tự bắt đầu phải lớn hơn 0"),
-    defaults: z.object({
-      area: z.number().min(1, "Diện tích phải lớn hơn 0"),
-      price: z.number().min(0, "Giá phòng không được âm"),
-      maxTenants: z.number().min(1, "Số người tối đa phải lớn hơn 0"),
-      status: z.enum(["available", "rented", "maintenance"]),
-      description: z.string().optional(),
-
-      // Chỉ số khởi điểm điện/nước theo phòng
-      eStart: z.number().min(0, "Chỉ số điện bắt đầu không được âm"),
-      wStart: z.number().min(0, "Chỉ số nước bắt đầu không được âm"),
-    }),
-  }),
-
-  dryRun: z.boolean().default(false),
-});
-
-type QuickBuildingFormData = z.infer<typeof quickBuildingSchema>;
+// Type definition
+interface QuickBuildingFormData {
+  name: string;
+  address: string;
+  eIndexType: "byNumber" | "byPerson" | "included";
+  ePrice: number;
+  wIndexType: "byNumber" | "byPerson" | "included";
+  wPrice: number;
+  floors: {
+    count: number;
+    startLevel: number;
+    description?: string;
+  };
+  rooms: {
+    perFloor: number;
+    seqStart: number;
+    defaults: {
+      area: number;
+      price: number;
+      maxTenants: number;
+      status: "available" | "rented" | "maintenance";
+      description?: string;
+      eStart: number;
+      wStart: number;
+    };
+  };
+  dryRun?: boolean;
+}
 
 interface ModalQuickBuildingProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: QuickBuildingFormData) => void; // hoặc CreateQuickBuildingRequest nếu type của bạn trùng schema
+  onSubmit: (data: QuickBuildingFormData) => void;
   isLoading?: boolean;
 }
 
@@ -86,23 +71,18 @@ const ModalQuickBuilding = ({
   isLoading = false,
 }: ModalQuickBuildingProps) => {
   const form = useForm<QuickBuildingFormData>({
-    resolver: zodResolver(quickBuildingSchema),
     defaultValues: {
-      // Bạn có thể thay bằng dữ liệu mẫu bạn gửi
       name: "",
       address: "",
-
       eIndexType: "byNumber",
       ePrice: 0,
       wIndexType: "byNumber",
       wPrice: 0,
-
       floors: {
         count: 0,
         startLevel: 0,
         description: "",
       },
-
       rooms: {
         perFloor: 0,
         seqStart: 0,
@@ -116,7 +96,6 @@ const ModalQuickBuilding = ({
           wStart: 0,
         },
       },
-
       dryRun: false,
     },
   });
@@ -209,8 +188,8 @@ const ModalQuickBuilding = ({
                             <SelectItem value="byNumber">
                               Theo số (kWh)
                             </SelectItem>
-                            <SelectItem value="byMoney">
-                              Theo tiền cố định
+                            <SelectItem value="included">
+                              Đã bao gồm trong giá thuê
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -261,8 +240,8 @@ const ModalQuickBuilding = ({
                             <SelectItem value="byNumber">
                               Theo số (m³)
                             </SelectItem>
-                            <SelectItem value="byMoney">
-                              Theo tiền cố định
+                            <SelectItem value="included">
+                              Đã bao gồm trong giá thuê
                             </SelectItem>
                           </SelectContent>
                         </Select>

@@ -7,6 +7,7 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  Zap,
 } from "lucide-react";
 import {
   Table,
@@ -39,7 +40,6 @@ import {
   useDeleteFloorMutation,
   useGetFloorsQuery,
   useUpdateFloorMutation,
-  useRestoreFloorMutation,
   useUpdateStatusFloorMutation,
 } from "@/services/floor/floor.service";
 import { useFormatDate } from "@/hooks/useFormatDate";
@@ -48,11 +48,18 @@ import type { CreateFloorRequest, IFloor } from "@/types/floor";
 import { ModalFloor } from "./components/ModalFloor";
 import { DeleteFloorPopover } from "./components/DeleteFloorPopover";
 import { BuildingSelectCombobox } from "./components/BuildingSelectCombobox";
+import { ModalQuickFloor } from "./components/ModalQuickFloor";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const FloorManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState<IFloor | null>(null);
   const [floorToDelete, setFloorToDelete] = useState<IFloor | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,8 +91,6 @@ const FloorManageLandlord = () => {
     useUpdateFloorMutation();
   const [deleteFloor, { isLoading: isDeletingFloor }] =
     useDeleteFloorMutation();
-  const [restoreFloor, { isLoading: isRestoringFloor }] =
-    useRestoreFloorMutation();
   const [updateStatusFloor, { isLoading: isUpdatingStatusFloor }] =
     useUpdateStatusFloorMutation();
 
@@ -104,6 +109,10 @@ const FloorManageLandlord = () => {
   const handleOpenCreateModal = () => {
     setSelectedFloor(null);
     setIsModalOpen(true);
+  };
+
+  const handleOpenQuickModal = () => {
+    setIsQuickModalOpen(true);
   };
 
   const handleOpenEditModal = (floor: IFloor) => {
@@ -151,16 +160,6 @@ const FloorManageLandlord = () => {
     }
   };
 
-  const handleRestoreFloor = async (floor: IFloor) => {
-    try {
-      await restoreFloor(floor._id).unwrap();
-      toast.success("Khôi phục tầng thành công!");
-    } catch (error) {
-      toast.error("Khôi phục tầng thất bại!");
-      console.error(error);
-    }
-  };
-
   const handleToggleStatus = async (floor: IFloor) => {
     try {
       const newStatus = floor.status === "active" ? "inactive" : "active";
@@ -200,14 +199,25 @@ const FloorManageLandlord = () => {
             Quản lý thông tin các tầng trong tòa nhà
           </p>
         </div>
-        <Button
-          className="gap-2"
-          onClick={handleOpenCreateModal}
-          disabled={!selectedBuildingId}
-        >
-          <Plus className="h-4 w-4" />
-          Thêm Tầng Mới
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="gap-2"
+            onClick={handleOpenCreateModal}
+            disabled={!selectedBuildingId}
+          >
+            <Plus className="h-4 w-4" />
+            Thêm Tầng Mới
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleOpenQuickModal}
+            disabled={!selectedBuildingId}
+          >
+            <Zap className="h-4 w-4" />
+            Thiết lập nhanh
+          </Button>
+        </div>
       </div>
 
       {/* Building Selection Card */}
@@ -290,25 +300,33 @@ const FloorManageLandlord = () => {
                             >
                               {floor.status === "active"
                                 ? "Hoạt động"
-                                : "Không hoạt động"}
+                                : "Ngừng hoạt động"}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatDate(floor.createdAt)}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <div className="flex items-center">
-                                <Switch
-                                  checked={floor.status === "active"}
-                                  onCheckedChange={() =>
-                                    handleToggleStatus(floor)
-                                  }
-                                  disabled={isUpdatingStatusFloor}
-                                  title={
-                                    floor.status === "active"
-                                      ? "Vô hiệu hóa"
-                                      : "Kích hoạt"
-                                  }
-                                />
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center">
+                                      <Switch
+                                        checked={floor.status === "active"}
+                                        onCheckedChange={() =>
+                                          handleToggleStatus(floor)
+                                        }
+                                        disabled={isUpdatingStatusFloor}
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      {floor.status === "active"
+                                        ? "Click để ngừng hoạt động tòa nhà"
+                                        : "Click để kích hoạt tòa nhà"}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                               <Button
                                 variant="ghost"
@@ -319,28 +337,15 @@ const FloorManageLandlord = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              {floor.isDeleted ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-                                  onClick={() => handleRestoreFloor(floor)}
-                                  disabled={isRestoringFloor}
-                                  title="Khôi phục"
-                                >
-                                  <span className="text-blue-500">↻</span>
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => handleOpenDeleteDialog(floor)}
-                                  title="Xóa"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => handleOpenDeleteDialog(floor)}
+                                title="Xóa"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -486,6 +491,13 @@ const FloorManageLandlord = () => {
         floor={floorToDelete}
         onConfirm={handleConfirmDelete}
         isLoading={isDeletingFloor}
+      />
+
+      {/* Quick Create Floor Modal */}
+      <ModalQuickFloor
+        open={isQuickModalOpen}
+        onOpenChange={setIsQuickModalOpen}
+        buildingId={selectedBuildingId}
       />
     </div>
   );

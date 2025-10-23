@@ -205,6 +205,8 @@ const BuildingManageLandlord = () => {
   const handleCreateQuickBuilding = async (
     formData: CreateQuickBuildingRequest
   ) => {
+    console.log("formData", formData);
+    
     try {
       const res = await createQuickBuilding(formData).unwrap();
       console.log("res", res);
@@ -217,7 +219,7 @@ const BuildingManageLandlord = () => {
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.data?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
+          error?.message?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
       });
     }
   };

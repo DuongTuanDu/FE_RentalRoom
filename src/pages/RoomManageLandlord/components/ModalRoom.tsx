@@ -175,12 +175,14 @@ export const ModalRoom = ({
 
 
   const handleSubmit = async (data: RoomFormValues) => {
+    // Include images as File objects for both create and edit modes
     const submitData: any = {
       ...data,
       images: selectedFiles,
     };
 
     if (isEditMode) {
+      // For edit mode, include image management fields
       submitData.removeUrls = imagesToRemove;
       submitData.replaceAllImages = replaceAllImages;
     }
