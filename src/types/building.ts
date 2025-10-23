@@ -16,6 +16,7 @@ export interface IBuilding {
   ePrice: number;
   wIndexType: "byNumber" | "byPerson" | "included";
   wPrice: number;
+  status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
   __v?: number;
