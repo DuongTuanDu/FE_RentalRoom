@@ -11,6 +11,7 @@ import BuildingFurnitureLandlord from '@/pages/BuildingFurnitureLandlord'
 import RoomFurnitureLandlord from '@/pages/RoomFurnitureLandlord'
 import RegulationManageLandlord from '@/pages/RegulationManageLandlord'
 import BuildingServiceManageLandlord from '@/pages/BuildingServiceManageLandlord'
+import PostManageLandlord from '@/pages/PostManageLandlord'
 
 const landlordRoutes = (
   <>
@@ -24,6 +25,7 @@ const landlordRoutes = (
     <Route path='room-furniture' element={<RoomFurnitureLandlord />} />
     <Route path='regulations' element={<RegulationManageLandlord />} />
     <Route path='building-services' element={<BuildingServiceManageLandlord />} />
+    <Route path='posts' element={<PostManageLandlord />} />
   </>
 ) as ReactElement
 

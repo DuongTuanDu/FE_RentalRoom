@@ -16,6 +16,7 @@ import {
   Layers,
   ListChecks,
   BedDouble,
+  Newspaper,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -156,6 +157,11 @@ const menuItems = [
         path: "/landlord/room-furniture",
       },
     ],
+  },
+  {
+    title: "Quản lý bài viết",
+    icon: Newspaper,
+    path: "/landlord/posts",
   },
   {
     title: "Thông báo",
