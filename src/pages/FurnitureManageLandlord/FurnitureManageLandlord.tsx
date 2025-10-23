@@ -9,12 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { useFormatDate } from "@/hooks/useFormatDate";
@@ -32,18 +27,25 @@ import { DeleteFurniturePopover } from "./components/DeleteFurniturePopover";
 
 const FurnitureManageLandlord = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingFurniture, setEditingFurniture] = useState<IFurniture | null>(null);
+  const [editingFurniture, setEditingFurniture] = useState<IFurniture | null>(
+    null
+  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingFurniture, setDeletingFurniture] = useState<IFurniture | null>(null);
+  const [deletingFurniture, setDeletingFurniture] = useState<IFurniture | null>(
+    null
+  );
 
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
 
   // Queries & Mutations
   const { data, isLoading } = useGetFurnituresQuery();
-  const [createFurniture, { isLoading: isCreating }] = useCreateFurnitureMutation();
-  const [updateFurniture, { isLoading: isUpdating }] = useUpdateFurnitureMutation();
-  const [deleteFurniture, { isLoading: isDeleting }] = useDeleteFurnitureMutation();
+  const [createFurniture, { isLoading: isCreating }] =
+    useCreateFurnitureMutation();
+  const [updateFurniture, { isLoading: isUpdating }] =
+    useUpdateFurnitureMutation();
+  const [deleteFurniture, { isLoading: isDeleting }] =
+    useDeleteFurnitureMutation();
 
   // Handlers
   const handleOpenCreateModal = () => {
@@ -135,10 +137,12 @@ const FurnitureManageLandlord = () => {
           ) : !data || data.length === 0 ? (
             <div className="text-center py-12 space-y-3">
               <Sofa className="h-12 w-12 mx-auto text-muted-foreground/50" />
-              <p className="text-muted-foreground">
-                Chưa có nội thất nào
-              </p>
-              <Button variant="outline" className="gap-2" onClick={handleOpenCreateModal}>
+              <p className="text-muted-foreground">Chưa có nội thất nào</p>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleOpenCreateModal}
+              >
                 <Plus className="h-4 w-4" />
                 Thêm nội thất đầu tiên
               </Button>
@@ -149,9 +153,9 @@ const FurnitureManageLandlord = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tên nội thất</TableHead>
-                    <TableHead>Danh mục</TableHead>
+
                     <TableHead>Giá</TableHead>
-                    <TableHead>Bảo hành</TableHead>
+
                     <TableHead>Mô tả</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Ngày tạo</TableHead>
@@ -167,19 +171,11 @@ const FurnitureManageLandlord = () => {
                           {furniture.name}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{furniture.category}</Badge>
-                      </TableCell>
+
                       <TableCell className="font-mono">
                         {furniture.price ? formatPrice(furniture.price) : "—"}
                       </TableCell>
-                      <TableCell>
-                        {furniture.warrantyMonths ? (
-                          <span>{furniture.warrantyMonths} tháng</span>
-                        ) : (
-                          "—"
-                        )}
-                      </TableCell>
+
                       <TableCell className="max-w-[200px] truncate">
                         {furniture.description || "—"}
                       </TableCell>
