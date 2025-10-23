@@ -76,6 +76,7 @@ const ModalQuickBuilding = ({
       address: "",
       eIndexType: "byNumber",
       ePrice: 0,
+
       wIndexType: "byNumber",
       wPrice: 0,
       floors: {
@@ -89,7 +90,7 @@ const ModalQuickBuilding = ({
         defaults: {
           area: 0,
           price: 0,
-          maxTenants: 2,
+          maxTenants: 0,
           status: "available",
           description: "",
           eStart: 0,
@@ -133,7 +134,7 @@ const ModalQuickBuilding = ({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
@@ -146,7 +147,7 @@ const ModalQuickBuilding = ({
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="address"
                     render={({ field }) => (
                       <FormItem>
@@ -170,14 +171,14 @@ const ModalQuickBuilding = ({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="eIndexType"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Hình thức tính điện *</FormLabel>
                         <Select
+                          value={field.value}
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -198,7 +199,7 @@ const ModalQuickBuilding = ({
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="ePrice"
                     render={({ field }) => (
                       <FormItem>
@@ -209,9 +210,6 @@ const ModalQuickBuilding = ({
                             min="0"
                             placeholder="VD: 3500"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -222,14 +220,14 @@ const ModalQuickBuilding = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="wIndexType"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Hình thức tính nước *</FormLabel>
                         <Select
+                          value={field.value}
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -250,7 +248,7 @@ const ModalQuickBuilding = ({
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="wPrice"
                     render={({ field }) => (
                       <FormItem>
@@ -261,9 +259,6 @@ const ModalQuickBuilding = ({
                             min="0"
                             placeholder="VD: 15000"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -282,7 +277,7 @@ const ModalQuickBuilding = ({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="floors.count"
                     render={({ field }) => (
                       <FormItem>
@@ -293,9 +288,6 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số tầng"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -303,7 +295,7 @@ const ModalQuickBuilding = ({
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="floors.startLevel"
                     render={({ field }) => (
                       <FormItem>
@@ -314,9 +306,6 @@ const ModalQuickBuilding = ({
                             min="0"
                             placeholder="Tầng bắt đầu"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -325,7 +314,7 @@ const ModalQuickBuilding = ({
                   />
                 </div>
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="floors.description"
                   render={({ field }) => (
                     <FormItem>
@@ -351,7 +340,7 @@ const ModalQuickBuilding = ({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="rooms.perFloor"
                     render={({ field }) => (
                       <FormItem>
@@ -362,9 +351,6 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số phòng mỗi tầng"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -372,7 +358,7 @@ const ModalQuickBuilding = ({
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="rooms.seqStart"
                     render={({ field }) => (
                       <FormItem>
@@ -383,9 +369,6 @@ const ModalQuickBuilding = ({
                             min="1"
                             placeholder="Số thứ tự bắt đầu"
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -402,7 +385,7 @@ const ModalQuickBuilding = ({
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.area"
                       render={({ field }) => (
                         <FormItem>
@@ -413,9 +396,6 @@ const ModalQuickBuilding = ({
                               min="1"
                               placeholder="Diện tích phòng"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -423,7 +403,7 @@ const ModalQuickBuilding = ({
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.price"
                       render={({ field }) => (
                         <FormItem>
@@ -434,9 +414,6 @@ const ModalQuickBuilding = ({
                               min="0"
                               placeholder="Giá thuê phòng"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -447,7 +424,7 @@ const ModalQuickBuilding = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.maxTenants"
                       render={({ field }) => (
                         <FormItem>
@@ -458,9 +435,6 @@ const ModalQuickBuilding = ({
                               min="1"
                               placeholder="Số người tối đa"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -468,14 +442,14 @@ const ModalQuickBuilding = ({
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.status"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Trạng thái mặc định *</FormLabel>
                           <Select
+                            value={field.value}
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -498,7 +472,7 @@ const ModalQuickBuilding = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.eStart"
                       render={({ field }) => (
                         <FormItem>
@@ -509,9 +483,6 @@ const ModalQuickBuilding = ({
                               min="0"
                               placeholder="VD: 0"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -519,7 +490,7 @@ const ModalQuickBuilding = ({
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={form.control as any}
                       name="rooms.defaults.wStart"
                       render={({ field }) => (
                         <FormItem>
@@ -530,9 +501,6 @@ const ModalQuickBuilding = ({
                               min="0"
                               placeholder="VD: 0"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -542,7 +510,7 @@ const ModalQuickBuilding = ({
                   </div>
 
                   <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="rooms.defaults.description"
                     render={({ field }) => (
                       <FormItem>
