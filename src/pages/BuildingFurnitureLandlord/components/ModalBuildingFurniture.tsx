@@ -211,9 +211,7 @@ export const ModalBuildingFurniture = ({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEdit
-              ? "Cập nhật Nội Thất Tòa Nhà"
-              : "Thêm Nội Thất Cho Tòa Nhà"}
+            {isEdit ? "Cập nhật Nội Thất Tòa Nhà" : "Thêm Nội Thất Cho Tòa Nhà"}
           </DialogTitle>
           <DialogDescription>
             {isEdit
@@ -266,30 +264,6 @@ export const ModalBuildingFurniture = ({
                 {errors.quantityPerRoom && (
                   <p className="text-sm text-destructive">
                     {errors.quantityPerRoom.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="totalQuantity">
-                  Tổng số lượng <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="totalQuantity"
-                  type="number"
-                  placeholder="0"
-                  {...register("totalQuantity", {
-                    valueAsNumber: true,
-                    required: "Tổng số lượng là bắt buộc",
-                    min: {
-                      value: 0,
-                      message: "Tổng số lượng phải lớn hơn hoặc bằng 0",
-                    },
-                  })}
-                />
-                {errors.totalQuantity && (
-                  <p className="text-sm text-destructive">
-                    {errors.totalQuantity.message}
                   </p>
                 )}
               </div>
@@ -387,7 +361,9 @@ export const ModalBuildingFurniture = ({
                         <div>
                           <div className="font-semibold flex items-center gap-2">
                             {furniture.name}
-                            <Badge variant="outline">{furniture.category}</Badge>
+                            <Badge variant="outline">
+                              {furniture.category}
+                            </Badge>
                           </div>
                           {furniture.description && (
                             <p className="text-xs text-muted-foreground mt-1">
@@ -419,26 +395,6 @@ export const ModalBuildingFurniture = ({
                               updateFurnitureConfig(
                                 furniture._id,
                                 "quantityPerRoom",
-                                Number(e.target.value)
-                              )
-                            }
-                            placeholder="0"
-                            min="0"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-xs">Tổng số lượng</Label>
-                          <Input
-                            type="number"
-                            value={
-                              furnitureConfigs[furniture._id]?.totalQuantity ||
-                              0
-                            }
-                            onChange={(e) =>
-                              updateFurnitureConfig(
-                                furniture._id,
-                                "totalQuantity",
                                 Number(e.target.value)
                               )
                             }
