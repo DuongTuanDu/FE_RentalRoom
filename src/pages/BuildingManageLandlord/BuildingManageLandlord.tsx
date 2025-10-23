@@ -5,6 +5,7 @@ import {
   useUpdateBuildingMutation,
   useDeleteBuildingMutation,
   useCreateQuickBuildingMutation,
+  useUpdateStatusMutation,
 } from "@/services/building/building.service";
 import { Building2, Search, Plus, Edit, Trash2, Eye, Zap } from "lucide-react";
 import _ from "lodash";
@@ -20,6 +21,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -33,7 +41,11 @@ import ModalBuilding from "./components/ModalBuilding";
 import AlertDeleteBuilding from "./components/AlertDeleteBuilding";
 import DrawerBuildingDetail from "./components/DrawerBuildingDetail";
 import ModalQuickBuilding from "./components/ModalQuickBuilding";
-import type { CreateBuildingRequest, CreateQuickBuildingRequest, IBuilding } from "@/types/building";
+import type {
+  CreateBuildingRequest,
+  CreateQuickBuildingRequest,
+  IBuilding,
+} from "@/types/building";
 import { toast } from "sonner";
 
 const BuildingManageLandlord = () => {
@@ -42,11 +54,17 @@ const BuildingManageLandlord = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBuilding, setEditingBuilding] = useState<IBuilding | null>(null);
+  const [editingBuilding, setEditingBuilding] = useState<IBuilding | null>(
+    null
+  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingBuilding, setDeletingBuilding] = useState<IBuilding | null>(null);
+  const [deletingBuilding, setDeletingBuilding] = useState<IBuilding | null>(
+    null
+  );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [viewingBuilding, setViewingBuilding] = useState<IBuilding | null>(null);
+  const [viewingBuilding, setViewingBuilding] = useState<IBuilding | null>(
+    null
+  );
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
@@ -74,11 +92,17 @@ const BuildingManageLandlord = () => {
     page: currentPage,
     limit: pageLimit,
   });
-  
-  const [createBuilding, { isLoading: isCreating }] = useCreateBuildingMutation();
-  const [updateBuilding, { isLoading: isUpdating }] = useUpdateBuildingMutation();
-  const [deleteBuilding, { isLoading: isDeleting }] = useDeleteBuildingMutation();
-  const [createQuickBuilding, { isLoading: isCreatingQuick }] = useCreateQuickBuildingMutation();
+
+  const [createBuilding, { isLoading: isCreating }] =
+    useCreateBuildingMutation();
+  const [updateBuilding, { isLoading: isUpdating }] =
+    useUpdateBuildingMutation();
+  const [deleteBuilding, { isLoading: isDeleting }] =
+    useDeleteBuildingMutation();
+  const [createQuickBuilding, { isLoading: isCreatingQuick }] =
+    useCreateQuickBuildingMutation();
+  const [updateStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateStatusMutation();
 
   const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
 
@@ -118,20 +142,21 @@ const BuildingManageLandlord = () => {
       }
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
-        description: error?.data?.message || "Không thể thêm tòa nhà. Vui lòng thử lại",
+        description:
+          error?.data?.message || "Không thể thêm tòa nhà. Vui lòng thử lại",
       });
     }
   };
 
   const handleUpdateBuilding = async (formData: CreateBuildingRequest) => {
     if (!editingBuilding) return;
-    
+
     try {
       const res = await updateBuilding({
         id: editingBuilding._id,
         data: formData,
       }).unwrap();
-      
+
       if (res.data) {
         setIsModalOpen(false);
         setEditingBuilding(null);
@@ -142,7 +167,9 @@ const BuildingManageLandlord = () => {
       }
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
-        description: error?.data?.message || "Không thể cập nhật tòa nhà. Vui lòng thử lại",
+        description:
+          error?.data?.message ||
+          "Không thể cập nhật tòa nhà. Vui lòng thử lại",
       });
     }
   };
@@ -157,7 +184,7 @@ const BuildingManageLandlord = () => {
 
   const handleDeleteBuilding = async () => {
     if (!deletingBuilding) return;
-    
+
     try {
       await deleteBuilding(deletingBuilding._id).unwrap();
       setIsDeleteDialogOpen(false);
@@ -168,16 +195,22 @@ const BuildingManageLandlord = () => {
       });
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
-        description: error?.data?.message || "Không thể xóa tòa nhà. Vui lòng thử lại",
+        description:
+          error?.message?.message || "Không thể xóa tòa nhà. Vui lòng thử lại",
       });
+      
     }
   };
 
-  const handleCreateQuickBuilding = async (formData: CreateQuickBuildingRequest) => {
+  const handleCreateQuickBuilding = async (
+    formData: CreateQuickBuildingRequest
+  ) => {
+    console.log("formData", formData);
+    
     try {
       const res = await createQuickBuilding(formData).unwrap();
       console.log("res", res);
-      
+
       // Đóng modal và refresh data khi API call thành công
       setIsQuickModalOpen(false);
       toast.success("Thành công", {
@@ -185,7 +218,27 @@ const BuildingManageLandlord = () => {
       });
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
-        description: error?.data?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
+        description:
+          error?.message?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
+      });
+    }
+  };
+
+  const handleUpdateStatus = async (building: IBuilding) => {
+    try {
+      const newStatus = building.status === "active" ? "inactive" : "active";
+      await updateStatus({ id: building._id, status: newStatus }).unwrap();
+      refetch();
+      toast.success("Thành công", {
+        description: `Tòa nhà đã được ${
+          newStatus === "active" ? "kích hoạt" : "vô hiệu hóa"
+        } thành công`,
+      });
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra", {
+        description:
+          error?.data?.message ||
+          "Không thể cập nhật trạng thái tòa nhà. Vui lòng thử lại",
       });
     }
   };
@@ -210,7 +263,11 @@ const BuildingManageLandlord = () => {
               <Plus className="w-4 h-4" />
               Thêm tòa nhà
             </Button>
-            <Button variant="outline" className="gap-2" onClick={handleOpenQuickModal}>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleOpenQuickModal}
+            >
               <Zap className="w-4 h-4" />
               Thiết lập nhanh
             </Button>
@@ -307,6 +364,9 @@ const BuildingManageLandlord = () => {
                           Ngày tạo
                         </TableHead>
                         <TableHead className="text-center font-semibold">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
                       </TableRow>
@@ -343,6 +403,49 @@ const BuildingManageLandlord = () => {
                           </TableCell>
                           <TableCell className="text-slate-600 text-sm">
                             {formatDate(building.createdAt)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-3">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center">
+                                      <Switch
+                                        checked={building.status === "active"}
+                                        onCheckedChange={() =>
+                                          handleUpdateStatus(building)
+                                        }
+                                        disabled={isUpdatingStatus}
+                                        className="data-[state=checked]:bg-green-600"
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      {building.status === "active"
+                                        ? "Click để ngừng hoạt động tòa nhà"
+                                        : "Click để kích hoạt tòa nhà"}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <Badge
+                                variant={
+                                  building.status === "active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className={`${
+                                  building.status === "active"
+                                    ? "bg-green-100 text-green-800 border-green-200"
+                                    : "bg-gray-100 text-gray-600 border-gray-200"
+                                } font-medium`}
+                              >
+                                {building.status === "active"
+                                  ? "Hoạt động"
+                                  : "Ngừng hoạt động"}
+                              </Badge>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">

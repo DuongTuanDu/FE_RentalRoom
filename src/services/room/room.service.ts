@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { IRoomListResponse, IRoom, CreateRoomRequest } from "@/types/room";
+import type { IRoomListResponse, IRoom, CreateRoomRequest, IQuickCreateRoomRequest } from "@/types/room";
 
 // Custom baseQuery for handling FormData
 const customBaseQuery = async (args: any) => {
@@ -52,45 +52,24 @@ export const roomApi = createApi({
       query: (data) => {
         console.log('Creating room with data:', data);
         
-        const formData = new FormData();
+        // Create JSON payload without images
+        const roomData = {
+          buildingId: data.buildingId,
+          floorId: data.floorId,
+          roomNumber: data.roomNumber,
+          area: data.area,
+          price: data.price,
+          maxTenants: data.maxTenants,
+          status: data.status,
+          description: data.description || "",
+        };
         
-        // Add basic fields
-        formData.append("buildingId", data.buildingId);
-        formData.append("floorId", data.floorId);
-        formData.append("roomNumber", data.roomNumber);
-        formData.append("area", data.area.toString());
-        formData.append("price", data.price.toString());
-        formData.append("maxTenants", data.maxTenants.toString());
-        formData.append("status", data.status);
-        if (data.description) {
-          formData.append("description", data.description);
-        }
-        
-        // Add images if provided
-        if (data.images && data.images.length > 0) {
-          console.log('Adding images to FormData:', data.images.length, 'files');
-          data.images.forEach((file, index) => {
-            console.log(`Adding file ${index}:`, file.name, file.size, file.type);
-            formData.append("images", file);
-          });
-        } else {
-          console.log('No images to add');
-        }
-        
-        // Debug: Log FormData contents
-        console.log('FormData entries:');
-        for (const [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(`${key}:`, value.name, value.size, value.type);
-          } else {
-            console.log(`${key}:`, value);
-          }
-        }
+        console.log('Sending JSON payload:', roomData);
         
         return {
           url: "/rooms",
           method: "POST",
-          data: formData,
+          data: roomData,
         };
       },
       invalidatesTags: ["Room"],
@@ -161,10 +140,23 @@ export const roomApi = createApi({
 
     addRoomImages: builder.mutation<{ message: string; images: string[] }, { id: string; images: File[] }>({
       query: ({ id, images }) => {
+        console.log('Adding images to room:', { id, imagesCount: images.length });
+        
         const formData = new FormData();
-        images.forEach((file) => {
+        images.forEach((file, index) => {
+          console.log(`Adding file ${index}:`, file.name, file.size, file.type);
           formData.append("images", file);
         });
+        
+        // Debug: Log FormData contents
+        console.log('FormData entries for addRoomImages:');
+        for (const [key, value] of formData.entries()) {
+          if (value instanceof File) {
+            console.log(`${key}:`, value.name, value.size, value.type);
+          } else {
+            console.log(`${key}:`, value);
+          }
+        }
         
         return {
           url: `/rooms/${id}/images`,
@@ -190,23 +182,14 @@ export const roomApi = createApi({
       }),
       providesTags: ["Room"],
     }),
-
-    restoreRoom: builder.mutation<IRoomListResponse, string>({
-      query: (id) => ({
-        url: `/rooms/${id}/restore`,
+    quickCreate: builder.mutation<IRoom, IQuickCreateRoomRequest>({
+      query: (data) => ({
+        url: "/rooms/quick-create",
         method: "POST",
+        data,
       }),
       invalidatesTags: ["Room"],
-    }),
-
-    updateStatusRoom: builder.mutation<IRoomListResponse, { id: string; status: "available" | "rented" | "maintenance" }>({
-      query: ({ id, status }) => ({
-        url: `/rooms/${id}/status`,
-        method: "PATCH",
-        data: { status },
-      }),
-      invalidatesTags: ["Room"],
-    }),
+    })
   }),
 });
 
@@ -218,6 +201,5 @@ export const {
   useAddRoomImagesMutation,
   useRemoveRoomImagesMutation,
   useGetRoomByIdQuery,
-  useRestoreRoomMutation,
-  useUpdateStatusRoomMutation
+  useQuickCreateMutation,
 } = roomApi;

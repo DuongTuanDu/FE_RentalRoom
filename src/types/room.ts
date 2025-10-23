@@ -43,7 +43,7 @@ export interface CreateRoomRequest {
   maxTenants: number;
   status: "available" | "rented" | "maintenance";
   description?: string;
-  images?: File[];
+  images?: File[]; // File objects
 }
 
 export interface UpdateRoomRequest {
@@ -55,8 +55,22 @@ export interface UpdateRoomRequest {
     maxTenants: number;
     status: "available" | "rented" | "maintenance";
     description: string;
-    images?: File[];
+    images?: File[]; // File objects
     removeUrls?: string[];
     replaceAllImages?: boolean;
   }>;
+}
+
+export interface IQuickCreateRoomRequest {
+  buildingId: string;
+  floorId: string;
+  perFloor: number;
+  seqStart: number;
+  defaults: {
+    price: number;
+    area: number;
+    maxTenants: number;
+    status: "available" | "rented" | "maintenance";
+    description?: string;
+  };
 }

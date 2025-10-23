@@ -273,7 +273,7 @@ export const RoomDetail = ({ open, onOpenChange, roomId }: RoomDetailProps) => {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium">Tầng:</span>
-                    <span>{room.floorId?.label || 'N/A'}</span>
+                    <span>{room.floorId?.level || 'N/A'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -309,14 +309,6 @@ export const RoomDetail = ({ open, onOpenChange, roomId }: RoomDetailProps) => {
                       <span className="font-medium">Địa chỉ:</span>
                       <span>{room.buildingId.address}</span>
                     </div>
-                    {room.buildingId.description && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">Mô tả:</span>
-                        <p className="text-sm text-muted-foreground">
-                          {room.buildingId.description}
-                        </p>
-                      </div>
-                    )}
                     {room.buildingId.ePrice && (
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">Giá điện:</span>

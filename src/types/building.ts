@@ -9,13 +9,14 @@ export interface IBuilding {
     userInfo: {
       _id: string;
       fullName: string;
-    }
+    };
   };
   description?: string;
   eIndexType: "byNumber" | "byPerson" | "included";
   ePrice: number;
   wIndexType: "byNumber" | "byPerson" | "included";
   wPrice: number;
+  status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
   __v?: number;
@@ -50,18 +51,21 @@ export interface CreateQuickBuildingRequest {
   rooms: {
     perFloor: number;
     seqStart: number;
-    roomNumberTemplate: string;
     defaults: {
       area: number;
       price: number;
       maxTenants: number;
       status: "available" | "rented" | "maintenance";
       description?: string;
-    },
-    templateVars: {
-      block: string;
-    }
+      eStart: number;
+      wStart: number;
+    };
   };
+  wIndexType: "byNumber" | "byPerson" | "included";
+  wPrice: number;
+  eIndexType: "byNumber" | "byPerson" | "included";
+  ePrice: number;
+  dryRun?: boolean;
 }
 
 export interface CreateBuildingResponse {

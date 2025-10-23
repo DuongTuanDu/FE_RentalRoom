@@ -61,8 +61,16 @@ export const buildingApi = createApi({
         data,
       }),
       invalidatesTags: ["Building"],
+    }),
+    updateStatus: builder.mutation<CreateBuildingResponse, { id: string; status: "active" | "inactive" }>({
+      query: ({ id, status }) => ({
+        url: `/buildings/${id}/status`,
+        method: "PATCH",
+        data: { status },
+      }),
+      invalidatesTags: ["Building"],
     })
   }),
 });
 
-export const { useGetBuildingsQuery, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation, useCreateQuickBuildingMutation } = buildingApi;
+export const { useGetBuildingsQuery, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation, useCreateQuickBuildingMutation, useUpdateStatusMutation } = buildingApi;
