@@ -32,27 +32,32 @@ import { Shield, Loader2, Calendar } from "lucide-react";
 import { BuildingSelectCombobox } from "../../FloorManageLandlord/components/BuildingSelectCombobox";
 import type { IRegulation, IRegulationRequest } from "@/types/regulation";
 
-const regulationSchema = z.object({
-  buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
-  title: z
-    .string()
-    .min(1, "Tiêu đề không được để trống")
-    .max(200, "Tiêu đề không được quá 200 ký tự"),
-  description: z
-    .string()
-    .min(1, "Mô tả không được để trống")
-    .max(1000, "Mô tả không được quá 1000 ký tự"),
-  type: z.enum(["entry_exit", "pet_policy", "common_area", "other"]),
-  effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
-  effectiveTo: z.string().min(1, "Vui lòng chọn ngày hiệu lực đến"),
-}).refine((data) => {
-  const fromDate = new Date(data.effectiveFrom);
-  const toDate = new Date(data.effectiveTo);
-  return toDate > fromDate;
-}, {
-  message: "Ngày hiệu lực đến phải sau ngày hiệu lực từ",
-  path: ["effectiveTo"],
-});
+const regulationSchema = z
+  .object({
+    buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
+    title: z
+      .string()
+      .min(1, "Tiêu đề không được để trống")
+      .max(200, "Tiêu đề không được quá 200 ký tự"),
+    description: z
+      .string()
+      .min(1, "Mô tả không được để trống")
+      .max(1000, "Mô tả không được quá 1000 ký tự"),
+    type: z.enum(["entry_exit", "pet_policy", "common_area", "other"]),
+    effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
+    effectiveTo: z.string().min(1, "Vui lòng chọn ngày hiệu lực đến"),
+  })
+  .refine(
+    (data) => {
+      const fromDate = new Date(data.effectiveFrom);
+      const toDate = new Date(data.effectiveTo);
+      return toDate > fromDate;
+    },
+    {
+      message: "Ngày hiệu lực đến phải sau ngày hiệu lực từ",
+      path: ["effectiveTo"],
+    }
+  );
 
 type RegulationFormValues = z.infer<typeof regulationSchema>;
 
@@ -102,8 +107,8 @@ export const ModalRegulation = ({
           title: regulation.title,
           description: regulation.description,
           type: regulation.type,
-          effectiveFrom: regulation.effectiveFrom.split('T')[0], // Convert to YYYY-MM-DD format
-          effectiveTo: regulation.effectiveTo.split('T')[0],
+          effectiveFrom: regulation.effectiveFrom.split("T")[0], // Convert to YYYY-MM-DD format
+          effectiveTo: regulation.effectiveTo.split("T")[0],
         });
       } else {
         form.reset({
@@ -277,11 +282,7 @@ export const ModalRegulation = ({
                         Hiệu lực từ <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          disabled={isLoading}
-                        />
+                        <Input type="date" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -297,11 +298,7 @@ export const ModalRegulation = ({
                         Hiệu lực đến <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          disabled={isLoading}
-                        />
+                        <Input type="date" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
