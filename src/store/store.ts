@@ -14,6 +14,7 @@ import { buildingServicesApi } from "../services/building-services/building-serv
 import { postApi } from "../services/post/post.service";
 import authReducer from "../services/auth/auth.slice";
 import storage from "redux-persist/lib/storage";
+import { packageSubscriptionApi } from "@/services/package-services/package-subscription.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -32,6 +33,7 @@ export const store = configureStore({
     [roomApi.reducerPath]: roomApi.reducer,
     [floorApi.reducerPath]: floorApi.reducer,
     [packageServicesApi.reducerPath]: packageServicesApi.reducer,
+    [packageSubscriptionApi.reducerPath]: packageSubscriptionApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
     [furnitureApi.reducerPath]: furnitureApi.reducer,
     [buildingFurnitureApi.reducerPath]: buildingFurnitureApi.reducer,
@@ -51,6 +53,7 @@ export const store = configureStore({
       roomApi.middleware,
       floorApi.middleware,
       packageServicesApi.middleware,
+      packageSubscriptionApi.middleware,
       profileApi.middleware,
       furnitureApi.middleware,
       buildingFurnitureApi.middleware,
