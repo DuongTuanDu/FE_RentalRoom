@@ -300,8 +300,8 @@ const BuildingFurnitureLandlord = () => {
                   <TableRow>
                     <TableHead>Tòa nhà</TableHead>
                     <TableHead>Tên nội thất</TableHead>
-                    <TableHead>Mặc định/phòng</TableHead>
-                    <TableHead>Tổng số lượng (thực tế)</TableHead>
+                    <TableHead>Số lượng/phòng</TableHead>
+                    <TableHead>Tổng số lượng</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Ghi chú</TableHead>
                     <TableHead>Ngày tạo</TableHead>
