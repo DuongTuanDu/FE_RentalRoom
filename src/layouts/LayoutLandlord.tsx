@@ -23,7 +23,7 @@ export default function LayoutLandlord() {
         <AppSidebar />
         <SidebarInset className="flex flex-col flex-1">
           {/* Header */}
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
+          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
             <div className="flex-1 flex items-center gap-4">
               <div className="relative w-full max-w-md">

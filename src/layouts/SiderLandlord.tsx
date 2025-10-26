@@ -323,11 +323,11 @@ const AppSidebar = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/admin/profile")}>
+                <DropdownMenuItem onClick={() => navigate("/landlord/profile")}>
                   <UserCheck className="mr-2 h-4 w-4" />
                   <span>Hồ sơ</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/settings")}>
+                <DropdownMenuItem onClick={() => navigate("/landlord/settings")}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Cài đặt</span>
                 </DropdownMenuItem>
