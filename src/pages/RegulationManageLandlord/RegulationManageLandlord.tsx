@@ -113,7 +113,6 @@ const RegulationManageLandlord = () => {
             type: data.type,
             status: editingRegulation.status,
             effectiveFrom: data.effectiveFrom,
-            effectiveTo: data.effectiveTo,
           },
         }).unwrap();
         toast.success("Cập nhật quy định thành công!");
@@ -243,7 +242,6 @@ const RegulationManageLandlord = () => {
                       <TableHead>Loại</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Hiệu lực từ</TableHead>
-                      <TableHead>Hiệu lực đến</TableHead>
                       <TableHead>Ngày tạo</TableHead>
                       <TableHead className="text-right">Thao tác</TableHead>
                     </TableRow>
@@ -256,7 +254,6 @@ const RegulationManageLandlord = () => {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                             <div className="min-w-0 flex-1">
                               <div className="font-medium truncate">{regulation.title}</div>
-
                             </div>
                           </div>
                         </TableCell>
@@ -277,12 +274,6 @@ const RegulationManageLandlord = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3 text-muted-foreground" />
                             {formatDate(regulation.effectiveFrom)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3 text-muted-foreground" />
-                            {formatDate(regulation.effectiveTo)}
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
