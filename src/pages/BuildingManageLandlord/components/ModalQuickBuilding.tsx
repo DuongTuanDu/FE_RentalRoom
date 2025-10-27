@@ -189,8 +189,8 @@ const ModalQuickBuilding = ({
                             <SelectItem value="byNumber">
                               Theo số (kWh)
                             </SelectItem>
-                            <SelectItem value="included">
-                              Đã bao gồm trong giá thuê
+                            <SelectItem value="byPerson">
+                              Theo đầu người
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -238,8 +238,8 @@ const ModalQuickBuilding = ({
                             <SelectItem value="byNumber">
                               Theo số (m³)
                             </SelectItem>
-                            <SelectItem value="included">
-                              Đã bao gồm trong giá thuê
+                            <SelectItem value="byPerson">
+                              Theo đầu người
                             </SelectItem>
                           </SelectContent>
                         </Select>

@@ -29,7 +29,6 @@ const getIndexTypeLabel = (type: string) => {
   const labels = {
     byNumber: "Theo chỉ số",
     byPerson: "Theo đầu người",
-    included: "Đã bao gồm trong giá thuê",
   };
   return labels[type as keyof typeof labels] || type;
 };
