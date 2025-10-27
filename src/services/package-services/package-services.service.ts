@@ -20,7 +20,7 @@ export const packageServicesApi = createApi({
   endpoints: (builder) => ({
     getPackageServices: builder.query<GetPackagesResponse, void>({
       query: () => ({
-        url: "/packages",
+        url: "/admin/packages/packages",
         method: "GET",
       }),
       providesTags: ["PackageServices"],
@@ -28,7 +28,7 @@ export const packageServicesApi = createApi({
 
     createPackage: builder.mutation<{ success: boolean; data: IPackage }, CreatePackageRequest>({
       query: (data) => ({
-        url: "/packages",
+        url: "/admin/packages",
         method: "POST",
         data,
       }),
@@ -40,7 +40,7 @@ export const packageServicesApi = createApi({
       { id: string; data: Partial<CreatePackageRequest> }
     >({
       query: ({ id, data }) => ({
-        url: `/packages/${id}`,
+        url: `/admin/packages/${id}`,
         method: "PUT",
         data,
       }),
@@ -49,7 +49,7 @@ export const packageServicesApi = createApi({
 
     deletePackage: builder.mutation<{ success: boolean; message: string }, string>({
       query: (id) => ({
-        url: `/packages/${id}`,
+        url: `/admin/packages/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["PackageServices"],

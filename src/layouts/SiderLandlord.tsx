@@ -164,6 +164,22 @@ const menuItems = [
     path: "/landlord/posts",
   },
   {
+    title: "Gói dịch vụ",
+    icon: Layers,
+    items: [
+      {
+        title: "Các gói dịch vụ",
+        icon: Building2,
+        path: "/landlord/package-services",
+      },
+      {
+        title: "Lịch sử gói dịch vụ",
+        icon: ListChecks,
+        path: "/landlord/history-subscription",
+      },
+    ],
+  },
+  {
     title: "Thông báo",
     icon: Bell,
     path: "/landlord/notifications",
