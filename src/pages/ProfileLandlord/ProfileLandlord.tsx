@@ -228,275 +228,271 @@ const ProfileLandlord = () => {
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="p-6 md:p-8">
-          <Card className="border-none shadow-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
+    <div className="max-w-5xl mx-auto">
+      <div className="p-6">
+        <Card className="border-none shadow-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
 
-            <CardContent className="py-6 relative z-10">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                <div className="relative group">
-                  <div className="w-28 h-28 rounded-full p-1 shadow-2xl">
-                    <Avatar className="w-full h-full border-4 border-white">
-                      <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                        {getInitials(formData.fullName)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
+          <CardContent className="py-6 relative z-10">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <div className="relative group">
+                <div className="w-28 h-28 rounded-full p-1 shadow-2xl">
+                  <Avatar className="w-full h-full border-4 border-white">
+                    <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                      {getInitials(formData.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
 
-                  {/* Camera Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <Camera className="w-8 h-8 text-white" />
+                {/* Camera Icon Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-8 h-8 text-white" />
+                </div>
+              </div>
+
+              {/* User Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
+                  {!isEditingFullName ? (
+                    <>
+                      <h1 className="text-3xl font-bold">
+                        {formData.fullName || "Chưa cập nhật"}
+                      </h1>
+                      <button
+                        onClick={() => {
+                          setTempFullName(formData.fullName);
+                          setIsEditingFullName(true);
+                        }}
+                        className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Chỉnh sửa tên"
+                      >
+                        <Edit className="w-4 h-4 hover:text-gray-600" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 flex-1">
+                      <Input
+                        value={tempFullName}
+                        onChange={(e) => setTempFullName(e.target.value)}
+                        className="max-w-sm text-2xl font-bold h-10"
+                        placeholder="Nhập họ và tên"
+                        autoFocus
+                      />
+                      <Button
+                        size="icon"
+                        className="bg-green-600 hover:bg-green-700 h-8 w-8"
+                        onClick={() => {
+                          handleChange("fullName", tempFullName);
+                          setIsEditingFullName(false);
+                        }}
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          setTempFullName(formData.fullName);
+                          setIsEditingFullName(false);
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-center gap-2">
+                    <Badge className="bg-green-500/90 text-white hover:bg-green-500 border-none">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      {userInfo.isActivated ? "Đã kích hoạt" : "Chưa kích hoạt"}
+                    </Badge>
                   </div>
                 </div>
 
-                {/* User Info */}
-                <div className="flex-1 text-center md:text-left">
-                  <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                    {!isEditingFullName ? (
-                      <>
-                        <h1 className="text-3xl font-bold">
-                          {formData.fullName || "Chưa cập nhật"}
-                        </h1>
-                        <button
-                          onClick={() => {
-                            setTempFullName(formData.fullName);
-                            setIsEditingFullName(true);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                          title="Chỉnh sửa tên"
-                        >
-                          <Edit className="w-4 h-4 hover:text-gray-600" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-2 flex-1">
-                        <Input
-                          value={tempFullName}
-                          onChange={(e) => setTempFullName(e.target.value)}
-                          className="max-w-sm text-2xl font-bold h-10"
-                          placeholder="Nhập họ và tên"
-                          autoFocus
-                        />
-                        <Button
-                          size="icon"
-                          className="bg-green-600 hover:bg-green-700 h-8 w-8"
-                          onClick={() => {
-                            handleChange("fullName", tempFullName);
-                            setIsEditingFullName(false);
-                          }}
-                        >
-                          <Check className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-8 w-8"
-                          onClick={() => {
-                            setTempFullName(formData.fullName);
-                            setIsEditingFullName(false);
-                          }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center gap-2">
-                      <Badge className="bg-green-500/90 text-white hover:bg-green-500 border-none">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        {userInfo.isActivated
-                          ? "Đã kích hoạt"
-                          : "Chưa kích hoạt"}
-                      </Badge>
-                    </div>
+                <div className="space-y-2 text-blue-50">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <Mail className="w-4 h-4" />
+                    <span>{userInfo.email}</span>
                   </div>
 
-                  <div className="space-y-2 text-blue-50">
-                    <div className="flex items-center justify-center md:justify-start gap-2">
-                      <Mail className="w-4 h-4" />
-                      <span>{userInfo.email}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span className="capitalize">{userInfo.role}</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span className="capitalize">{userInfo.role}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Action Button */}
-                {hasChanges() && (
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 text-white shadow-md"
+              {/* Action Button */}
+              {hasChanges() && (
+                <Button
+                  onClick={handleSaveChanges}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 text-white shadow-md"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Lưu thay đổi
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Separator className="my-6" />
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                Thông Tin Cá Nhân
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {renderField(
+                "phoneNumber",
+                "Số điện thoại",
+                <Phone className="w-5 h-5" />,
+                "Nhập số điện thoại"
+              )}
+              {renderField(
+                "dob",
+                "Ngày sinh",
+                <Calendar className="w-5 h-5" />,
+                "Chọn ngày sinh",
+                "date"
+              )}
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-gray-400">
+                  <User className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500 mb-1">Giới tính</p>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(value) => handleChange("gender", value)}
                   >
-                    {isLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Đang lưu...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        Lưu thay đổi
-                      </>
-                    )}
-                  </Button>
-                )}
+                    <SelectTrigger className="max-w-sm">
+                      <SelectValue placeholder="Chọn giới tính" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Nam</SelectItem>
+                      <SelectItem value="female">Nữ</SelectItem>
+                      <SelectItem value="other">Khác</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Separator className="my-6" />
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="border border-gray-200">
-              <CardHeader className="pb-3">
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <User className="w-5 h-5 text-blue-600" />
-                  Thông Tin Cá Nhân
+                  <MapPin className="w-5 h-5" />
+                  Địa Chỉ
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {renderField(
-                  "phoneNumber",
-                  "Số điện thoại",
-                  <Phone className="w-5 h-5" />,
-                  "Nhập số điện thoại"
-                )}
-                {renderField(
-                  "dob",
-                  "Ngày sinh",
-                  <Calendar className="w-5 h-5" />,
-                  "Chọn ngày sinh",
-                  "date"
-                )}
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-gray-400">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500 mb-1">Giới tính</p>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingAddress(null);
+                    setShowAddModal(true);
+                  }}
+                  variant={"outline"}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Thêm mới
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {addresses.length > 0 ? (
+                <>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Chọn địa chỉ hiển thị
+                    </p>
                     <Select
-                      value={formData.gender}
-                      onValueChange={(value) => handleChange("gender", value)}
+                      value={selectedAddressId}
+                      onValueChange={setSelectedAddressId}
                     >
-                      <SelectTrigger className="max-w-sm">
-                        <SelectValue placeholder="Chọn giới tính" />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn địa chỉ" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Nam</SelectItem>
-                        <SelectItem value="female">Nữ</SelectItem>
-                        <SelectItem value="other">Khác</SelectItem>
+                        {addresses.map((addr) => (
+                          <SelectItem key={addr._id} value={addr._id || ""}>
+                            {addr.address}, {addr.wardName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border border-gray-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Địa Chỉ
-                  </CardTitle>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setEditingAddress(null);
-                      setShowAddModal(true);
-                    }}
-                    variant={"outline"}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Thêm mới
-                  </Button>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {addresses.length > 0 ? (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">
-                        Chọn địa chỉ hiển thị
-                      </p>
-                      <Select
-                        value={selectedAddressId}
-                        onValueChange={setSelectedAddressId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn địa chỉ" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {addresses.map((addr) => (
-                            <SelectItem key={addr._id} value={addr._id || ""}>
-                              {addr.address}, {addr.wardName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {selectedAddress && (
-                      <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50">
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="font-semibold text-gray-900">
-                                {selectedAddress.address}
-                              </p>
-                              <p className="text-gray-600">
-                                {selectedAddress.wardName},{" "}
-                                {selectedAddress.districtName}
-                              </p>
-                              <p className="text-gray-600">
-                                {selectedAddress.provinceName}
-                              </p>
-                            </div>
+                  {selectedAddress && (
+                    <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {selectedAddress.address}
+                            </p>
+                            <p className="text-gray-600">
+                              {selectedAddress.wardName},{" "}
+                              {selectedAddress.districtName}
+                            </p>
+                            <p className="text-gray-600">
+                              {selectedAddress.provinceName}
+                            </p>
                           </div>
                         </div>
-
-                        <div className="flex gap-2 mt-4 pt-4 border-t">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditAddress(selectedAddress)}
-                            className="flex-1"
-                          >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Sửa
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              handleDeleteAddress(selectedAddress._id || "")
-                            }
-                            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Xóa
-                          </Button>
-                        </div>
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p className="mb-2">Chưa có địa chỉ nào</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+
+                      <div className="flex gap-2 mt-4 pt-4 border-t">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditAddress(selectedAddress)}
+                          className="flex-1"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Sửa
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleDeleteAddress(selectedAddress._id || "")
+                          }
+                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Xóa
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="mb-2">Chưa có địa chỉ nào</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 

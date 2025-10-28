@@ -12,7 +12,6 @@ import RoomFurnitureLandlord from '@/pages/RoomFurnitureLandlord'
 import RegulationManageLandlord from '@/pages/RegulationManageLandlord'
 import BuildingServiceManageLandlord from '@/pages/BuildingServiceManageLandlord'
 import PostManageLandlord from '@/pages/PostManageLandlord'
-import Profile from '@/pages/Profile'
 import PaymentSuccess from '@/pages/PaymentSubscription'
 import HistorySubscription from '@/pages/HistorySubscription'
 import ProfileLandlord from '@/pages/ProfileLandlord'
@@ -31,11 +30,8 @@ const landlordRoutes = (
     <Route path='regulations' element={<RegulationManageLandlord />} />
     <Route path='building-services' element={<BuildingServiceManageLandlord />} />
     <Route path='posts' element={<PostManageLandlord />} />
-    <Route path='profile' element={<Profile />} />
     <Route path='payment-success' element={<PaymentSuccess />} />
     <Route path='history-subscription' element={<HistorySubscription />} />
-
-
     <Route path='profile' element={<ProfileLandlord />} />
     <Route path='settings' element={<SettingLandlord />} />
   </>
