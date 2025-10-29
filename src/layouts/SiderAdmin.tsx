@@ -59,39 +59,13 @@ const menuItems = [
     path: "/admin/dashboard",
   },
   {
-    title: "Quản lý nhà trọ",
-    icon: Building2,
-    items: [
-      {
-        title: "Danh sách nhà trọ",
-        icon: Building2,
-        path: "/admin/buildings",
-      },
-      {
-        title: "Quản lý tầng",
-        icon: Layers,
-        path: "/admin/floors",
-      },
-      {
-        title: "Quản lý phòng",
-        icon: Home,
-        path: "/admin/rooms",
-      },
-    ],
-  },
-  {
     title: "Người thuê",
     icon: Users,
     items: [
       {
         title: "Danh sách người thuê",
         icon: UserCheck,
-        path: "/admin/tenants",
-      },
-      {
-        title: "Hợp đồng thuê",
-        icon: FileText,
-        path: "/admin/contracts",
+        path: "/admin/account-management",
       },
     ],
   },
@@ -125,48 +99,12 @@ const menuItems = [
         icon: Package,
         path: "/admin/package-services",
       },
-      {
-        title: "Dịch vụ phòng",
-        icon: Wrench,
-        path: "/admin/building-services",
-      },
-      {
-        title: "Yêu cầu sửa chữa",
-        icon: ClipboardList,
-        path: "/admin/maintenance",
-      },
-    ],
-  },
-  {
-    title: "Quản lý nội thất",
-    icon: Layers,
-    items: [
-      {
-        title: "Danh mục nội thất",
-        icon: ListChecks,
-        path: "/admin/furnitures",
-      },
-      {
-        title: "Quản lý theo tòa nhà",
-        icon: Building2,
-        path: "/admin/building-furniture",
-      },
-      {
-        title: "Quản lý theo phòng",
-        icon: BedDouble,
-        path: "/admin/room-furniture",
-      },
     ],
   },
   {
     title: "Thông báo",
     icon: Bell,
     path: "/admin/notifications",
-  },
-  {
-    title: "Lịch hẹn",
-    icon: Calendar,
-    path: "/admin/appointments",
   },
   {
     title: "Cài đặt",

@@ -15,6 +15,7 @@ import { postApi } from "../services/post/post.service";
 import authReducer from "../services/auth/auth.slice";
 import storage from "redux-persist/lib/storage";
 import { packageSubscriptionApi } from "@/services/package-services/package-subscription.service";
+import { accountApi } from "@/services/account/account.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -41,6 +42,7 @@ export const store = configureStore({
     [regulationApi.reducerPath]: regulationApi.reducer,
     [buildingServicesApi.reducerPath]: buildingServicesApi.reducer,
     [postApi.reducerPath]: postApi.reducer,
+    [accountApi.reducerPath]: accountApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -60,7 +62,8 @@ export const store = configureStore({
       roomFurnitureApi.middleware,
       regulationApi.middleware,
       buildingServicesApi.middleware,
-      postApi.middleware
+      postApi.middleware,
+      accountApi.middleware
     ),
 });
 
