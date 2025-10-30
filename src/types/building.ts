@@ -73,3 +73,19 @@ export interface CreateBuildingResponse {
   data: IBuilding;
   message: string;
 }
+
+export interface IImportExcelRequest {
+  file: File;
+  parts?: "auto" | string; 
+  onDupFloor?: "skip" | "error";
+  onDupRoom?: "skip" | "error";
+}
+
+export interface IImportExcelResponse {
+  message: string;
+  results?: {
+    buildingsCreated: number;
+    floorsCreated: number;
+    roomsCreated: number;
+  }
+}
