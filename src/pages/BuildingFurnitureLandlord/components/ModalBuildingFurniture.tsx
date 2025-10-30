@@ -56,7 +56,11 @@ export const ModalBuildingFurniture = ({
   const isEdit = !!buildingFurniture;
 
   // Queries
-  const { data: buildingsData } = useGetBuildingsQuery({ page: 1, limit: 100 });
+  const { data: buildingsData } = useGetBuildingsQuery({
+    page: 1,
+    limit: 100,
+    status: "active",
+  });
   const { data: furnituresData } = useGetFurnituresQuery();
 
   // State cho create mode (multiple items)

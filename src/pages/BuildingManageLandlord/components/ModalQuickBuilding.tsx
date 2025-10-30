@@ -32,7 +32,7 @@ import { Building2, Zap } from "lucide-react";
 interface QuickBuildingFormData {
   name: string;
   address: string;
-  eIndexType: "byNumber" | "byPerson" | "included";
+  eIndexType: "byNumber" | "included";
   ePrice: number;
   wIndexType: "byNumber" | "byPerson" | "included";
   wPrice: number;
@@ -48,7 +48,7 @@ interface QuickBuildingFormData {
       area: number;
       price: number;
       maxTenants: number;
-      status: "available" | "rented" | "maintenance";
+      status: "available" | "rented";
       description?: string;
       eStart: number;
       wStart: number;
@@ -93,8 +93,6 @@ const ModalQuickBuilding = ({
           maxTenants: 0,
           status: "available",
           description: "",
-          eStart: 0,
-          wStart: 0,
         },
       },
       dryRun: false,
@@ -238,6 +236,7 @@ const ModalQuickBuilding = ({
                             <SelectItem value="byNumber">
                               Theo số (m³)
                             </SelectItem>
+                            <SelectItem value="byPerson">Theo người</SelectItem>
                             <SelectItem value="included">
                               Đã bao gồm trong giá thuê
                             </SelectItem>
@@ -459,50 +458,8 @@ const ModalQuickBuilding = ({
                             <SelectContent>
                               <SelectItem value="available">Có sẵn</SelectItem>
                               <SelectItem value="rented">Đã thuê</SelectItem>
-                              <SelectItem value="maintenance">
-                                Bảo trì
-                              </SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control as any}
-                      name="rooms.defaults.eStart"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chỉ số điện bắt đầu *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="VD: 0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control as any}
-                      name="rooms.defaults.wStart"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chỉ số nước bắt đầu *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="VD: 0"
-                              {...field}
-                            />
-                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}

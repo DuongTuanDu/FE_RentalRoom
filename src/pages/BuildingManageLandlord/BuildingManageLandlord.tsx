@@ -7,7 +7,7 @@ import {
   useCreateQuickBuildingMutation,
   useUpdateStatusMutation,
 } from "@/services/building/building.service";
-import { Building2, Search, Plus, Edit, Trash2, Eye, Zap } from "lucide-react";
+import { Building2, Search, Plus, Edit, Eye, Zap } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -47,6 +47,7 @@ import type {
   IBuilding,
 } from "@/types/building";
 import { toast } from "sonner";
+import { toText } from "@/utils/errors";
 
 const BuildingManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,10 +117,10 @@ const BuildingManageLandlord = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteDialog = (building: IBuilding) => {
-    setDeletingBuilding(building);
-    setIsDeleteDialogOpen(true);
-  };
+  // const handleOpenDeleteDialog = (building: IBuilding) => {
+  //   setDeletingBuilding(building);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
   const handleOpenDrawer = (building: IBuilding) => {
     setViewingBuilding(building);
@@ -141,10 +142,9 @@ const BuildingManageLandlord = () => {
         });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message || "Không thể thêm tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Thêm tòa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -166,11 +166,9 @@ const BuildingManageLandlord = () => {
         });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message ||
-          "Không thể cập nhật tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Cập nhật nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -194,11 +192,9 @@ const BuildingManageLandlord = () => {
         description: "Tòa nhà đã được xóa thành công",
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.message?.message || "Không thể xóa tòa nhà. Vui lòng thử lại",
-      });
-      
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Xóa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -206,7 +202,7 @@ const BuildingManageLandlord = () => {
     formData: CreateQuickBuildingRequest
   ) => {
     console.log("formData", formData);
-    
+
     try {
       const res = await createQuickBuilding(formData).unwrap();
       console.log("res", res);
@@ -217,10 +213,9 @@ const BuildingManageLandlord = () => {
         description: res.message,
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.message?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Thêm tòa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -235,11 +230,9 @@ const BuildingManageLandlord = () => {
         } thành công`,
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message ||
-          "Không thể cập nhật trạng thái tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Cập nhật nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -465,14 +458,14 @@ const BuildingManageLandlord = () => {
                               >
                                 <Edit className="w-4 h-4 text-amber-600" />
                               </Button>
-                              <Button
+                              {/* <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleOpenDeleteDialog(building)}
                               >
                                 <Trash2 className="w-4 h-4 text-red-600" />
-                              </Button>
+                              </Button> */}
                             </div>
                           </TableCell>
                         </TableRow>

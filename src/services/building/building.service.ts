@@ -1,6 +1,11 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { CreateBuildingRequest, CreateBuildingResponse, CreateQuickBuildingRequest, IBuildingResponse } from "@/types/building"; // bạn có thể lưu type trong thư mục riêng
+import type {
+  CreateBuildingRequest,
+  CreateBuildingResponse,
+  CreateQuickBuildingRequest,
+  IBuildingResponse,
+} from "@/types/building";
 
 export const buildingApi = createApi({
   reducerPath: "buildingApi",
@@ -16,22 +21,21 @@ export const buildingApi = createApi({
         q?: string;
         page?: number;
         limit?: number;
+        status?: "active" | "inactive";
       }
     >({
-      query: ({ page, limit, q }) => {
-        const params = new URLSearchParams({
-          page: page?.toString() || "1",
-          limit: limit?.toString() || "10",
-          q: q || "",
-        });
-        return {
-          url: `/buildings?${params.toString()}`,
-          method: "GET",
-        };
-      },
+      query: ({ page = 1, limit = 10, q = "", status }) => ({
+        url: "/buildings",
+        method: "GET",
+        params: { page, limit, q, ...(status ? { status } : {}) },
+      }),
       providesTags: ["Building"],
     }),
-    createBuilding: builder.mutation<CreateBuildingResponse, CreateBuildingRequest>({
+
+    createBuilding: builder.mutation<
+      CreateBuildingResponse,
+      CreateBuildingRequest
+    >({
       query: (data) => ({
         url: "/buildings",
         method: "POST",
@@ -39,7 +43,10 @@ export const buildingApi = createApi({
       }),
       invalidatesTags: ["Building"],
     }),
-    updateBuilding: builder.mutation<CreateBuildingResponse, { id: string; data: Partial<CreateBuildingRequest> }>({
+    updateBuilding: builder.mutation<
+      CreateBuildingResponse,
+      { id: string; data: Partial<CreateBuildingRequest> }
+    >({
       query: ({ id, data }) => ({
         url: `/buildings/${id}`,
         method: "PUT",
@@ -54,7 +61,10 @@ export const buildingApi = createApi({
       }),
       invalidatesTags: ["Building"],
     }),
-    createQuickBuilding: builder.mutation<CreateBuildingResponse, CreateQuickBuildingRequest>({
+    createQuickBuilding: builder.mutation<
+      CreateBuildingResponse,
+      CreateQuickBuildingRequest
+    >({
       query: (data) => ({
         url: "/buildings/quick-setup",
         method: "POST",
@@ -62,15 +72,25 @@ export const buildingApi = createApi({
       }),
       invalidatesTags: ["Building"],
     }),
-    updateStatus: builder.mutation<CreateBuildingResponse, { id: string; status: "active" | "inactive" }>({
+    updateStatus: builder.mutation<
+      CreateBuildingResponse,
+      { id: string; status: "active" | "inactive" }
+    >({
       query: ({ id, status }) => ({
         url: `/buildings/${id}/status`,
         method: "PATCH",
         data: { status },
       }),
       invalidatesTags: ["Building"],
-    })
+    }),
   }),
 });
 
-export const { useGetBuildingsQuery, useCreateBuildingMutation, useUpdateBuildingMutation, useDeleteBuildingMutation, useCreateQuickBuildingMutation, useUpdateStatusMutation } = buildingApi;
+export const {
+  useGetBuildingsQuery,
+  useCreateBuildingMutation,
+  useUpdateBuildingMutation,
+  useDeleteBuildingMutation,
+  useCreateQuickBuildingMutation,
+  useUpdateStatusMutation,
+} = buildingApi;

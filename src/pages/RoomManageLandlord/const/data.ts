@@ -2,7 +2,6 @@ export const STATUS_OPTIONS = [
   { value: "all", label: "Tất cả trạng thái" },
   { value: "available", label: "Còn trống" },
   { value: "rented", label: "Đã thuê" },
-  { value: "maintenance", label: "Bảo trì" },
 ];
 
 export const STATUS_COLORS = {

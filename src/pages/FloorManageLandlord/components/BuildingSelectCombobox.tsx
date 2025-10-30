@@ -67,6 +67,7 @@ export const BuildingSelectCombobox = ({
     q: debouncedSearch,
     page: page,
     limit: 10,
+    status: "active",
   });
 
   useEffect(() => {
