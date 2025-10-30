@@ -74,3 +74,42 @@ export interface IQuickCreateRoomRequest {
     description?: string;
   };
 }
+
+export interface IVacantRoomResponse {
+  success: boolean;
+  data: {
+    building: {
+      _id: string;
+      name: string;
+      address: string;
+      eIndexType: "byNumber" | "byPerson" | "included";
+      ePrice: number;
+      wIndexType: "byNumber" | "byPerson" | "included";
+      wPrice: number;
+      status: "active" | "inactive";
+    };
+    rooms: {
+      _id: string;
+      floorId: string;
+      roomNumber: string;
+      area: number;
+      price: number;
+    }[];
+    services: {
+      _id: string;
+      name: string;
+      label: string;
+      description: string;
+      chargeType: "perRoom" | "perPerson" | "included";
+      fee: number;
+      currency: string;
+    }[];
+    regulations: {
+      _id: string;
+      title: string;
+      description: string;
+      type: "entry_exit" | "pet_policy" | "common_area" | "other";
+      effectiveFrom: string;
+    }
+  };
+}

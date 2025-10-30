@@ -16,6 +16,7 @@ import PaymentSuccess from '@/pages/PaymentSubscription'
 import HistorySubscription from '@/pages/HistorySubscription'
 import ProfileLandlord from '@/pages/ProfileLandlord'
 import SettingLandlord from '@/pages/SettingLandlord'
+import PostDetail from '@/pages/PostDetail'
 
 const landlordRoutes = (
   <>
@@ -30,6 +31,7 @@ const landlordRoutes = (
     <Route path='regulations' element={<RegulationManageLandlord />} />
     <Route path='building-services' element={<BuildingServiceManageLandlord />} />
     <Route path='posts' element={<PostManageLandlord />} />
+    <Route path='posts/:slug' element={<PostDetail />} />
     <Route path='payment-success' element={<PaymentSuccess />} />
     <Route path='history-subscription' element={<HistorySubscription />} />
     <Route path='profile' element={<ProfileLandlord />} />

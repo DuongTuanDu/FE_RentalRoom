@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +50,9 @@ export const AddAddressModal = ({
   const [ward, setWard] = useState<string>("");
   const [address, setAddress] = useState<string>("");
 
+  // Flag để đánh dấu đang trong quá trình khởi tạo từ editAddress
+  const isInitializing = useRef(false);
+
   const { data: districtsData } = useGetDistrictsQuery(province, {
     skip: !province,
   });
@@ -58,15 +61,27 @@ export const AddAddressModal = ({
     skip: !district,
   });
 
+  // Reset form khi modal đóng/mở hoặc editAddress thay đổi
   useEffect(() => {
+    if (!open) {
+      // Reset khi đóng modal
+      setAddress("");
+      setProvince("");
+      setDistrict("");
+      setWard("");
+      isInitializing.current = false;
+      return;
+    }
+
     if (editAddress) {
+      // Đánh dấu đang khởi tạo
+      isInitializing.current = true;
       setAddress(editAddress.address);
 
-      // Nếu đã có ID thì dùng luôn
+      // Chỉ set province, các level khác sẽ được xử lý trong useEffect riêng
       if (editAddress.provinceId) {
         setProvince(editAddress.provinceId);
       } else if (editAddress.provinceName && provincesData?.data) {
-        // Nếu chưa có ID, tìm từ tên
         const foundProvince = provincesData.data.find(
           (p: any) => p.ProvinceName === editAddress.provinceName
         );
@@ -74,45 +89,87 @@ export const AddAddressModal = ({
           setProvince(String(foundProvince.ProvinceID));
         }
       }
-
-      if (editAddress.districtId) {
-        setDistrict(editAddress.districtId);
-      } else if (editAddress.districtName && districtsData?.data) {
-        const foundDistrict = districtsData.data.find(
-          (d: any) => d.DistrictName === editAddress.districtName
-        );
-        if (foundDistrict) {
-          setDistrict(String(foundDistrict.DistrictID));
-        }
-      }
-
-      if (editAddress.wardCode) {
-        setWard(editAddress.wardCode);
-      } else if (editAddress.wardName && wardsData?.data) {
-        const foundWard = wardsData.data.find(
-          (w: any) => w.WardName === editAddress.wardName
-        );
-        if (foundWard) {
-          setWard(foundWard.WardCode);
-        }
-      }
     } else {
+      // Thêm mới - reset form
+      isInitializing.current = false;
       setAddress("");
       setProvince("");
       setDistrict("");
       setWard("");
     }
-  }, [editAddress, open, provincesData, districtsData, wardsData]);
+  }, [open, editAddress, provincesData]);
 
+  // Set district sau khi districtsData đã fetch xong
   useEffect(() => {
+    // Chỉ chạy khi đang khởi tạo từ editAddress
+    if (!isInitializing.current || !editAddress) return;
+    
+    // Đợi districtsData sẵn sàng
+    if (!districtsData?.data || !province) return;
+
+    // Set district
+    if (editAddress.districtId) {
+      setDistrict(editAddress.districtId);
+    } else if (editAddress.districtName) {
+      const foundDistrict = districtsData.data.find(
+        (d: any) => d.DistrictName === editAddress.districtName
+      );
+      if (foundDistrict) {
+        setDistrict(String(foundDistrict.DistrictID));
+      }
+    }
+  }, [districtsData, province, editAddress]);
+
+  // Set ward sau khi wardsData đã fetch xong
+  useEffect(() => {
+    // Chỉ chạy khi đang khởi tạo từ editAddress
+    if (!isInitializing.current || !editAddress) return;
+    
+    // Đợi wardsData sẵn sàng
+    if (!wardsData?.data || !district) return;
+
+    // Set ward và kết thúc quá trình khởi tạo
+    if (editAddress.wardCode) {
+      setWard(editAddress.wardCode);
+    } else if (editAddress.wardName) {
+      const foundWard = wardsData.data.find(
+        (w: any) => w.WardName === editAddress.wardName
+      );
+      if (foundWard) {
+        setWard(foundWard.WardCode);
+      }
+    }
+
+    // Kết thúc quá trình khởi tạo
+    isInitializing.current = false;
+  }, [wardsData, district, editAddress]);
+
+  // Reset district và ward khi province thay đổi (do user chọn)
+  useEffect(() => {
+    // Không reset khi đang khởi tạo từ editAddress
+    if (isInitializing.current) return;
+
     if (!province) {
+      setDistrict("");
+      setWard("");
+    } else {
+      // User chọn province mới → reset district và ward
       setDistrict("");
       setWard("");
     }
   }, [province]);
 
+  // useEffect 5: Reset ward khi district thay đổi (do user chọn)
   useEffect(() => {
-    if (!district) setWard("");
+    // Không reset khi đang khởi tạo từ editAddress
+    if (isInitializing.current) return;
+
+    if (!district) {
+      setWard("");
+    } else {
+      // User chọn district mới → reset ward
+      setWard("");
+    }
   }, [district]);
 
   const handleSave = () => {
@@ -160,8 +217,7 @@ export const AddAddressModal = ({
                 value={province}
                 onValueChange={(value) => {
                   setProvince(value);
-                  setDistrict("");
-                  setWard("");
+                  // Khi user chọn province mới, reset được xử lý trong useEffect
                 }}
                 disabled={!provincesData?.data?.length}
               >
@@ -187,7 +243,7 @@ export const AddAddressModal = ({
                 value={district}
                 onValueChange={(value) => {
                   setDistrict(value);
-                  setWard("");
+                  // Khi user chọn district mới, reset được xử lý trong useEffect
                 }}
                 disabled={!province}
               >
