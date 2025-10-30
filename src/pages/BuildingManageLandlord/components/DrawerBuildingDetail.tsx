@@ -25,14 +25,21 @@ interface DrawerBuildingDetailProps {
   building: IBuilding | null;
 }
 
-const getIndexTypeLabel = (type: string) => {
+const getWIndexTypeLabel = (type: string) => {
   const labels = {
     byNumber: "Theo chỉ số",
     byPerson: "Theo đầu người",
   };
   return labels[type as keyof typeof labels] || type;
 };
+const getEIndexTypeLabel = (type: string) => {
+  const labels = {
+    byNumber: "Theo chỉ số",
 
+    included: "Đã bao gồm trong giá thuê",
+  };
+  return labels[type as keyof typeof labels] || type;
+};
 const DrawerBuildingDetail = ({
   open,
   onOpenChange,
@@ -122,7 +129,7 @@ const DrawerBuildingDetail = ({
                     variant="outline"
                     className="mt-2 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300"
                   >
-                    {getIndexTypeLabel(building.eIndexType)}
+                    {getEIndexTypeLabel(building.eIndexType)}
                   </Badge>
                 </div>
                 <div>
@@ -153,7 +160,7 @@ const DrawerBuildingDetail = ({
                     variant="outline"
                     className="mt-2 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-300"
                   >
-                    {getIndexTypeLabel(building.wIndexType)}
+                    {getWIndexTypeLabel(building.wIndexType)}
                   </Badge>
                 </div>
                 <div>

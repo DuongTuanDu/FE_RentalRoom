@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   useCreateBuildingMutation,
   useGetBuildingsQuery,
@@ -6,8 +6,10 @@ import {
   useDeleteBuildingMutation,
   useCreateQuickBuildingMutation,
   useUpdateStatusMutation,
+  useDownloadImportTemplateMutation,
+  useImportFromExcelMutation,
 } from "@/services/building/building.service";
-import { Building2, Search, Plus, Edit, Trash2, Eye, Zap } from "lucide-react";
+import { Building2, Search, Plus, Edit, Eye, Zap } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -47,6 +49,7 @@ import type {
   IBuilding,
 } from "@/types/building";
 import { toast } from "sonner";
+import { toText } from "@/utils/errors";
 
 const BuildingManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,6 +96,42 @@ const BuildingManageLandlord = () => {
     limit: pageLimit,
   });
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const openFileDialog = () => fileInputRef.current?.click();
+
+  const [downloadTemplate] = useDownloadImportTemplateMutation();
+  const handleDownload = async () => {
+    const blob = await downloadTemplate().unwrap();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "building-import-template.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const [importExcel, { isLoading: isImporting }] =
+    useImportFromExcelMutation();
+
+  const handleImport = async (file: File) => {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await importExcel(fd).unwrap();
+      toast.success("Import thành công", {
+        description: `Đã import: ${res?.results?.buildingsCreated ?? 0} tòa, ${
+          res?.results?.floorsCreated ?? 0
+        } tầng, ${res?.results?.roomsCreated ?? 0} phòng`,
+      });
+      refetch();
+    } catch (err: any) {
+      toast.error("Import thất bại", {
+        description: toText(err, "Vui lòng kiểm tra file và thử lại."),
+      });
+      console.error(err);
+    }
+  };
+
   const [createBuilding, { isLoading: isCreating }] =
     useCreateBuildingMutation();
   const [updateBuilding, { isLoading: isUpdating }] =
@@ -116,10 +155,10 @@ const BuildingManageLandlord = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteDialog = (building: IBuilding) => {
-    setDeletingBuilding(building);
-    setIsDeleteDialogOpen(true);
-  };
+  // const handleOpenDeleteDialog = (building: IBuilding) => {
+  //   setDeletingBuilding(building);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
   const handleOpenDrawer = (building: IBuilding) => {
     setViewingBuilding(building);
@@ -141,10 +180,9 @@ const BuildingManageLandlord = () => {
         });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message || "Không thể thêm tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Thêm tòa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -166,11 +204,9 @@ const BuildingManageLandlord = () => {
         });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message ||
-          "Không thể cập nhật tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Cập nhật nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -194,11 +230,9 @@ const BuildingManageLandlord = () => {
         description: "Tòa nhà đã được xóa thành công",
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.message?.message || "Không thể xóa tòa nhà. Vui lòng thử lại",
-      });
-      
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Xóa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -206,7 +240,7 @@ const BuildingManageLandlord = () => {
     formData: CreateQuickBuildingRequest
   ) => {
     console.log("formData", formData);
-    
+
     try {
       const res = await createQuickBuilding(formData).unwrap();
       console.log("res", res);
@@ -217,10 +251,9 @@ const BuildingManageLandlord = () => {
         description: res.message,
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.message?.message || "Không thể tạo tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Thêm tòa nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -235,11 +268,9 @@ const BuildingManageLandlord = () => {
         } thành công`,
       });
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra", {
-        description:
-          error?.data?.message ||
-          "Không thể cập nhật trạng thái tòa nhà. Vui lòng thử lại",
-      });
+      const message = toText(error, "Đã xảy ra lỗi không xác định.");
+      toast.error("Cập nhật nhà thất bại", { description: message });
+      console.error(error);
     }
   };
 
@@ -258,7 +289,41 @@ const BuildingManageLandlord = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex flex-wrap gap-3">
+            {/* Nút tải template */}
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleDownload}
+            >
+              Tải template excel cấu hình tòa
+            </Button>
+
+            {/* Nút import + input ẩn */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) {
+                  handleImport(f);
+                  e.currentTarget.value = ""; // reset để lần sau chọn lại cùng file vẫn nhận
+                }
+              }}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={openFileDialog}
+              disabled={isImporting}
+            >
+              {isImporting ? "Đang import..." : "Import Excel"}
+            </Button>
+
+            {/* Nút có sẵn */}
             <Button className="gap-2" onClick={handleOpenCreateModal}>
               <Plus className="w-4 h-4" />
               Thêm tòa nhà
@@ -465,14 +530,14 @@ const BuildingManageLandlord = () => {
                               >
                                 <Edit className="w-4 h-4 text-amber-600" />
                               </Button>
-                              <Button
+                              {/* <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
                                 onClick={() => handleOpenDeleteDialog(building)}
                               >
                                 <Trash2 className="w-4 h-4 text-red-600" />
-                              </Button>
+                              </Button> */}
                             </div>
                           </TableCell>
                         </TableRow>
