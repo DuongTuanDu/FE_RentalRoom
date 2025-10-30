@@ -150,7 +150,16 @@ export const BuildingSelectCombobox = ({
           </div>
 
           {/* Buildings List */}
-          <div className="max-h-[300px] overflow-y-auto">
+          <div
+            className="max-h-[300px] overflow-y-auto overscroll-auto"
+            onWheel={(e) => {
+              const target = e.currentTarget;
+              const delta = e.deltaY;
+              // Scroll inside the popover instead of the page
+              target.scrollTop += delta;
+              e.stopPropagation();
+            }}
+          >
             {isLoading && page === 1 ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
