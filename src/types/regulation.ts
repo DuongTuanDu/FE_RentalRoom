@@ -6,7 +6,6 @@ export interface IRegulation {
   type: "entry_exit" | "pet_policy" | "common_area" | "other";
   status: "active" | "inactive";
   effectiveFrom: string;
-  effectiveTo: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -19,7 +18,6 @@ export interface IRegulationRequest {
   description: string;
   type: "entry_exit" | "pet_policy" | "common_area" | "other";
   effectiveFrom: string;
-  effectiveTo: string;
 }
 
 export interface IRegulationRequestUpdate {
@@ -28,7 +26,6 @@ export interface IRegulationRequestUpdate {
   type: "entry_exit" | "pet_policy" | "common_area" | "other";
   status: "active" | "inactive";
   effectiveFrom: string;
-  effectiveTo: string;
 }
 
 

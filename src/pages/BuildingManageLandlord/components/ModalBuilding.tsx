@@ -65,7 +65,6 @@ const indexETypeOptions = [
 const indexWTypeOptions = [
   { value: "byNumber", label: "Theo chỉ số" },
   { value: "byPerson", label: "Theo đầu người" },
-  { value: "included", label: "Đã bao gồm trong giá thuê" },
 ];
 
 const ModalBuilding = ({

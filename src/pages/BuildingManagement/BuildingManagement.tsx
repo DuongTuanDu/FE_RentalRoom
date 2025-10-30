@@ -1,5 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
-import { useGetBuildingsQuery } from "@/services/building/building.service";
+import {
+  useDeleteBuildingMutation,
+  useGetBuildingsQuery,
+  useUpdateStatusMutation,
+} from "@/services/building/building.service";
 import { Building2, Search, Trash2, Eye } from "lucide-react";
 import _ from "lodash";
 import {
@@ -23,12 +27,35 @@ import {
 } from "@/components/ui/select";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import type { IBuilding } from "@/types/building";
+import { toast } from "sonner";
+import AlertDeleteBuilding from "../BuildingManageLandlord/components/AlertDeleteBuilding";
+import DrawerBuildingDetail from "../BuildingManageLandlord/components/DrawerBuildingDetail";
 
 const BuildingManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
+  const [updateStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateStatusMutation();
+  const [deleteBuilding, { isLoading: isDeleting }] =
+    useDeleteBuildingMutation();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingBuilding, setDeletingBuilding] = useState<IBuilding | null>(
+    null
+  );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [viewingBuilding, setViewingBuilding] = useState<IBuilding | null>(
+    null
+  );
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
 
@@ -58,6 +85,52 @@ const BuildingManagement = () => {
   });
 
   const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
+
+  const handleOpenDeleteDialog = (building: IBuilding) => {
+    setDeletingBuilding(building);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleOpenDrawer = (building: IBuilding) => {
+      setViewingBuilding(building);
+      setIsDrawerOpen(true);
+    };
+
+  const handleUpdateStatus = async (building: IBuilding) => {
+    try {
+      const newStatus = building.status === "active" ? "inactive" : "active";
+      await updateStatus({ id: building._id, status: newStatus }).unwrap();
+      toast.success("Thành công", {
+        description: `Tòa nhà đã được ${
+          newStatus === "active" ? "kích hoạt" : "vô hiệu hóa"
+        } thành công`,
+      });
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra", {
+        description:
+          error?.data?.message ||
+          "Không thể cập nhật trạng thái tòa nhà. Vui lòng thử lại",
+      });
+    }
+  };
+
+  const handleDeleteBuilding = async () => {
+    if (!deletingBuilding) return;
+
+    try {
+      await deleteBuilding(deletingBuilding._id).unwrap();
+      setIsDeleteDialogOpen(false);
+      setDeletingBuilding(null);
+      toast.success("Thành công", {
+        description: "Tòa nhà đã được xóa thành công",
+      });
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra", {
+        description:
+          error?.message?.message || "Không thể xóa tòa nhà. Vui lòng thử lại",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 px-3">
@@ -215,10 +288,33 @@ const BuildingManagement = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center">
+                                      <Switch
+                                        checked={building.status === "active"}
+                                        onCheckedChange={() =>
+                                          handleUpdateStatus(building)
+                                        }
+                                        disabled={isUpdatingStatus}
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      {building.status === "active"
+                                        ? "Click để ngừng hoạt động tòa nhà"
+                                        : "Click để kích hoạt tòa nhà"}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                onClick={() => handleOpenDrawer(building)}
                               >
                                 <Eye className="w-4 h-4 text-blue-600" />
                               </Button>
@@ -226,6 +322,7 @@ const BuildingManagement = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                onClick={() => handleOpenDeleteDialog(building)}
                               >
                                 <Trash2 className="w-4 h-4 text-red-600" />
                               </Button>
@@ -309,6 +406,31 @@ const BuildingManagement = () => {
           </CardContent>
         </Card>
       </div>
+      {/* Alert Delete Building */}
+      <AlertDeleteBuilding
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) {
+            setDeletingBuilding(null);
+          }
+        }}
+        building={deletingBuilding}
+        onConfirm={handleDeleteBuilding}
+        isLoading={isDeleting}
+      />
+
+      {/* Drawer Building Detail */}
+      <DrawerBuildingDetail
+        open={isDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open);
+          if (!open) {
+            setViewingBuilding(null);
+          }
+        }}
+        building={viewingBuilding}
+      />
     </div>
   );
 };

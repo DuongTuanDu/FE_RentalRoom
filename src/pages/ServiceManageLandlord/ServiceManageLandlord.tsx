@@ -1,5 +1,7 @@
-import { Package, Check, Sparkles } from "lucide-react";
+import { Package, Check, Sparkles, CreditCard, X } from "lucide-react";
 import { useGetPackageServicesQuery } from "@/services/package-services/package-services.service";
+import { useBuySubscriptionMutation } from "@/services/package-services/package-subscription.service";
+
 import {
   Card,
   CardContent,
@@ -12,16 +14,50 @@ import { Spinner } from "@/components/ui/spinner";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useState } from "react";
 import type { IPackage } from "@/types/package-services";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 const ServiceManageLandlord = () => {
   const formatPrice = useFormatPrice();
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<IPackage | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading } = useGetPackageServicesQuery();
+  const [buySubscription, { isLoading: isBuying }] = useBuySubscriptionMutation();
 
-  const handleSelectPackage = (pkg: IPackage) => {
-    setSelectedPackage(pkg._id);
-    console.log("Selected package:", pkg);
+  const handleOpenModal = (pkg: IPackage) => {
+    setSelectedPackage(pkg);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPackage(null);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!selectedPackage) return;
+
+    try {
+      const response = await buySubscription({ packageId: selectedPackage._id }).unwrap();
+      console.log("Mua gói thành công:", response);
+
+      if (response.success && response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      } else {
+        alert("Không lấy được URL thanh toán!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi mua gói:", error);
+      alert("Có lỗi xảy ra khi thanh toán!");
+    }
   };
 
   return (
@@ -151,9 +187,9 @@ const ServiceManageLandlord = () => {
                   </CardContent>
 
                   {/* CTA Button */}
-                  <div className="px-6">
+                  <div className="px-6 pb-6">
                     <Button
-                      onClick={() => handleSelectPackage(pkg)}
+                      onClick={() => handleOpenModal(pkg)}
                       className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:brightness-110 hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all rounded-xl"
                     >
                       <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
@@ -166,6 +202,129 @@ const ServiceManageLandlord = () => {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" />
+              Xác nhận mua gói dịch vụ
+            </DialogTitle>
+            <DialogDescription>
+              Vui lòng xem lại thông tin gói dịch vụ trước khi thanh toán
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedPackage && (
+            <div className="space-y-6 py-4">
+              {/* Package Info Card */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 space-y-4 border border-blue-100">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {selectedPackage.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedPackage.description}
+                    </p>
+                  </div>
+                  <Badge className="bg-blue-600 text-white">
+                    Phổ biến
+                  </Badge>
+                </div>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent">
+                    {formatPrice(selectedPackage.price)}
+                  </span>
+                  <span className="text-gray-600">
+                    / {selectedPackage.durationDays} ngày
+                  </span>
+                </div>
+              </div>
+
+              {/* Features Summary */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900">
+                  Quyền lợi của gói:
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Quản lý tối đa {selectedPackage.roomLimit} phòng
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Thời hạn sử dụng {selectedPackage.durationDays} ngày
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Hỗ trợ khách hàng 24/7
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Info */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-semibold">Lưu ý:</span> Sau khi bấm thanh toán, 
+                  bạn sẽ được chuyển đến cổng thanh toán VNPay để hoàn tất giao dịch.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={handleCloseModal}
+              disabled={isBuying}
+              className="w-full sm:w-auto mr-2 "
+            >
+              <X className="h-4 w-4 mr-2" />
+              Hủy bỏ
+            </Button>
+            <Button
+              onClick={handleConfirmPayment}
+              disabled={isBuying}
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              {isBuying ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Thanh toán ngay
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

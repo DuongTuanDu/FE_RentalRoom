@@ -45,19 +45,7 @@ const regulationSchema = z
       .max(1000, "Mô tả không được quá 1000 ký tự"),
     type: z.enum(["entry_exit", "pet_policy", "common_area", "other"]),
     effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
-    effectiveTo: z.string().min(1, "Vui lòng chọn ngày hiệu lực đến"),
   })
-  .refine(
-    (data) => {
-      const fromDate = new Date(data.effectiveFrom);
-      const toDate = new Date(data.effectiveTo);
-      return toDate > fromDate;
-    },
-    {
-      message: "Ngày hiệu lực đến phải sau ngày hiệu lực từ",
-      path: ["effectiveTo"],
-    }
-  );
 
 type RegulationFormValues = z.infer<typeof regulationSchema>;
 
@@ -95,7 +83,6 @@ export const ModalRegulation = ({
       description: "",
       type: "entry_exit",
       effectiveFrom: "",
-      effectiveTo: "",
     },
   });
 
@@ -107,8 +94,7 @@ export const ModalRegulation = ({
           title: regulation.title,
           description: regulation.description,
           type: regulation.type,
-          effectiveFrom: regulation.effectiveFrom.split("T")[0], // Convert to YYYY-MM-DD format
-          effectiveTo: regulation.effectiveTo.split("T")[0],
+          effectiveFrom: regulation.effectiveFrom.split("T")[0],
         });
       } else {
         form.reset({
@@ -117,7 +103,6 @@ export const ModalRegulation = ({
           description: "",
           type: "entry_exit",
           effectiveFrom: "",
-          effectiveTo: "",
         });
       }
     }
@@ -128,7 +113,6 @@ export const ModalRegulation = ({
     const formattedData: IRegulationRequest = {
       ...data,
       effectiveFrom: new Date(data.effectiveFrom).toISOString(),
-      effectiveTo: new Date(data.effectiveTo).toISOString(),
     };
     await onSubmit(formattedData);
   };
@@ -171,9 +155,6 @@ export const ModalRegulation = ({
                 name="buildingId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Tòa nhà <span className="text-red-500">*</span>
-                    </FormLabel>
                     <FormControl>
                       <BuildingSelectCombobox
                         value={field.value}
@@ -272,7 +253,6 @@ export const ModalRegulation = ({
                 Thời gian hiệu lực
               </h3>
 
-              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="effectiveFrom"
@@ -288,23 +268,6 @@ export const ModalRegulation = ({
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="effectiveTo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Hiệu lực đến <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
 
             <DialogFooter>
