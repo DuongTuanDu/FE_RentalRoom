@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   useCreateBuildingMutation,
   useGetBuildingsQuery,
@@ -6,6 +6,8 @@ import {
   useDeleteBuildingMutation,
   useCreateQuickBuildingMutation,
   useUpdateStatusMutation,
+  useDownloadImportTemplateMutation,
+  useImportFromExcelMutation,
 } from "@/services/building/building.service";
 import { Building2, Search, Plus, Edit, Eye, Zap } from "lucide-react";
 import _ from "lodash";
@@ -93,6 +95,42 @@ const BuildingManageLandlord = () => {
     page: currentPage,
     limit: pageLimit,
   });
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const openFileDialog = () => fileInputRef.current?.click();
+
+  const [downloadTemplate] = useDownloadImportTemplateMutation();
+  const handleDownload = async () => {
+    const blob = await downloadTemplate().unwrap();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "building-import-template.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const [importExcel, { isLoading: isImporting }] =
+    useImportFromExcelMutation();
+
+  const handleImport = async (file: File) => {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await importExcel(fd).unwrap();
+      toast.success("Import thành công", {
+        description: `Đã import: ${res?.results?.buildingsCreated ?? 0} tòa, ${
+          res?.results?.floorsCreated ?? 0
+        } tầng, ${res?.results?.roomsCreated ?? 0} phòng`,
+      });
+      refetch();
+    } catch (err: any) {
+      toast.error("Import thất bại", {
+        description: toText(err, "Vui lòng kiểm tra file và thử lại."),
+      });
+      console.error(err);
+    }
+  };
 
   const [createBuilding, { isLoading: isCreating }] =
     useCreateBuildingMutation();
@@ -251,7 +289,41 @@ const BuildingManageLandlord = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex flex-wrap gap-3">
+            {/* Nút tải template */}
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleDownload}
+            >
+              Tải template excel cấu hình tòa
+            </Button>
+
+            {/* Nút import + input ẩn */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) {
+                  handleImport(f);
+                  e.currentTarget.value = ""; // reset để lần sau chọn lại cùng file vẫn nhận
+                }
+              }}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={openFileDialog}
+              disabled={isImporting}
+            >
+              {isImporting ? "Đang import..." : "Import Excel"}
+            </Button>
+
+            {/* Nút có sẵn */}
             <Button className="gap-2" onClick={handleOpenCreateModal}>
               <Plus className="w-4 h-4" />
               Thêm tòa nhà

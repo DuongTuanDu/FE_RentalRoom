@@ -16,7 +16,6 @@ const createAxiosInstance = () => {
 
   instance.interceptors.request.use((config) => {
     const accessToken = Cookies.get("accessToken");
-
     if (accessToken) {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
@@ -40,10 +39,12 @@ const createAxiosInstance = () => {
       return Promise.reject(error);
     }
   );
+
   return instance;
 };
 
 let axiosInstance = createAxiosInstance();
+
 
 type BaseQueryArgs = {
   url: string;
@@ -51,6 +52,7 @@ type BaseQueryArgs = {
   data?: unknown;
   params?: Record<string, any>;
   config?: AxiosRequestConfig;
+  responseType?: AxiosRequestConfig["responseType"]; 
 };
 
 type BaseQueryResult<T = any> =
@@ -63,44 +65,46 @@ export const baseQuery = async <T = any>({
   data,
   params,
   config = {},
+  responseType, // <-- nhận ở đây
 }: BaseQueryArgs): Promise<BaseQueryResult<T>> => {
   try {
-    // Check if data is FormData to handle multipart/form-data
     const isFormData = data instanceof FormData;
-    
+
     let response;
-    
+
     if (isFormData) {
-      // For FormData, create a new axios instance without default headers
+      // Khi là FormData thì bỏ Content-Type mặc định
       const formDataInstance = axios.create({
         baseURL: API_URL,
         timeout: TIMEOUT,
         headers: {
           Accept: "application/json",
-          // Don't set Content-Type for FormData - let axios handle it
         },
       });
-      
-      // Add auth token if available
+
       const accessToken = Cookies.get("accessToken");
       if (accessToken) {
-        formDataInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        formDataInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${accessToken}`;
       }
-      
+
       response = await formDataInstance({
         url,
         method,
         data,
         params,
+        responseType, // <-- truyền vào axios
         ...config,
       });
     } else {
-      // Use regular instance for JSON data
+      // Dữ liệu JSON thông thường
       response = await axiosInstance({
         url,
         method,
         data,
         params,
+        responseType, // <-- truyền vào axios
         ...config,
       });
     }
