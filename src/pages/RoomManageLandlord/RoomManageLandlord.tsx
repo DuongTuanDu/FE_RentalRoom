@@ -1,5 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Edit, Trash2, Eye, Search, DoorOpen, Image as ImageIcon, Zap } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Search,
+  DoorOpen,
+  Image as ImageIcon,
+  Zap,
+} from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -102,6 +111,7 @@ const RoomManageLandlord = () => {
     q: "",
     page: 1,
     limit: 1,
+    status: "active",
   });
 
   useEffect(() => {
@@ -111,15 +121,18 @@ const RoomManageLandlord = () => {
   }, [initialBuildingData, selectedBuildingId]);
 
   // Fetch floors based on selected building
-  const { data: floorsData, isLoading: isFloorsLoading } = useGetFloorsQuery(
-    { buildingId: selectedBuildingId },
+  const { data: floorsData } = useGetFloorsQuery(
+    { buildingId: selectedBuildingId, page: 1, limit: 10, status: "active" },
     { skip: !selectedBuildingId }
   );
 
   // Fetch rooms
   const { data: roomsData, isLoading: isRoomsLoading } = useGetRoomsQuery({
     buildingId: selectedBuildingId,
-    floorId: selectedFloorId && selectedFloorId !== "all" ? selectedFloorId : undefined,
+    floorId:
+      selectedFloorId && selectedFloorId !== "all"
+        ? selectedFloorId
+        : undefined,
     status: selectedStatus === "all" ? undefined : (selectedStatus as any),
     q: debouncedSearch,
     page: currentPage,
@@ -130,7 +143,8 @@ const RoomManageLandlord = () => {
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
-  const [addRoomImages, { isLoading: isUploadingImages }] = useAddRoomImagesMutation();
+  const [addRoomImages, { isLoading: isUploadingImages }] =
+    useAddRoomImagesMutation();
 
   const totalPages = roomsData?.total
     ? Math.ceil(roomsData.total / pageLimit)
@@ -176,9 +190,9 @@ const RoomManageLandlord = () => {
           removeUrls: data.removeUrls,
           replaceAllImages: data.replaceAllImages,
         };
-        
-        console.log('Updating room with filtered data:', updateData);
-        
+
+        console.log("Updating room with filtered data:", updateData);
+
         await updateRoom({
           id: editingRoom.id,
           data: updateData,
@@ -196,12 +210,12 @@ const RoomManageLandlord = () => {
           status: data.status,
           description: data.description,
         };
-        
-        console.log('Creating room with data:', roomData);
-        
+
+        console.log("Creating room with data:", roomData);
+
         const createdRoom = await createRoom(roomData).unwrap();
         toast.success("Thêm phòng mới thành công!");
-        
+
         // Upload images if any were selected
         if (data.images && data.images.length > 0) {
           try {
@@ -211,7 +225,7 @@ const RoomManageLandlord = () => {
             }).unwrap();
             toast.success("Tải lên ảnh thành công!");
           } catch (imageError) {
-            console.error('Image upload failed:', imageError);
+            console.error("Image upload failed:", imageError);
             toast.error("Tải lên ảnh thất bại!");
           }
         }
@@ -284,7 +298,6 @@ const RoomManageLandlord = () => {
         </div>
       </div>
 
-
       {/* Filters Card */}
       <Card>
         <CardHeader>
@@ -310,7 +323,7 @@ const RoomManageLandlord = () => {
               <Select
                 value={selectedFloorId}
                 onValueChange={setSelectedFloorId}
-                disabled={!selectedBuildingId || isFloorsLoading}
+                disabled={!selectedBuildingId}
               >
                 <SelectTrigger>
                   <SelectValue
@@ -425,7 +438,10 @@ const RoomManageLandlord = () => {
                                   />
                                 </div>
                                 {room.images.length > 1 && (
-                                  <Badge variant="secondary" className="text-xs">
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
                                     +{room.images.length - 1}
                                   </Badge>
                                 )}

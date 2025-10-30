@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Sofa, DoorOpen, BedDouble } from "lucide-react";
+import { Plus, Edit, Sofa, DoorOpen } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -60,9 +60,17 @@ const RoomFurnitureLandlord = () => {
   const formatPrice = useFormatPrice();
 
   // Fetch room furnitures
-  const { data: roomFurnituresData, isLoading } = useGetRoomFurnituresQuery({
-    roomId: selectedRoomId || undefined,
-  });
+  const { data: roomFurnituresData, isLoading } = useGetRoomFurnituresQuery(
+    {
+      buildingId: selectedBuildingId || undefined,
+      // floorId: selectedFloorId || undefined,
+      roomId: selectedRoomId || undefined,
+    },
+    {
+      skip: !selectedBuildingId && !selectedRoomId, // tránh gọi khi chưa có filter nào
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   // Mutations
   const [createRoomFurniture, { isLoading: isCreating }] =
@@ -158,7 +166,10 @@ const RoomFurnitureLandlord = () => {
               <label className="text-sm font-medium">Tòa nhà</label>
               <BuildingSelectCombobox
                 value={selectedBuildingId}
-                onValueChange={setSelectedBuildingId}
+                onValueChange={(val) => {
+                  setSelectedBuildingId(val);
+                  setSelectedRoomId(""); // reset phòng khi đổi tòa
+                }}
               />
             </div>
 

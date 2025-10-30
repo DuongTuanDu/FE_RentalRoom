@@ -1,6 +1,10 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { CreateFloorRequest, IFloorListResponse, QuiclCreateFloorRequest } from "@/types/floor";
+import type {
+  CreateFloorRequest,
+  IFloorListResponse,
+  QuiclCreateFloorRequest,
+} from "@/types/floor";
 
 export const floorApi = createApi({
   reducerPath: "floorApi",
@@ -16,19 +20,21 @@ export const floorApi = createApi({
         buildingId?: string;
         page?: number;
         limit?: number;
+        status?: "active" | "inactive";
+        q?: string;
       }
     >({
-      query: ({ buildingId, page = 1, limit = 10 }) => {
-        const params = new URLSearchParams({
-          buildingId: buildingId || "",
-          page: page.toString(),
-          limit: limit.toString(),
-        });
-        return {
-          url: `/floors?${params.toString()}`,
-          method: "GET",
-        };
-      },
+      query: ({ buildingId, page = 1, limit = 10, status, q = "" }) => ({
+        url: "/floors",
+        method: "GET",
+        params: {
+          page,
+          limit,
+          q,
+          ...(buildingId ? { buildingId } : {}),
+          ...(status ? { status } : {}),
+        },
+      }),
       providesTags: ["Floor"],
     }),
     createFloor: builder.mutation<IFloorListResponse, CreateFloorRequest>({
@@ -57,7 +63,10 @@ export const floorApi = createApi({
       }),
       invalidatesTags: ["Floor"],
     }),
-    updateStatusFloor: builder.mutation<IFloorListResponse, { id: string; status: "active" | "inactive" }>({
+    updateStatusFloor: builder.mutation<
+      IFloorListResponse,
+      { id: string; status: "active" | "inactive" }
+    >({
       query: ({ id, status }) => ({
         url: `/floors/${id}/status`,
         method: "PATCH",
@@ -65,14 +74,17 @@ export const floorApi = createApi({
       }),
       invalidatesTags: ["Floor"],
     }),
-    quickCreateFloor: builder.mutation<IFloorListResponse, QuiclCreateFloorRequest>({
+    quickCreateFloor: builder.mutation<
+      IFloorListResponse,
+      QuiclCreateFloorRequest
+    >({
       query: (data) => ({
         url: "/floors/quick-create",
         method: "POST",
-        data
+        data,
       }),
       invalidatesTags: ["Floor"],
-    })
+    }),
   }),
 });
 
@@ -82,5 +94,5 @@ export const {
   useUpdateFloorMutation,
   useDeleteFloorMutation,
   useUpdateStatusFloorMutation,
-  useQuickCreateFloorMutation
+  useQuickCreateFloorMutation,
 } = floorApi;

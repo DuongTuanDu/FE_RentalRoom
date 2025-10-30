@@ -57,7 +57,12 @@ interface ModalBuildingProps {
   editingBuilding?: IBuilding | null;
 }
 
-const indexTypeOptions = [
+const indexETypeOptions = [
+  { value: "byNumber", label: "Theo chỉ số" },
+
+  { value: "included", label: "Đã bao gồm trong giá thuê" },
+];
+const indexWTypeOptions = [
   { value: "byNumber", label: "Theo chỉ số" },
   { value: "byPerson", label: "Theo đầu người" },
 ];
@@ -70,7 +75,7 @@ const ModalBuilding = ({
   editingBuilding = null,
 }: ModalBuildingProps) => {
   const isEditMode = !!editingBuilding;
-  
+
   const form = useForm<BuildingFormValues>({
     resolver: zodResolver(buildingSchema) as any,
     defaultValues: {
@@ -120,7 +125,11 @@ const ModalBuilding = ({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto !bg-white dark:!bg-slate-900">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 ${isEditMode ? 'bg-amber-500' : 'bg-blue-500'} rounded-lg`}>
+            <div
+              className={`p-2.5 ${
+                isEditMode ? "bg-amber-500" : "bg-blue-500"
+              } rounded-lg`}
+            >
               <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -128,8 +137,8 @@ const ModalBuilding = ({
                 {isEditMode ? "Cập nhật tòa nhà" : "Thêm tòa nhà mới"}
               </DialogTitle>
               <DialogDescription className="text-sm">
-                {isEditMode 
-                  ? "Chỉnh sửa thông tin tòa nhà" 
+                {isEditMode
+                  ? "Chỉnh sửa thông tin tòa nhà"
                   : "Điền thông tin chi tiết để thêm tòa nhà vào hệ thống"}
               </DialogDescription>
             </div>
@@ -236,7 +245,7 @@ const ModalBuilding = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {indexTypeOptions.map((option) => (
+                          {indexETypeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>
@@ -298,7 +307,7 @@ const ModalBuilding = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {indexTypeOptions.map((option) => (
+                          {indexWTypeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>

@@ -68,7 +68,7 @@ const BuildingFurnitureLandlord = () => {
   const formatDate = useFormatDate();
 
   // Queries & Mutations
-  const { data: buildingsData } = useGetBuildingsQuery({ page: 1, limit: 100 });
+  const { data: buildingsData } = useGetBuildingsQuery({ page: 1, limit: 100 , status: "active"});
   const { data, isLoading } = useGetBuildingFurnituresQuery(
     { buildingId: selectedBuildingId },
     { skip: !selectedBuildingId }
@@ -120,9 +120,12 @@ const BuildingFurnitureLandlord = () => {
       setIsModalOpen(false);
       setEditingItem(null);
     } catch (error: any) {
-      toast.error(
-        editingItem ? "Cập nhật nội thất thất bại!" : "Thêm nội thất thất bại!"
-      );
+      const message =
+        error?.data?.message ||
+        error?.error ||
+        error?.message ||
+        "Đã xảy ra lỗi không xác định.";
+      toast.error(`${editingItem ? "Cập nhật" : "Thêm"} thất bại: ${message}`);
       console.error(error);
     }
   };
@@ -136,7 +139,12 @@ const BuildingFurnitureLandlord = () => {
       setIsDeleteDialogOpen(false);
       setDeletingItem(null);
     } catch (error: any) {
-      toast.error("Xóa nội thất thất bại!");
+      const message =
+        error?.data?.message ||
+        error?.error ||
+        error?.message ||
+        "Không thể xóa nội thất này.";
+      toast.error(`Xóa thất bại: ${message}`);
       console.error(error);
     }
   };

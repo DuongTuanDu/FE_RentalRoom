@@ -70,6 +70,7 @@ const FloorManageLandlord = () => {
     q: "",
     page: 1,
     limit: 10,
+    status: "active",
   });
 
   const { data: floorsData, isLoading: isFloorsLoading } = useGetFloorsQuery(
@@ -252,7 +253,7 @@ const FloorManageLandlord = () => {
                 <CardTitle>Danh Sách Tầng</CardTitle>
               </div>
               <Badge variant="secondary" className="text-base px-3 py-1">
-                {floorsData?.total || 0} tầng
+                {floorsData?.data.length || 0} tầng
               </Badge>
             </div>
           </CardHeader>
