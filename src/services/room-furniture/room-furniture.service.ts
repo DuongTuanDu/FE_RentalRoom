@@ -31,7 +31,7 @@ export const roomFurnitureApi = createApi({
       query: ({ buildingId, floorId, roomId }) => {
         const params = pruneParams({ buildingId, floorId, roomId });
         return {
-          url: "/furnitures/room",
+          url: "/landlords/furnitures/room",
           method: "GET",
           params, // <-- để baseQuery tự nối query
         };
@@ -46,7 +46,7 @@ export const roomFurnitureApi = createApi({
       IFurnitureRoomRequest
     >({
       query: (data) => ({
-        url: "/furnitures/room",
+        url: "/landlords/furnitures/room",
         method: "POST",
         data,
       }),
@@ -58,7 +58,7 @@ export const roomFurnitureApi = createApi({
       { id: string; data: IFurnitureRoomRequestUpdate }
     >({
       query: ({ id, data }) => ({
-        url: `/furnitures/room/${id}`,
+        url: `/landlords/furnitures/room/${id}`,
         method: "PUT",
         data,
       }),
@@ -67,7 +67,7 @@ export const roomFurnitureApi = createApi({
 
     deleteRoomFurniture: builder.mutation<IFurnitureRoomResponse, string>({
       query: (id) => ({
-        url: `/furnitures/room/${id}`,
+        url: `/landlords/furnitures/room/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["RoomFurniture"],

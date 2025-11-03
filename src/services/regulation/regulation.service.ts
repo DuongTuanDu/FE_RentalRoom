@@ -21,34 +21,36 @@ export const regulationApi = createApi({
           buildingId: buildingId,
         });
         return {
-          url: `/regulations?${params.toString()}`,
+          url: `/landlords/regulations?${params.toString()}`,
           method: "GET",
         };
       },
       providesTags: ["Regulation"],
     }),
-    createRegulation: builder.mutation<IRegulationResponse, IRegulationRequest>({
-      query: (data) => ({
-        url: "/regulations",
-        method: "POST",
-        data,
-      }),
-      invalidatesTags: ["Regulation"],
-    }),
+    createRegulation: builder.mutation<IRegulationResponse, IRegulationRequest>(
+      {
+        query: (data) => ({
+          url: "/landlords/regulations",
+          method: "POST",
+          data,
+        }),
+        invalidatesTags: ["Regulation"],
+      }
+    ),
     updateRegulation: builder.mutation<
       IRegulationResponse,
       { id: string; data: IRegulationRequestUpdate }
     >({
       query: ({ id, data }) => ({
-        url: `/regulations/${id}`,
+        url: `/landlords/regulations/${id}`,
         method: "PUT",
-        data
+        data,
       }),
       invalidatesTags: ["Regulation"],
     }),
     deleteRegulation: builder.mutation<IRegulationResponse, string>({
       query: (id) => ({
-        url: `/regulations/${id}`,
+        url: `/landlords/regulations/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Regulation"],
