@@ -164,6 +164,11 @@ const menuItems = [
     path: "/landlord/posts",
   },
   {
+    title: "Quản lý điều khoản",
+    icon: ClipboardList,
+    path: "/landlord/terms",
+  },
+  {
     title: "Gói dịch vụ",
     icon: Layers,
     items: [

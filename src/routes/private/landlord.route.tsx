@@ -17,6 +17,7 @@ import HistorySubscription from '@/pages/HistorySubscription'
 import ProfileLandlord from '@/pages/ProfileLandlord'
 import SettingLandlord from '@/pages/SettingLandlord'
 import PostDetail from '@/pages/PostDetail'
+import TermManagement from '@/pages/TermManagement'
 
 const landlordRoutes = (
   <>
@@ -36,6 +37,7 @@ const landlordRoutes = (
     <Route path='history-subscription' element={<HistorySubscription />} />
     <Route path='profile' element={<ProfileLandlord />} />
     <Route path='settings' element={<SettingLandlord />} />
+    <Route path='terms' element={<TermManagement />} />
   </>
 ) as ReactElement
 
