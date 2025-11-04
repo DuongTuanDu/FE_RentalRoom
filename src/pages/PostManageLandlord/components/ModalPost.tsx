@@ -237,7 +237,8 @@ export const ModalPost = ({
       }).unwrap();
 
       if (result.success && result.data.aiDescription) {
-        form.setValue("description", result.data.aiDescription);
+        const plainText = result.data.aiDescription.replace(/<[^>]+>/g, "");
+        form.setValue("description", plainText);
         toast.success("Đã tạo mô tả bằng AI thành công");
       }
     } catch (error: any) {
@@ -547,7 +548,7 @@ export const ModalPost = ({
                   <FormControl>
                     <Textarea
                       placeholder="Nhập mô tả chi tiết về phòng trọ..."
-                      className="min-h-[120px]"
+                      className="min-h-[200px]"
                       {...field}
                     />
                   </FormControl>

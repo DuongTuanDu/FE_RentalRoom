@@ -8,6 +8,7 @@ export default {
   sendOtpPath: '/auth/send-otp',
   resetPasswordPath: '/auth/reset-password',
   profilePath: '/profile',
+  postDetailUserPath: '/posts/:slug',
   roleAdmin: "admin",
   roleLandlord: "landlord"
 }

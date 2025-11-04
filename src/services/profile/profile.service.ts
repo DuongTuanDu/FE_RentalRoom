@@ -27,7 +27,7 @@ export const profileApi = createApi({
     getProfile: builder.query<GetUserInfoResponse, void>({
       query: () => {
         return {
-          url: "users/profile",
+          url: "/profiles",
           method: "GET",
         };
       },
@@ -43,7 +43,7 @@ export const profileApi = createApi({
     }),
     updateProfile: builder.mutation({
       query: (body) => ({
-        url: "/users/profile",
+        url: "/profiles",
         method: "PUT",
         data: body,
       }),
