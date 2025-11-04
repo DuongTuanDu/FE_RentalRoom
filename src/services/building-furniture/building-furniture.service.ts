@@ -79,7 +79,7 @@ export const buildingFurnitureApi = createApi({
         if (buildingId) search.set("buildingId", buildingId);
         search.set("withStats", "true"); // luôn bật thống kê
         return {
-          url: `/furnitures/building?${search.toString()}`,
+          url: `/landlords/furnitures/building?${search.toString()}`,
           method: "GET",
         };
       },
@@ -93,7 +93,7 @@ export const buildingFurnitureApi = createApi({
     // -------- CREATE (BULK) ---------
     createBuildingFurniture: builder.mutation<any, IFurnitureBuildingRequest>({
       query: (data) => ({
-        url: "/furnitures/building/bulk",
+        url: "/landlords/furnitures/building/bulk",
         method: "POST",
         data,
       }),
@@ -106,7 +106,7 @@ export const buildingFurnitureApi = createApi({
       { id: string; data: IFurnitureBuildingRequestUpdate }
     >({
       query: ({ id, data }) => ({
-        url: `/furnitures/building/${id}`,
+        url: `/landlords/furnitures/building/${id}`,
         method: "PUT",
         data,
       }),
@@ -116,7 +116,7 @@ export const buildingFurnitureApi = createApi({
     // -------- DELETE ---------
     deleteBuildingFurniture: builder.mutation<any, string>({
       query: (id) => ({
-        url: `/furnitures/building/${id}`,
+        url: `/landlords/furnitures/building/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["BuildingFurniture"],
@@ -127,7 +127,7 @@ export const buildingFurnitureApi = createApi({
       IApplyToRoomsRequest
     >({
       query: ({ buildingId, body }) => ({
-        url: `/furnitures/${buildingId}/apply-to-rooms`,
+        url: `/landlords/furnitures/${buildingId}/apply-to-rooms`,
         method: "POST",
         data: body,
       }),

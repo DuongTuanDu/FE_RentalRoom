@@ -25,7 +25,7 @@ export const floorApi = createApi({
       }
     >({
       query: ({ buildingId, page = 1, limit = 10, status, q = "" }) => ({
-        url: "/floors",
+        url: "/landlords/floors",
         method: "GET",
         params: {
           page,
@@ -39,7 +39,7 @@ export const floorApi = createApi({
     }),
     createFloor: builder.mutation<IFloorListResponse, CreateFloorRequest>({
       query: (data) => ({
-        url: "/floors",
+        url: "/landlords/floors",
         method: "POST",
         data,
       }),
@@ -50,7 +50,7 @@ export const floorApi = createApi({
       { id: string; level: number; description?: string }
     >({
       query: ({ id, ...updateData }) => ({
-        url: `/floors/${id}`,
+        url: `/landlords/floors/${id}`,
         method: "PUT",
         data: updateData,
       }),
@@ -58,7 +58,7 @@ export const floorApi = createApi({
     }),
     deleteFloor: builder.mutation<IFloorListResponse, string>({
       query: (id) => ({
-        url: `/floors/${id}/hard-delete`,
+        url: `/landlords/floors/${id}/hard-delete`,
         method: "DELETE",
       }),
       invalidatesTags: ["Floor"],
@@ -68,7 +68,7 @@ export const floorApi = createApi({
       { id: string; status: "active" | "inactive" }
     >({
       query: ({ id, status }) => ({
-        url: `/floors/${id}/status`,
+        url: `/landlords/floors/${id}/status`,
         method: "PATCH",
         data: { status },
       }),
@@ -79,7 +79,7 @@ export const floorApi = createApi({
       QuiclCreateFloorRequest
     >({
       query: (data) => ({
-        url: "/floors/quick-create",
+        url: "/landlords/floors/quick-create",
         method: "POST",
         data,
       }),

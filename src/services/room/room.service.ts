@@ -32,7 +32,7 @@ export const roomApi = createApi({
     >({
       query: ({ buildingId, floorId, status, q, page, limit }) => {
         const params = new URLSearchParams();
-        
+
         if (buildingId) params.append("buildingId", buildingId);
         if (floorId) params.append("floorId", floorId);
         if (status) params.append("status", status);
@@ -41,7 +41,7 @@ export const roomApi = createApi({
         params.append("limit", limit?.toString() || "20");
 
         return {
-          url: `/rooms?${params.toString()}`,
+          url: `/landlords/rooms?${params.toString()}`,
           method: "GET",
         };
       },
@@ -50,8 +50,8 @@ export const roomApi = createApi({
 
     createRoom: builder.mutation<IRoom, CreateRoomRequest>({
       query: (data) => {
-        console.log('Creating room with data:', data);
-        
+        console.log("Creating room with data:", data);
+
         // Create JSON payload without images
         const roomData = {
           buildingId: data.buildingId,
@@ -63,11 +63,11 @@ export const roomApi = createApi({
           status: data.status,
           description: data.description || "",
         };
-        
-        console.log('Sending JSON payload:', roomData);
-        
+
+        console.log("Sending JSON payload:", roomData);
+
         return {
-          url: "/rooms",
+          url: "/landlords/rooms",
           method: "POST",
           data: roomData,
         };
@@ -77,42 +77,53 @@ export const roomApi = createApi({
 
     updateRoom: builder.mutation<IRoom, { id: string; data: any }>({
       query: ({ id, data }) => {
-        console.log('Updating room with data:', { id, data });
-        
+        console.log("Updating room with data:", { id, data });
+
         const formData = new FormData();
-        
+
         // Add basic fields
-        if (data.roomNumber !== undefined) formData.append("roomNumber", data.roomNumber);
-        if (data.area !== undefined) formData.append("area", data.area.toString());
-        if (data.price !== undefined) formData.append("price", data.price.toString());
-        if (data.maxTenants !== undefined) formData.append("maxTenants", data.maxTenants.toString());
+        if (data.roomNumber !== undefined)
+          formData.append("roomNumber", data.roomNumber);
+        if (data.area !== undefined)
+          formData.append("area", data.area.toString());
+        if (data.price !== undefined)
+          formData.append("price", data.price.toString());
+        if (data.maxTenants !== undefined)
+          formData.append("maxTenants", data.maxTenants.toString());
         if (data.status !== undefined) formData.append("status", data.status);
-        if (data.description !== undefined) formData.append("description", data.description);
-        if (data.floorId !== undefined) formData.append("floorId", data.floorId);
-        
+        if (data.description !== undefined)
+          formData.append("description", data.description);
+        if (data.floorId !== undefined)
+          formData.append("floorId", data.floorId);
+
         // Add image management fields
         if (data.removeUrls && data.removeUrls.length > 0) {
-          console.log('Adding removeUrls:', data.removeUrls);
+          console.log("Adding removeUrls:", data.removeUrls);
           formData.append("removeUrls", JSON.stringify(data.removeUrls));
         }
         if (data.replaceAllImages !== undefined) {
-          console.log('Adding replaceAllImages:', data.replaceAllImages);
+          console.log("Adding replaceAllImages:", data.replaceAllImages);
           formData.append("replaceAllImages", data.replaceAllImages.toString());
         }
-        
+
         // Add new images if provided
         if (data.images && data.images.length > 0) {
-          console.log('Adding new images:', data.images.length, 'files');
+          console.log("Adding new images:", data.images.length, "files");
           data.images.forEach((file: File, index: number) => {
-            console.log(`Adding file ${index}:`, file.name, file.size, file.type);
+            console.log(
+              `Adding file ${index}:`,
+              file.name,
+              file.size,
+              file.type
+            );
             formData.append("images", file);
           });
         } else {
-          console.log('No new images to add');
+          console.log("No new images to add");
         }
-        
+
         // Debug: Log FormData contents
-        console.log('Update FormData entries:');
+        console.log("Update FormData entries:");
         for (const [key, value] of formData.entries()) {
           if (value instanceof File) {
             console.log(`${key}:`, value.name, value.size, value.type);
@@ -120,9 +131,9 @@ export const roomApi = createApi({
             console.log(`${key}:`, value);
           }
         }
-        
+
         return {
-          url: `/rooms/${id}`,
+          url: `/landlords/rooms/${id}`,
           method: "PUT",
           data: formData,
         };
@@ -132,24 +143,30 @@ export const roomApi = createApi({
 
     deleteRoom: builder.mutation<{ message: string }, string>({
       query: (id) => ({
-        url: `/rooms/${id}`,
+        url: `/landlords/rooms/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Room"],
     }),
 
-    addRoomImages: builder.mutation<{ message: string; images: string[] }, { id: string; images: File[] }>({
+    addRoomImages: builder.mutation<
+      { message: string; images: string[] },
+      { id: string; images: File[] }
+    >({
       query: ({ id, images }) => {
-        console.log('Adding images to room:', { id, imagesCount: images.length });
-        
+        console.log("Adding images to room:", {
+          id,
+          imagesCount: images.length,
+        });
+
         const formData = new FormData();
         images.forEach((file, index) => {
           console.log(`Adding file ${index}:`, file.name, file.size, file.type);
           formData.append("images", file);
         });
-        
+
         // Debug: Log FormData contents
-        console.log('FormData entries for addRoomImages:');
+        console.log("FormData entries for addRoomImages:");
         for (const [key, value] of formData.entries()) {
           if (value instanceof File) {
             console.log(`${key}:`, value.name, value.size, value.type);
@@ -157,9 +174,9 @@ export const roomApi = createApi({
             console.log(`${key}:`, value);
           }
         }
-        
+
         return {
-          url: `/rooms/${id}/images`,
+          url: `/landlords/rooms/${id}/images`,
           method: "POST",
           data: formData,
         };
@@ -167,9 +184,12 @@ export const roomApi = createApi({
       invalidatesTags: ["Room"],
     }),
 
-    removeRoomImages: builder.mutation<{ message: string; images: string[]; deleted: number }, { id: string; urls: string[] }>({
+    removeRoomImages: builder.mutation<
+      { message: string; images: string[]; deleted: number },
+      { id: string; urls: string[] }
+    >({
       query: ({ id, urls }) => ({
-        url: `/rooms/${id}/images`,
+        url: `/landlords/rooms/${id}/images`,
         method: "DELETE",
         data: { urls },
       }),
@@ -177,19 +197,19 @@ export const roomApi = createApi({
     }),
     getRoomById: builder.query<IRoom, string>({
       query: (id) => ({
-        url: `/rooms/${id}`,
+        url: `/landlords/rooms/${id}`,
         method: "GET",
       }),
       providesTags: ["Room"],
     }),
     quickCreate: builder.mutation<IRoom, IQuickCreateRoomRequest>({
       query: (data) => ({
-        url: "/rooms/quick-create",
+        url: "/landlords/rooms/quick-create",
         method: "POST",
         data,
       }),
       invalidatesTags: ["Room"],
-    })
+    }),
   }),
 });
 
