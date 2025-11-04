@@ -110,7 +110,6 @@ const RegulationManageLandlord = () => {
           data: {
             title: data.title,
             description: data.description,
-            type: data.type,
             status: editingRegulation.status,
             effectiveFrom: data.effectiveFrom,
           },
@@ -149,12 +148,7 @@ const RegulationManageLandlord = () => {
     setCurrentPage(1);
   }, [selectedBuildingId]);
 
-  const TYPE_LABELS = {
-    entry_exit: "Ra vào",
-    pet_policy: "Thú cưng", 
-    common_area: "Khu vực chung",
-    other: "Khác"
-  };
+
 
   const STATUS_LABELS = {
     active: "Đang áp dụng",
@@ -239,7 +233,7 @@ const RegulationManageLandlord = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tiêu đề</TableHead>
-                      <TableHead>Loại</TableHead>
+                     
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Hiệu lực từ</TableHead>
                       <TableHead>Ngày tạo</TableHead>
@@ -257,11 +251,7 @@ const RegulationManageLandlord = () => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {TYPE_LABELS[regulation.type]}
-                          </Badge>
-                        </TableCell>
+                      
                         <TableCell>
                           <Badge
                             variant="outline"

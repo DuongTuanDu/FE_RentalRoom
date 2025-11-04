@@ -53,35 +53,27 @@ export const DeleteRegulationPopover = ({
           <div className="space-y-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-red-600" />
-              <span className="font-medium text-red-900">Quy định sẽ bị xóa:</span>
+              <span className="font-medium text-red-900">
+                Quy định sẽ bị xóa:
+              </span>
             </div>
             <div className="space-y-2">
               <div>
-                <span className="font-medium">Tiêu đề:</span> {regulation.title}
-              </div>
-              <div>
-                <span className="font-medium">Loại:</span> {
-                  regulation.type === "entry_exit" ? "Ra vào" :
-                  regulation.type === "pet_policy" ? "Thú cưng" :
-                  regulation.type === "common_area" ? "Khu vực chung" : "Khác"
-                }
-              </div>
-              <div>
-                <span className="font-medium">Trạng thái:</span> {
-                  regulation.status === "active" ? "Đang áp dụng" : "Không áp dụng"
-                }
+                <span className="font-medium">Trạng thái:</span>{" "}
+                {regulation.status === "active"
+                  ? "Đang áp dụng"
+                  : "Không áp dụng"}
               </div>
             </div>
             <div className="text-sm text-red-700">
-              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác. Quy định sẽ bị xóa vĩnh viễn khỏi hệ thống.
+              <strong>Lưu ý:</strong> Hành động này không thể hoàn tác. Quy định
+              sẽ bị xóa vĩnh viễn khỏi hệ thống.
             </div>
           </div>
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
-            Hủy
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>Hủy</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isLoading}
