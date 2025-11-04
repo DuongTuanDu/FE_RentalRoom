@@ -26,13 +26,6 @@ interface RegulationDetailDrawerProps {
   children?: React.ReactNode;
 }
 
-const TYPE_LABELS = {
-  entry_exit: "Ra vào",
-  pet_policy: "Thú cưng",
-  common_area: "Khu vực chung",
-  other: "Khác",
-};
-
 const STATUS_LABELS = {
   active: "Đang áp dụng",
   inactive: "Không áp dụng",
@@ -71,15 +64,6 @@ export const RegulationDetailSheet = ({
               <SheetDescription className="text-sm">
                 Chi tiết thông tin quy định
               </SheetDescription>
-            </div>
-            <div className="flex gap-2">
-              <Badge variant="outline">{TYPE_LABELS[regulation.type]}</Badge>
-              <Badge
-                variant="outline"
-                className={STATUS_COLORS[regulation.status]}
-              >
-                {STATUS_LABELS[regulation.status]}
-              </Badge>
             </div>
           </div>
         </SheetHeader>
@@ -121,12 +105,6 @@ export const RegulationDetailSheet = ({
                 <h3 className="font-semibold">Phân loại</h3>
               </div>
               <div className="p-3 bg-secondary/30 rounded-lg space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Loại:</span>
-                  <Badge variant="outline">
-                    {TYPE_LABELS[regulation.type]}
-                  </Badge>
-                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
                     Trạng thái:
