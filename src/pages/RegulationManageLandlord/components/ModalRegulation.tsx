@@ -18,13 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -32,20 +26,19 @@ import { Shield, Loader2, Calendar } from "lucide-react";
 import { BuildingSelectCombobox } from "../../FloorManageLandlord/components/BuildingSelectCombobox";
 import type { IRegulation, IRegulationRequest } from "@/types/regulation";
 
-const regulationSchema = z
-  .object({
-    buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
-    title: z
-      .string()
-      .min(1, "Tiêu đề không được để trống")
-      .max(200, "Tiêu đề không được quá 200 ký tự"),
-    description: z
-      .string()
-      .min(1, "Mô tả không được để trống")
-      .max(1000, "Mô tả không được quá 1000 ký tự"),
-    type: z.enum(["entry_exit", "pet_policy", "common_area", "other"]),
-    effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
-  })
+const regulationSchema = z.object({
+  buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
+  title: z
+    .string()
+    .min(1, "Tiêu đề không được để trống")
+    .max(200, "Tiêu đề không được quá 200 ký tự"),
+  description: z
+    .string()
+    .min(1, "Mô tả không được để trống")
+    .max(1000, "Mô tả không được quá 1000 ký tự"),
+
+  effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
+});
 
 type RegulationFormValues = z.infer<typeof regulationSchema>;
 
@@ -57,13 +50,6 @@ interface ModalRegulationProps {
   isLoading?: boolean;
   defaultBuildingId?: string;
 }
-
-const TYPE_OPTIONS = [
-  { value: "entry_exit", label: "Ra vào" },
-  { value: "pet_policy", label: "Thú cưng" },
-  { value: "common_area", label: "Khu vực chung" },
-  { value: "other", label: "Khác" },
-];
 
 export const ModalRegulation = ({
   open,
@@ -81,7 +67,7 @@ export const ModalRegulation = ({
       buildingId: "",
       title: "",
       description: "",
-      type: "entry_exit",
+
       effectiveFrom: "",
     },
   });
@@ -93,7 +79,7 @@ export const ModalRegulation = ({
           buildingId: regulation.buildingId,
           title: regulation.title,
           description: regulation.description,
-          type: regulation.type,
+
           effectiveFrom: regulation.effectiveFrom.split("T")[0],
         });
       } else {
@@ -101,7 +87,7 @@ export const ModalRegulation = ({
           buildingId: defaultBuildingId,
           title: "",
           description: "",
-          type: "entry_exit",
+
           effectiveFrom: "",
         });
       }
@@ -194,37 +180,6 @@ export const ModalRegulation = ({
 
               <FormField
                 control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Loại quy định <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn loại quy định..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TYPE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
@@ -253,21 +208,21 @@ export const ModalRegulation = ({
                 Thời gian hiệu lực
               </h3>
 
-                <FormField
-                  control={form.control}
-                  name="effectiveFrom"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Hiệu lực từ <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="effectiveFrom"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Hiệu lực từ <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} disabled={isLoading} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter>
