@@ -2,7 +2,7 @@ import axios, { AxiosError, type AxiosRequestConfig, type Method } from "axios";
 import Cookies from "js-cookie";
 
 const API_URL = import.meta.env.VITE_APP_API_URl;
-const TIMEOUT = 15000;
+const TIMEOUT = 100000;
 
 const createAxiosInstance = () => {
   const instance = axios.create({

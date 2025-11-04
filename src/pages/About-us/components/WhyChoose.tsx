@@ -47,55 +47,52 @@ const reasons = [
 ];
 
 const WhyChoose = () => (
-  <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50/30 to-transparent">
-    <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-16" data-aos="fade-up">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">
-          VÌ SAO NÊN CHỌN{" "}
-          <span className="text-cyan-600">PHẦN MỀM QUẢN LÝ NHÀ TRỌ</span> MIỄN
-          PHÍ{" "}
-          <span className="text-cyan-600">
-            RENTAL ROOM - QUẢN LÝ NHÀ CHO THUÊ ?
-          </span>
-        </h2>
-        <p className="text-lg text-slate-600 max-w-4xl mx-auto mt-6">
-          Với xu hướng ứng dụng công nghệ vào thực tiễn chúng tôi nhận ra sự khó
-          khăn và bất cập trong khâu quản lý nhà trọ, phòng trọ. Phần mềm ra đời
-          nhằm giải quyết các vấn đề này.
-        </p>
-      </div>
+  <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50/30 to-transparent max-w-7xl mx-auto">
+    <div className="text-center mb-16" data-aos="fade-up">
+      <h2 className="text-2xl md:text-3xl font-bold mb-4">
+        VÌ SAO NÊN CHỌN{" "}
+        <span className="text-cyan-600">PHẦN MỀM QUẢN LÝ NHÀ TRỌ</span> MIỄN PHÍ{" "}
+        <span className="text-cyan-600">
+          RENTAL ROOM - QUẢN LÝ NHÀ CHO THUÊ ?
+        </span>
+      </h2>
+      <p className="text-lg text-slate-600 max-w-4xl mx-auto mt-6">
+        Với xu hướng ứng dụng công nghệ vào thực tiễn chúng tôi nhận ra sự khó
+        khăn và bất cập trong khâu quản lý nhà trọ, phòng trọ. Phần mềm ra đời
+        nhằm giải quyết các vấn đề này.
+      </p>
+    </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {reasons.map((item, index) => (
-          <div
-            key={index}
-            data-aos={index % 2 === 0 ? "fade-up" : "fade-down"}
-            className="group relative pt-8"
-          >
-            {/* Icon circle - nằm trên cùng */}
-            <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center z-20 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-              <item.icon className="w-8 h-8 text-white" />
-            </div>
+    <div className="grid md:grid-cols-3 gap-8">
+      {reasons.map((item, index) => (
+        <div
+          key={index}
+          data-aos={index % 2 === 0 ? "fade-up" : "fade-down"}
+          className="group relative pt-8"
+        >
+          {/* Icon circle - nằm trên cùng */}
+          <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center z-20 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+            <item.icon className="w-8 h-8 text-white" />
+          </div>
 
-            {/* Hiệu ứng nền chìm phía sau card */}
-            <div className="absolute inset-0 flex items-center justify-center -z-0 transition-transform duration-500 group-hover:translate-y-7">
-              <div className="w-[90%] h-[90%] bg-cyan-400/80 rounded-xl rotate-12 translate-y-3 transition-transform duration-500 group-hover:rotate-6"></div>
-            </div>
+          {/* Hiệu ứng nền chìm phía sau card */}
+          <div className="absolute inset-0 flex items-center justify-center -z-0 transition-transform duration-500 group-hover:translate-y-7">
+            <div className="w-[90%] h-[90%] bg-cyan-400/80 rounded-xl rotate-12 translate-y-3 transition-transform duration-500 group-hover:rotate-6"></div>
+          </div>
 
-            {/* Main white card */}
-            <div className="bg-white rounded-2xl px-8 py-16 shadow-lg hover:shadow-xl transition-all duration-300 relative z-10 h-full">
-              <div className="text-center flex-1 flex flex-col justify-between">
-                <h3 className="text-xl font-bold text-slate-800 mb-4">
-                  {item.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
+          {/* Main white card */}
+          <div className="bg-white rounded-2xl px-8 py-16 shadow-lg hover:shadow-xl transition-all duration-300 relative z-10 h-full">
+            <div className="text-center flex-1 flex flex-col justify-between">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">
+                {item.title}
+              </h3>
+              <p className="text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   </section>
 );

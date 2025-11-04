@@ -1,6 +1,14 @@
 export interface IPost {
   _id: string;
-  landlordId: string;
+  landlordId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+  };
   buildingId: {
     name: string;
     address: string;
@@ -43,8 +51,8 @@ export interface IGenerateAIDescriptionRequest {
     regulations: {
       title: string;
       description: string;
-    }[]
-  }
+    }[];
+  };
 }
 
 export interface ICreatePostRequest {
@@ -69,7 +77,7 @@ export interface IGetPostsResponse {
     limit: number;
     total: number;
     totalPages: number;
-  }
+  };
 }
 
 export interface IGetPostDetailResponse {
@@ -111,6 +119,53 @@ export interface IGetPostDetailResponse {
       type: "entry_exit" | "pet_policy" | "common_area" | "other";
       effectiveFrom: string;
     };
+  };
+}
+
+export interface IGetPostResidentDetailResponse {
+  success: boolean;
+  data: {
+    id: string;
+    landlordId: {
+      _id: string;
+      email: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+    roomIds: string[];
+    title: string;
+    description: string;
+    address: string;
+    priceMin: number;
+    priceMax: number;
+    areaMin: number;
+    areaMax: number;
+    images: string[];
+    isDraft: boolean;
+    isDeleted: boolean;
+    status: "active" | "hidden" | "expired";
+    createdAt: string;
+    updatedAt: string;
+    slug: string;
+    __v: number;
+    buildingId: {
+      _id: string;
+      name: string;
+      address: string;
+      eIndexType: "byNumber" | "byPerson" | "included";
+      ePrice: number;
+      wIndexType: "byNumber" | "byPerson" | "included";
+      wPrice: number;
+    };
+    rooms: {
+      _id: string;
+      floorId: string;
+      roomNumber: string;
+      images: string[];
+      area: number;
+      price: number;
+      status: "available" | "rented" | "maintenance";
+    }[];
   };
 }
 

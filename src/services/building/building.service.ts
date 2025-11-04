@@ -36,7 +36,7 @@ export const buildingApi = createApi({
       }
     >({
       query: ({ page = 1, limit = 10, q = "", status }) => ({
-        url: "/buildings",
+        url: "/landlords/buildings",
         method: "GET",
         params: { page, limit, q, ...(status ? { status } : {}) },
       }),
@@ -47,7 +47,7 @@ export const buildingApi = createApi({
       CreateBuildingResponse,
       CreateBuildingRequest
     >({
-      query: (data) => ({ url: "/buildings", method: "POST", data }),
+      query: (data) => ({ url: "/landlords/buildings", method: "POST", data }),
       invalidatesTags: ["Building"],
     }),
 
@@ -56,7 +56,7 @@ export const buildingApi = createApi({
       { id: string; data: Partial<CreateBuildingRequest> }
     >({
       query: ({ id, data }) => ({
-        url: `/buildings/${id}`,
+        url: `/landlords/buildings/${id}`,
         method: "PUT",
         data,
       }),
@@ -64,7 +64,7 @@ export const buildingApi = createApi({
     }),
 
     deleteBuilding: builder.mutation<{ message: string }, string>({
-      query: (id) => ({ url: `/buildings/${id}`, method: "DELETE" }),
+      query: (id) => ({ url: `/landlords/buildings/${id}`, method: "DELETE" }),
       invalidatesTags: ["Building"],
     }),
 
@@ -73,7 +73,7 @@ export const buildingApi = createApi({
       CreateQuickBuildingRequest
     >({
       query: (data) => ({
-        url: "/buildings/quick-setup",
+        url: "/landlords/buildings/quick-setup",
         method: "POST",
         data,
       }),
@@ -85,7 +85,7 @@ export const buildingApi = createApi({
       { id: string; status: "active" | "inactive" }
     >({
       query: ({ id, status }) => ({
-        url: `/buildings/${id}/status`,
+        url: `/landlords/buildings/${id}/status`,
         method: "PATCH",
         data: { status },
       }),
@@ -95,7 +95,7 @@ export const buildingApi = createApi({
     /** Tải file Excel template (trả về Blob) */
     downloadImportTemplate: builder.mutation<Blob, void>({
       query: () => ({
-        url: "/buildings/import-template",
+        url: "/landlords/buildings/import-template",
         method: "GET",
         // dùng config để set responseType (đã hỗ trợ trong baseQuery)
         config: { responseType: "blob" },
@@ -105,7 +105,7 @@ export const buildingApi = createApi({
     /** Import từ Excel (multipart/form-data) */
     importFromExcel: builder.mutation<ImportExcelResult, FormData>({
       query: (formData) => ({
-        url: "/buildings/import-excel",
+        url: "/landlords/buildings/import-excel",
         method: "POST",
         data: formData, // baseQuery đã tự nhận biết FormData và set header phù hợp
       }),

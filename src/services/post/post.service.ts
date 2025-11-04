@@ -4,6 +4,7 @@ import type {
   IGenerateAIDescriptionRequest,
   IGenerateAIDescriptionResponse,
   IGetPostDetailResponse,
+  IGetPostResidentDetailResponse,
   IGetPostsResponse,
 } from "@/types/post";
 import type { IVacantRoomResponse } from "@/types/room";
@@ -30,6 +31,27 @@ export const postApi = createApi({
         });
         return {
           url: `/landlords/posts?${params.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Post"],
+    }),
+    getPostsResidents: builder.query<
+      IGetPostsResponse,
+      {
+        page?: number;
+        limit?: number;
+        keyword?: string;
+      }
+    >({
+      query: ({ page, limit }) => {
+        const params = new URLSearchParams({
+          page: page?.toString() || "1",
+          limit: limit?.toString() || "12",
+          keyword: "",
+        });
+        return {
+          url: `/posts?${params.toString()}`,
           method: "GET",
         };
       },
@@ -75,6 +97,18 @@ export const postApi = createApi({
         method: "GET",
       }),
     }),
+    getPostDetailsResidents: builder.query<IGetPostResidentDetailResponse, string>({
+      query: (id) => ({
+        url: `/posts/${id}`,
+        method: "GET",
+      }),
+    }),
+    getPostRoomDetails: builder.query<IGetPostDetailResponse, string>({
+      query: (roomId) => ({
+        url: `/posts/rooms/${roomId}`,
+        method: "GET",
+      }),
+    })
   }),
 });
 
@@ -85,4 +119,7 @@ export const {
   useSoftDeletePostMutation,
   useGetVacantRoomsByBuildingIdQuery,
   useGetPostDetailsQuery,
+  useGetPostRoomDetailsQuery,
+  useGetPostsResidentsQuery,
+  useGetPostDetailsResidentsQuery,
 } = postApi;
