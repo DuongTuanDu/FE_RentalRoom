@@ -125,7 +125,7 @@ export interface IGetPostDetailResponse {
 export interface IGetPostResidentDetailResponse {
   success: boolean;
   data: {
-    id: string;
+    _id: string;
     landlordId: {
       _id: string;
       email: string;
