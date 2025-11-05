@@ -169,6 +169,27 @@ const menuItems = [
     path: "/landlord/terms",
   },
   {
+    title: "Quản lý lịch xem phòng",
+    icon: Calendar,
+    items: [
+      {
+        title: "Lịch xem phòng",
+        icon: Calendar,
+        path: "/landlord/appointments",
+      },
+      {
+        title: "Cài đặt lịch",
+        icon: Calendar,
+        path: "/landlord/availability-day",
+      }
+    ]
+  },
+  {
+    title: "Yêu cầu tạo hợp đồng",
+    icon: FileText,
+    path: "/landlord/contact-management",
+  },
+  {
     title: "Gói dịch vụ",
     icon: Layers,
     items: [
