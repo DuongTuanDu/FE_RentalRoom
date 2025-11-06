@@ -17,6 +17,9 @@ import {
   ListChecks,
   BedDouble,
   Newspaper,
+  ScrollText,
+  FileSignature,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -164,9 +167,20 @@ const menuItems = [
     path: "/landlord/posts",
   },
   {
-    title: "Quản lý điều khoản",
-    icon: ClipboardList,
-    path: "/landlord/terms",
+    title: "Quản lý hợp đồng",
+    icon: ScrollText,
+    items: [
+      {
+        title: "Quản lý điều khoản",
+        icon: FileSignature,
+        path: "/landlord/terms",
+      },
+      {
+        title: "Mẫu hợp đồng",
+        icon: FileSpreadsheet,
+        path: "/landlord/contracts-template",
+      }
+    ],
   },
   {
     title: "Gói dịch vụ",
@@ -348,7 +362,9 @@ const AppSidebar = () => {
                   <UserCheck className="mr-2 h-4 w-4" />
                   <span>Hồ sơ</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/landlord/settings")}>
+                <DropdownMenuItem
+                  onClick={() => navigate("/landlord/settings")}
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Cài đặt</span>
                 </DropdownMenuItem>
