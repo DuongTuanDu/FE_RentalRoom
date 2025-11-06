@@ -18,6 +18,7 @@ import { packageSubscriptionApi } from "@/services/package-services/package-subs
 import { accountApi } from "@/services/account/account.service";
 import { termApi } from "@/services/term/term.service";
 import { contractTemplateApi } from "@/services/contract/contract.service";
+import { contactRequestApi } from "@/services/contact-request/contact-request.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -46,7 +47,8 @@ export const store = configureStore({
     [postApi.reducerPath]: postApi.reducer,
     [accountApi.reducerPath]: accountApi.reducer,
     [termApi.reducerPath]: termApi.reducer,
-    [contractTemplateApi.reducerPath]: contractTemplateApi.reducer
+    [contractTemplateApi.reducerPath]: contractTemplateApi.reducer,
+    [contactRequestApi.reducerPath]: contactRequestApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -69,7 +71,8 @@ export const store = configureStore({
       postApi.middleware,
       accountApi.middleware,
       termApi.middleware,
-      contractTemplateApi.middleware
+      contractTemplateApi.middleware,
+      contactRequestApi.middleware
     ),
 });
 

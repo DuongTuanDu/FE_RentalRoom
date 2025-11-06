@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetPostDetailsResidentsQuery } from "@/services/post/post.service";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,7 @@ import ImageGallery from "./components/ImageGallery";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IGetPostResidentDetailResponse } from "@/types/post";
+import CreateContact from "./components/CreateContact";
 
 const roomStatusToBadge: Record<
   string,
@@ -61,6 +62,11 @@ const PostDetailResident = () => {
   const post = data?.data as IGetPostResidentDetailResponse["data"] | undefined;
   const building = post?.buildingId;
   const rooms = post?.rooms ?? [];
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  const handleContactCreate = () => {
+    setIsContactModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -218,7 +224,12 @@ const PostDetailResident = () => {
             </div>
 
             <div className="pt-2">
-              <Button className="w-full">Liên hệ / Quan tâm</Button>
+              <Button className="w-full bg-[#4C9288]">Đặt lịch hẹn xem phòng ngay</Button>
+            </div>
+            <div>
+              <Button className="w-full" onClick={handleContactCreate}>
+                Yêu cầu tạo hợp đồng
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -345,6 +356,16 @@ const PostDetailResident = () => {
           )}
         </CardContent>
       </Card>
+
+      <CreateContact
+        open={isContactModalOpen}
+        onOpenChange={setIsContactModalOpen}
+        postId={post._id}
+        buildingId={typeof building === 'object' ? building?._id : ""}
+        buildingName={typeof building === 'object' ? building?.name : ""}
+        postTitle={post.title}
+        rooms={rooms}
+      />
     </div>
   );
 };
