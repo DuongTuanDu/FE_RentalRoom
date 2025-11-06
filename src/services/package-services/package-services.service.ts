@@ -20,7 +20,7 @@ export const packageServicesApi = createApi({
   endpoints: (builder) => ({
     getPackageServices: builder.query<GetPackagesResponse, void>({
       query: () => ({
-        url: "/admin/packages/packages",
+        url: "/admin/packages",
         method: "GET",
       }),
       providesTags: ["PackageServices"],

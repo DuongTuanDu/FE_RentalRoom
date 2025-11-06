@@ -8,6 +8,7 @@ export interface IFurniture {
     status: "active" | "inactive";
     createdAt: string;
     updatedAt: string;
+    isDeleted?: boolean;
     __v: number;
 }
 

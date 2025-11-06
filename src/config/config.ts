@@ -9,6 +9,7 @@ export default {
   resetPasswordPath: '/auth/reset-password',
   profilePath: '/profile',
   postDetailUserPath: '/posts/:slug',
+  contactRequestPath: '/contact-requests',
   roleAdmin: "admin",
   roleLandlord: "landlord"
 }

@@ -22,13 +22,17 @@ export const postApi = createApi({
       {
         page?: number;
         limit?: number;
+        isDraft?: boolean;
       }
     >({
-      query: ({ page, limit }) => {
+      query: ({ page, limit, isDraft }) => {
         const params = new URLSearchParams({
           page: page?.toString() || "1",
           limit: limit?.toString() || "10",
         });
+        if (isDraft !== undefined) {
+          params.append("isDraft", isDraft.toString());
+        }
         return {
           url: `/landlords/posts?${params.toString()}`,
           method: "GET",

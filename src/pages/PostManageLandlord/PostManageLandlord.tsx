@@ -52,6 +52,7 @@ const PostManageLandlord = () => {
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(12);
+  const [isDraft, setIsDraft] = useState<boolean | undefined>(undefined);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<IPost | null>(null);
@@ -90,7 +91,7 @@ const PostManageLandlord = () => {
     data: postsData,
     isLoading,
     error,
-  } = useGetPostsQuery({ page, limit });
+  } = useGetPostsQuery({ page, limit, isDraft });
 
   const [createPost, { isLoading: isCreating }] = useCreatePostMutation();
   const [softDeletePost, { isLoading: isDeleting }] =
@@ -207,6 +208,36 @@ const PostManageLandlord = () => {
                   className="pl-10"
                 />
               </div>
+            </div>
+            <div>
+              <Select
+                value={
+                  isDraft === undefined
+                    ? "all"
+                    : isDraft
+                    ? "draft"
+                    : "published"
+                }
+                onValueChange={(value) => {
+                  if (value === "all") {
+                    setIsDraft(undefined);
+                  } else if (value === "draft") {
+                    setIsDraft(true);
+                  } else {
+                    setIsDraft(false);
+                  }
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="published">Đã đăng</SelectItem>
+                  <SelectItem value="draft">Bản nháp</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Select
