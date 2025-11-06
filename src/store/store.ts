@@ -17,6 +17,7 @@ import storage from "redux-persist/lib/storage";
 import { packageSubscriptionApi } from "@/services/package-services/package-subscription.service";
 import { accountApi } from "@/services/account/account.service";
 import { termApi } from "@/services/term/term.service";
+import { contractTemplateApi } from "@/services/contract/contract.service";
 import { contactRequestApi } from "@/services/contact-request/contact-request.service";
 
 // Cấu hình persist cho auth reducer
@@ -46,8 +47,8 @@ export const store = configureStore({
     [postApi.reducerPath]: postApi.reducer,
     [accountApi.reducerPath]: accountApi.reducer,
     [termApi.reducerPath]: termApi.reducer,
+    [contractTemplateApi.reducerPath]: contractTemplateApi.reducer,
     [contactRequestApi.reducerPath]: contactRequestApi.reducer,
-
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -70,8 +71,8 @@ export const store = configureStore({
       postApi.middleware,
       accountApi.middleware,
       termApi.middleware,
+      contractTemplateApi.middleware,
       contactRequestApi.middleware
-
     ),
 });
 
