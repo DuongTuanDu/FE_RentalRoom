@@ -26,6 +26,7 @@ import {
   useDeleteContractTemplateMutation,
   useGetContractTemplatesQuery,
   useUpdateContractTemplateMutation,
+  // useDownloadContractTemplatePdfByIdMutation,
 } from "@/services/contract/contract.service";
 import type { IContractTemplate } from "@/types/contract";
 import { CreateEditContractTemplateModal } from "./components/CreateEditContractTemplateModal";
@@ -35,14 +36,27 @@ import { Spinner } from "@/components/ui/spinner";
 const ContractTemplateManagement = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<IContractTemplate | null>(null);
+  const [editingItem, setEditingItem] = useState<IContractTemplate | null>(
+    null
+  );
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingItem, setDeletingItem] = useState<IContractTemplate | null>(null);
+  const [deletingItem, setDeletingItem] = useState<IContractTemplate | null>(
+    null
+  );
 
-  const { data: templates, isLoading, isFetching } = useGetContractTemplatesQuery();
-  const [createTemplate, { isLoading: isCreating }] = useCreateContractTemplateMutation();
-  const [updateTemplate, { isLoading: isUpdating }] = useUpdateContractTemplateMutation();
-  const [deleteTemplate, { isLoading: isDeleting }] = useDeleteContractTemplateMutation();
+  const {
+    data: templates,
+    isLoading,
+    isFetching,
+  } = useGetContractTemplatesQuery();
+  const [createTemplate, { isLoading: isCreating }] =
+    useCreateContractTemplateMutation();
+  const [updateTemplate, { isLoading: isUpdating }] =
+    useUpdateContractTemplateMutation();
+  const [deleteTemplate, { isLoading: isDeleting }] =
+    useDeleteContractTemplateMutation();
+  // const [downloadPdf, { isLoading: isDownloading }] =
+  //   useDownloadContractTemplatePdfByIdMutation();
 
   const filteredTemplates = useMemo(() => {
     if (!selectedBuildingId) return templates ?? [];
@@ -70,18 +84,19 @@ const ContractTemplateManagement = () => {
     name: string;
     defaultTermIds: string[];
     defaultRegulationIds: string[];
-    placeholders: { termsTagField: string; regulationsTagField: string };
     status?: "active" | "inactive";
   }) => {
     try {
       if (editingItem) {
-        await updateTemplate({ id: editingItem._id, data: {
-          name: payload.name,
-          defaultTermIds: payload.defaultTermIds,
-          defaultRegulationIds: payload.defaultRegulationIds,
-          placeholders: payload.placeholders,
-          status: payload.status || editingItem.status,
-        }}).unwrap();
+        await updateTemplate({
+          id: editingItem._id,
+          data: {
+            name: payload.name,
+            defaultTermIds: payload.defaultTermIds,
+            defaultRegulationIds: payload.defaultRegulationIds,
+            status: payload.status || editingItem.status,
+          },
+        }).unwrap();
         toast.success("Cập nhật mẫu hợp đồng thành công");
       } else {
         await createTemplate({
@@ -89,7 +104,6 @@ const ContractTemplateManagement = () => {
           name: payload.name,
           defaultTermIds: payload.defaultTermIds,
           defaultRegulationIds: payload.defaultRegulationIds,
-          placeholders: payload.placeholders,
         }).unwrap();
         toast.success("Tạo mẫu hợp đồng thành công");
       }
@@ -112,31 +126,51 @@ const ContractTemplateManagement = () => {
     }
   };
 
+  // const handleDownload = async (item: IContractTemplate) => {
+  //   try {
+  //     await downloadPdf({ id: item._id });
+  //     toast.success(`Đang tải file PDF: ${item.name}`);
+  //   } catch {
+  //     toast.error("Tải file PDF thất bại");
+  //   }
+  // };
+
   return (
     <div className="container mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý mẫu hợp đồng</h1>
-          <p className="text-muted-foreground">Tạo và quản lý mẫu hợp đồng cho từng tòa nhà</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản lý mẫu hợp đồng
+          </h1>
+          <p className="text-muted-foreground">
+            Tạo và quản lý mẫu hợp đồng cho từng tòa nhà
+          </p>
         </div>
         <Button onClick={handleOpenCreate} className="gap-2">
           <Plus className="h-4 w-4" /> Thêm mẫu hợp đồng
         </Button>
       </div>
 
+      {/* Bộ lọc */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Bộ lọc</CardTitle>
-          <CardDescription>Chọn tòa nhà để lọc danh sách mẫu hợp đồng</CardDescription>
+          <CardDescription>
+            Chọn tòa nhà để lọc danh sách mẫu hợp đồng
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Tòa nhà</Label>
-            <BuildingSelectCombobox value={selectedBuildingId} onValueChange={setSelectedBuildingId} />
+            <BuildingSelectCombobox
+              value={selectedBuildingId}
+              onValueChange={setSelectedBuildingId}
+            />
           </div>
         </CardContent>
       </Card>
 
+      {/* Danh sách mẫu hợp đồng */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Danh sách mẫu hợp đồng</CardTitle>
@@ -151,19 +185,24 @@ const ContractTemplateManagement = () => {
                   <TableHead>Tòa nhà</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Ngày cập nhật</TableHead>
-                  <TableHead className="w-[140px] text-right">Hành động</TableHead>
+                  <TableHead className="w-[200px] text-right">
+                    Hành động
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading || isFetching ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      <Spinner/>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <Spinner />
                     </TableCell>
                   </TableRow>
                 ) : (filteredTemplates ?? []).length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       Không có mẫu hợp đồng
                     </TableCell>
                   </TableRow>
@@ -173,14 +212,43 @@ const ContractTemplateManagement = () => {
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell className="font-medium">{t.name}</TableCell>
                       <TableCell>{t.buildingId}</TableCell>
-                      <TableCell>{t.status === "active" ? "Hoạt động" : "Ngừng hoạt động"}</TableCell>
-                      <TableCell>{new Date(t.updatedAt).toLocaleString()}</TableCell>
+                      <TableCell>
+                        {t.status === "active"
+                          ? "Hoạt động"
+                          : "Ngừng hoạt động"}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(t.updatedAt).toLocaleString()}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="icon" onClick={() => handleOpenEdit(t)}>
+                          {/* Nút tải PDF */}
+                          {/* <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDownload(t)}
+                            disabled={isDownloading}
+                            title="Tải file PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button> */}
+
+                          {/* Nút sửa */}
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleOpenEdit(t)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="destructive" size="icon" onClick={() => handleOpenDelete(t)} disabled={isDeleting}>
+
+                          {/* Nút xóa */}
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleOpenDelete(t)}
+                            disabled={isDeleting}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
