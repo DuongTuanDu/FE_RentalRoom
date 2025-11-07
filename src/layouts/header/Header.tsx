@@ -5,10 +5,10 @@ import {
   Menu,
   Home,
   Handshake,
-  Building,
   User,
   Settings,
   LogOut,
+  ScrollText,
 } from "lucide-react";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
@@ -55,7 +55,7 @@ const Header = () => {
 
   const navItems = [
     { path: "/", label: "Trang chủ", icon: Home },
-    { path: "/host-software", label: "Phềm mềm chủ nhà", icon: Building },
+    { path: config.contactRequestPath, label: "Yêu cầu hợp đồng", icon: ScrollText, requiresAuth: true },
     { path: "/about-us", label: "Về chúng tôi", icon: Handshake },
   ];
 
@@ -91,24 +91,26 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`relative font-medium transition-all duration-300 group ${
-                  isScrolled
-                    ? "text-gray-700 hover:text-teal-600"
-                    : "text-white hover:text-teal-100"
-                }`}
-              >
-                <span className="relative z-10">{item.label}</span>
-                <div
-                  className={`absolute inset-x-0 -bottom-1 h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
-                    isScrolled ? "bg-teal-500" : "bg-white"
+            {navItems
+              .filter((item) => !item.requiresAuth || isAuthenticated)
+              .map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`relative font-medium transition-all duration-300 group ${
+                    isScrolled
+                      ? "text-gray-700 hover:text-teal-600"
+                      : "text-white hover:text-teal-100"
                   }`}
-                ></div>
-              </Link>
-            ))}
+                >
+                  <span className="relative z-10">{item.label}</span>
+                  <div
+                    className={`absolute inset-x-0 -bottom-1 h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
+                      isScrolled ? "bg-teal-500" : "bg-white"
+                    }`}
+                  ></div>
+                </Link>
+              ))}
           </nav>
 
           {/* Right Section */}
@@ -205,20 +207,22 @@ const Header = () => {
                 <div className="mt-6 space-y-4">
                   {/* Navigation Items */}
                   <nav className="space-y-2">
-                    {navItems.map((item) => (
-                      <Button
-                        key={item.path}
-                        variant="ghost"
-                        onClick={() => {
-                          navigate(item.path);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full justify-start h-auto py-3 px-4"
-                      >
-                        <item.icon className="w-5 h-5 mr-3" />
-                        <span className="font-medium">{item.label}</span>
-                      </Button>
-                    ))}
+                    {navItems
+                      .filter((item) => !item.requiresAuth || isAuthenticated)
+                      .map((item) => (
+                        <Button
+                          key={item.path}
+                          variant="ghost"
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full justify-start h-auto py-3 px-4"
+                        >
+                          <item.icon className="w-5 h-5 mr-3" />
+                          <span className="font-medium">{item.label}</span>
+                        </Button>
+                      ))}
                   </nav>
 
                   {/* Language Selector */}

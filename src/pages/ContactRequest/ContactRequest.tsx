@@ -86,13 +86,6 @@ const ContactRequest = () => {
 
   const totalPages = data?.pagination.total ? Math.ceil(data.pagination.total / pageLimit) : 0;
 
-  const handleOpenActionDialog = (contact: IContact, action: "accepted" | "rejected") => {
-    setSelectedContact(contact);
-    setActionType(action);
-    setLandlordNote("");
-    setIsActionDialogOpen(true);
-  };
-
   const handleOpenDetailDialog = (contact: IContact) => {
     setViewingContact(contact);
     setIsDetailDialogOpen(true);
@@ -181,7 +174,7 @@ const ContactRequest = () => {
   }, [data?.data, debouncedSearch, statusFilter]);
 
   return (
-    <div className="py-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

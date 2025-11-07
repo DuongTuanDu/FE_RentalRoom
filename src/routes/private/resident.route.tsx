@@ -10,7 +10,7 @@ const residentRoutes = (
   <>
     <Route path={config.profilePath} element={<Profile />} />
     <Route path={config.postDetailUserPath} element={<PostDetailResident />} />
-    <Route path="/resident/contact-requests" element={<ContactRequest />} />
+    <Route path={config.contactRequestPath} element={<ContactRequest />} />
   </>
 ) as ReactElement
 
