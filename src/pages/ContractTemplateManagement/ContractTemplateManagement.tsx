@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import {
   useDeleteContractTemplateMutation,
   useGetContractTemplatesQuery,
   useUpdateContractTemplateMutation,
-  // useDownloadContractTemplatePdfByIdMutation,
+  useLazyGetPreviewContractPdfQuery,
 } from "@/services/contract/contract.service";
 import type { IContractTemplate } from "@/types/contract";
 import { CreateEditContractTemplateModal } from "./components/CreateEditContractTemplateModal";
@@ -55,8 +55,8 @@ const ContractTemplateManagement = () => {
     useUpdateContractTemplateMutation();
   const [deleteTemplate, { isLoading: isDeleting }] =
     useDeleteContractTemplateMutation();
-  // const [downloadPdf, { isLoading: isDownloading }] =
-  //   useDownloadContractTemplatePdfByIdMutation();
+  const [triggerGetPdf, { isFetching: isDownloading }] =
+    useLazyGetPreviewContractPdfQuery();
 
   const filteredTemplates = useMemo(() => {
     if (!selectedBuildingId) return templates ?? [];
@@ -125,15 +125,30 @@ const ContractTemplateManagement = () => {
       toast.error(error?.message?.message || "Xóa mẫu hợp đồng thất bại");
     }
   };
+  const handleDownload = async (item: IContractTemplate) => {
+    try {
+      const blob = await triggerGetPdf({
+        buildingId: item.buildingId,
+        termIds: item.defaultTermIds ?? [],
+        regulationIds: item.defaultRegulationIds ?? [],
+        fileName: `${item.name || "HopDong_ThuPhong"}_XemTruoc.pdf`,
+      }).unwrap();
 
-  // const handleDownload = async (item: IContractTemplate) => {
-  //   try {
-  //     await downloadPdf({ id: item._id });
-  //     toast.success(`Đang tải file PDF: ${item.name}`);
-  //   } catch {
-  //     toast.error("Tải file PDF thất bại");
-  //   }
-  // };
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${item.name || "HopDong_ThuPhong"}_XemTruoc.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast.success(`Đang tải file PDF: ${item.name}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Tải file PDF thất bại");
+    }
+  };
 
   return (
     <div className="container mx-auto space-y-6">
@@ -223,15 +238,15 @@ const ContractTemplateManagement = () => {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {/* Nút tải PDF */}
-                          {/* <Button
+                          <Button
                             variant="outline"
                             size="icon"
                             onClick={() => handleDownload(t)}
                             disabled={isDownloading}
-                            title="Tải file PDF"
+                            title="Tải file PDF xem trước"
                           >
                             <Download className="h-4 w-4" />
-                          </Button> */}
+                          </Button>
 
                           {/* Nút sửa */}
                           <Button
