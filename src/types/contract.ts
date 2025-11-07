@@ -28,10 +28,6 @@ export interface IContractTemplateRequest {
   name: string;
   defaultTermIds: string[];
   defaultRegulationIds: string[];
-  placeholders: {
-    termsTagField: string;
-    regulationsTagField: string;
-  };
 }
 
 export interface IContractTemplateCreateRequest
@@ -42,12 +38,6 @@ export interface IContractTemplateCreateRequest
 export interface IContractTemplateUpdateRequest
   extends IContractTemplateRequest {
   status: "active" | "inactive";
-}
-
-export interface IPreviewPdfRequest {
-  buildingId: string;
-  termIds: string[];
-  regulationIds: string[];
 }
 
 export type IContractTemplateResponse = IContractTemplate[];
