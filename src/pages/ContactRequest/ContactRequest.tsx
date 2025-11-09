@@ -283,11 +283,10 @@ const ContactRequest = () => {
                     <TableHeader>
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tòa nhà</TableHead>
-                        <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">Họ và tên</TableHead>
-                        <TableHead className="font-semibold">SĐT liên hệ</TableHead>
+                        <TableHead className="font-semibold">Phòng</TableHead> 
+                        <TableHead className="font-semibold">Địa chỉ trọ</TableHead>
                         <TableHead className="font-semibold">Trạng thái</TableHead>
-                        <TableHead className="font-semibold">Ngày tạo</TableHead>
+                        <TableHead className="font-semibold">Ngày tạo yêu cầu</TableHead>
                         <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
@@ -307,10 +306,9 @@ const ContactRequest = () => {
                               : '—'}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {contact.contactName}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {contact.contactPhone}
+                            {typeof contact.buildingId === 'object'
+                              ? contact.buildingId?.address
+                              : '—'}
                           </TableCell>
                           <TableCell>
                             {getStatusBadge(contact.status)}
@@ -419,63 +417,45 @@ const ContactRequest = () => {
         </Card>
       </div>
 
-      <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {actionType === "accepted" ? "Chấp nhận yêu cầu" : "Từ chối yêu cầu"}
-            </DialogTitle>
-            <DialogDescription>
-              {actionType === "accepted"
-                ? "Bạn có chắc chắn muốn chấp nhận yêu cầu này?"
-                : "Bạn có chắc chắn muốn từ chối yêu cầu này?"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="note">Ghi chú (không bắt buộc)</Label>
-              <Textarea
-                id="note"
-                placeholder="Nhập ghi chú của bạn..."
-                value={landlordNote}
-                onChange={(e) => setLandlordNote(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsActionDialogOpen(false)}
-              disabled={isUpdating}
-            >
-              Hủy
-            </Button>
-            <Button
-              onClick={handleUpdateStatus}
-              disabled={isUpdating}
-              className={
-                actionType === "accepted"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
-              }
-            >
-              {isUpdating ? "Đang xử lý..." : "Xác nhận"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-full !max-w-3xl">
           <DialogHeader>
             <DialogTitle>Chi tiết yêu cầu hợp đồng</DialogTitle>
           </DialogHeader>
           {viewingContact && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="border border-slate-200 rounded-sm p-2">
+                <Label className="text-lg text-slate-600 mb-2">Thông tin người gửi</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-slate-400">Họ và tên</Label>
+                    <p className="font-medium">{viewingContact.contactName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400">SĐT</Label>
+                    <p className="font-medium">{viewingContact.contactPhone}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-sm p-2">
+                  <Label className="text-lg text-slate-600 mb-2">Thông tin người nhận (chủ trọ)</Label>
+                   <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-slate-400">Họ và tên</Label>
+                        <p className="font-medium">{typeof viewingContact.landlordId === 'object' ? viewingContact.landlordId.userInfo.fullName : '—'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-slate-400">SĐT</Label>
+                          <p className="font-medium">{typeof viewingContact.landlordId === 'object' ? viewingContact.landlordId.userInfo.fullName : '—'}</p>
+                    </div>
+                </div>
+              </div>
+
+
+              <div className="grid grid-cols-2 gap-4 p-2">
                 <div>
-                  <Label className="text-slate-500">Bài đăng</Label>
+                  <Label className="text-slate-400">Bài đăng</Label>
                   <p className="font-medium">
                     {typeof viewingContact.postId === 'object'
                       ? viewingContact.postId?.title
@@ -483,15 +463,7 @@ const ContactRequest = () => {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-slate-500">Email khách thuê</Label>
-                  <p className="font-medium">
-                    {typeof viewingContact.tenantId === 'object'
-                      ? viewingContact.tenantId.email
-                      : '—'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-slate-500">Tòa nhà</Label>
+                  <Label className="text-slate-400">Tòa nhà</Label>
                   <p className="font-medium">
                     {typeof viewingContact.buildingId === 'object'
                       ? viewingContact.buildingId.name
@@ -499,7 +471,7 @@ const ContactRequest = () => {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-slate-500">Phòng</Label>
+                  <Label className="text-slate-400">Phòng</Label>
                   <p className="font-medium">
                     {typeof viewingContact.roomId === 'object'
                       ? viewingContact.roomId.roomNumber
@@ -507,27 +479,27 @@ const ContactRequest = () => {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-slate-500">Người liên hệ</Label>
-                  <p className="font-medium">{viewingContact.contactName}</p>
+                  <Label className="text-slate-400">Địa chỉ</Label>
+                  <p className="font-medium">
+                    {typeof viewingContact.buildingId === 'object'
+                      ? viewingContact.buildingId.address
+                      : '—'}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-slate-500">SĐT liên hệ</Label>
-                  <p className="font-medium">{viewingContact.contactPhone}</p>
-                </div>
-                <div>
-                  <Label className="text-slate-500">Trạng thái</Label>
+                  <Label className="text-slate-400">Trạng thái</Label>
                   <div className="mt-1">
                     {getStatusBadge(viewingContact.status)}
                   </div>
                 </div>
                 <div>
-                  <Label className="text-slate-500">Ngày tạo</Label>
+                  <Label className="text-slate-400"> Ngày tạo yêu cầu</Label>
                   <p className="font-medium">{viewingContact.createdAt ? formatDate(viewingContact.createdAt) : '—'}</p>
                 </div>
               </div>
               {viewingContact.tenantNote && (
                 <div>
-                  <Label className="text-slate-500">Ghi chú từ khách thuê</Label>
+                  <Label className="text-slate-400">Ghi chú từ khách thuê</Label>
                   <p className="mt-1 p-3 bg-slate-50 rounded-lg">
                     {viewingContact.tenantNote}
                   </p>
@@ -535,7 +507,7 @@ const ContactRequest = () => {
               )}
               {viewingContact.landlordNote && (
                 <div>
-                  <Label className="text-slate-500">Ghi chú từ chủ trọ</Label>
+                  <Label className="text-slate-400">Ghi chú từ chủ trọ</Label>
                   <p className="mt-1 p-3 bg-slate-50 rounded-lg">
                     {viewingContact.landlordNote}
                   </p>

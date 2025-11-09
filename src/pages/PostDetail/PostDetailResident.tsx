@@ -33,6 +33,7 @@ import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IGetPostResidentDetailResponse } from "@/types/post";
 import CreateContact from "./components/CreateContact";
+import BookingAppointment from "./components/BookingAppointment";
 
 const roomStatusToBadge: Record<
   string,
@@ -63,9 +64,14 @@ const PostDetailResident = () => {
   const building = post?.buildingId;
   const rooms = post?.rooms ?? [];
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const handleContactCreate = () => {
     setIsContactModalOpen(true);
+  };
+
+  const handleBooking = () => {
+    setIsBookingModalOpen(true);
   };
 
   if (isLoading) {
@@ -224,7 +230,7 @@ const PostDetailResident = () => {
             </div>
 
             <div className="pt-2">
-              <Button className="w-full bg-[#4C9288]">Đặt lịch hẹn xem phòng ngay</Button>
+              <Button className="w-full bg-[#4C9288]" onClick={() => handleBooking()}>Đặt lịch hẹn xem phòng ngay</Button>
             </div>
             <div>
               <Button className="w-full" onClick={handleContactCreate}>
@@ -365,6 +371,16 @@ const PostDetailResident = () => {
         buildingName={typeof building === 'object' ? building?.name : ""}
         postTitle={post.title}
         rooms={rooms}
+      />
+
+       <BookingAppointment
+        open={isBookingModalOpen}
+        onOpenChange={setIsBookingModalOpen}
+        postId={post._id}
+        buildingId={typeof building === 'object' ? building?._id : ""}
+        buildingName={typeof building === 'object' ? building?.name : ""}
+        postTitle={post.title}
+        address={post.address}
       />
     </div>
   );
