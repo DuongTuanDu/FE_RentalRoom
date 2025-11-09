@@ -20,6 +20,8 @@ import { termApi } from "@/services/term/term.service";
 import { contractTemplateApi } from "@/services/contract/contract.service";
 import { contactRequestApi } from "@/services/contact-request/contact-request.service";
 import { maintenanceApi } from "@/services/maintenance/maintenance.service";
+import { landlordScheduleApi } from "@/services/landlord-schedule/landlord-schedule.service";
+import { roomAppointmentApi } from "@/services/room-appointment/room-appointment.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -51,6 +53,8 @@ export const store = configureStore({
     [contractTemplateApi.reducerPath]: contractTemplateApi.reducer,
     [contactRequestApi.reducerPath]: contactRequestApi.reducer,
     [maintenanceApi.reducerPath]: maintenanceApi.reducer,
+    [landlordScheduleApi.reducerPath]: landlordScheduleApi.reducer,
+    [roomAppointmentApi.reducerPath]: roomAppointmentApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -75,7 +79,9 @@ export const store = configureStore({
       termApi.middleware,
       contractTemplateApi.middleware,
       contactRequestApi.middleware,
-      maintenanceApi.middleware
+      maintenanceApi.middleware,
+      landlordScheduleApi.middleware,
+      roomAppointmentApi.middleware
     ),
 });
 

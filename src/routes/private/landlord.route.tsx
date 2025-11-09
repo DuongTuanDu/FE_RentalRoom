@@ -21,6 +21,8 @@ import TermManagement from '@/pages/TermManagement'
 import ContractTemplateManagement from '@/pages/ContractTemplateManagement'
 import ContactManageLandlord from '@/pages/ContactManageLandlord/ContactManageLandlord'
 import MaintenanceManagement from '@/pages/MaintenanceManagement'
+import AvailabilityManageLandlord from '@/pages/AvailabilityManageLandlord'
+import AppointmentManageLandlord from '@/pages/AppointmentManageLandlord'
 
 const landlordRoutes = (
   <>
@@ -44,6 +46,9 @@ const landlordRoutes = (
     <Route path='contracts-template' element={<ContractTemplateManagement />} />
     <Route path='contact-management' element={<ContactManageLandlord />} />
     <Route path='maintenance' element={<MaintenanceManagement />} />
+    <Route path='availability-management' element={<AvailabilityManageLandlord />} />
+    <Route path='appointment-management' element={<AppointmentManageLandlord />} />
+
   </>
 ) as ReactElement
 
