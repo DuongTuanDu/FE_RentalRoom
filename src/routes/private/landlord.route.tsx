@@ -1,49 +1,29 @@
 import type { ReactElement } from 'react'
 import { Route } from 'react-router-dom'
-
-import DashboardLandlord from '@/pages/DashboardLandlord'
-import BuildingManageLandlord from '@/pages/BuildingManageLandlord'
-import RoomManageLandlord from '@/pages/RoomManageLandlord'
-import FloorManageLandlord from '@/pages/FloorManageLandlord'
-import ServiceManageLandlord from '@/pages/ServiceManageLandlord'
-import FurnitureManageLandlord from '@/pages/FurnitureManageLandlord'
-import BuildingFurnitureLandlord from '@/pages/BuildingFurnitureLandlord'
-import RoomFurnitureLandlord from '@/pages/RoomFurnitureLandlord'
-import RegulationManageLandlord from '@/pages/RegulationManageLandlord'
-import BuildingServiceManageLandlord from '@/pages/BuildingServiceManageLandlord'
-import PostManageLandlord from '@/pages/PostManageLandlord'
-import PaymentSuccess from '@/pages/PaymentSubscription'
-import HistorySubscription from '@/pages/HistorySubscription'
-import ProfileLandlord from '@/pages/ProfileLandlord'
-import SettingLandlord from '@/pages/SettingLandlord'
-import PostDetail from '@/pages/PostDetail'
-import TermManagement from '@/pages/TermManagement'
-import ContractTemplateManagement from '@/pages/ContractTemplateManagement'
-import ContactManageLandlord from '@/pages/ContactManageLandlord/ContactManageLandlord'
-import MaintenanceManagement from '@/pages/MaintenanceManagement'
+import { lazyLoad } from '@/utils/lazyLoad'
 
 const landlordRoutes = (
   <>
-    <Route path='dashboard' element={<DashboardLandlord />} />
-    <Route path='buildings' element={<BuildingManageLandlord />} />
-    <Route path='rooms' element={<RoomManageLandlord />} />
-    <Route path='floors' element={<FloorManageLandlord />} />
-    <Route path='package-services' element={<ServiceManageLandlord />} />
-    <Route path='furnitures' element={<FurnitureManageLandlord />} />
-    <Route path='building-furniture' element={<BuildingFurnitureLandlord />} />
-    <Route path='room-furniture' element={<RoomFurnitureLandlord />} />
-    <Route path='regulations' element={<RegulationManageLandlord />} />
-    <Route path='building-services' element={<BuildingServiceManageLandlord />} />
-    <Route path='posts' element={<PostManageLandlord />} />
-    <Route path='posts/:slug' element={<PostDetail />} />
-    <Route path='payment-success' element={<PaymentSuccess />} />
-    <Route path='history-subscription' element={<HistorySubscription />} />
-    <Route path='profile' element={<ProfileLandlord />} />
-    <Route path='settings' element={<SettingLandlord />} />
-    <Route path='terms' element={<TermManagement />} />
-    <Route path='contracts-template' element={<ContractTemplateManagement />} />
-    <Route path='contact-management' element={<ContactManageLandlord />} />
-    <Route path='maintenance' element={<MaintenanceManagement />} />
+    <Route path='dashboard' element={lazyLoad(() => import('@/pages/DashboardLandlord'))} />
+    <Route path='buildings' element={lazyLoad(() => import('@/pages/BuildingManageLandlord'))} />
+    <Route path='rooms' element={lazyLoad(() => import('@/pages/RoomManageLandlord'))} />
+    <Route path='floors' element={lazyLoad(() => import('@/pages/FloorManageLandlord'))} />
+    <Route path='package-services' element={lazyLoad(() => import('@/pages/ServiceManageLandlord'))} />
+    <Route path='furnitures' element={lazyLoad(() => import('@/pages/FurnitureManageLandlord'))} />
+    <Route path='building-furniture' element={lazyLoad(() => import('@/pages/BuildingFurnitureLandlord'))} />
+    <Route path='room-furniture' element={lazyLoad(() => import('@/pages/RoomFurnitureLandlord'))} />
+    <Route path='regulations' element={lazyLoad(() => import('@/pages/RegulationManageLandlord'))} />
+    <Route path='building-services' element={lazyLoad(() => import('@/pages/BuildingServiceManageLandlord'))} />
+    <Route path='posts' element={lazyLoad(() => import('@/pages/PostManageLandlord'))} />
+    <Route path='posts/:slug' element={lazyLoad(() => import('@/pages/PostDetail'))} />
+    <Route path='payment-success' element={lazyLoad(() => import('@/pages/PaymentSubscription'))} />
+    <Route path='history-subscription' element={lazyLoad(() => import('@/pages/HistorySubscription'))} />
+    <Route path='profile' element={lazyLoad(() => import('@/pages/ProfileLandlord'))} />
+    <Route path='settings' element={lazyLoad(() => import('@/pages/SettingLandlord'))} />
+    <Route path='terms' element={lazyLoad(() => import('@/pages/TermManagement'))} />
+    <Route path='contracts-template' element={lazyLoad(() => import('@/pages/ContractTemplateManagement'))} />
+    <Route path='contact-management' element={lazyLoad(() => import('@/pages/ContactManageLandlord/ContactManageLandlord'))} />
+    <Route path='maintenance' element={lazyLoad(() => import('@/pages/MaintenanceManagement'))} />
   </>
 ) as ReactElement
 

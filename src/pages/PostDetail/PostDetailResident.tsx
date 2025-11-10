@@ -223,13 +223,13 @@ const PostDetailResident = () => {
               </div>
             </div>
 
-            <div className="pt-2">
-              <Button className="w-full bg-[#4C9288]">Đặt lịch hẹn xem phòng ngay</Button>
-            </div>
-            <div>
-              <Button className="w-full" onClick={handleContactCreate}>
-                Yêu cầu tạo hợp đồng
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Button className="bg-[#4C9288]">
+                  Đặt lịch xem phòng ngay
+                </Button>
+                <Button onClick={handleContactCreate}>
+                  Yêu cầu tạo hợp đồng
+                </Button>
             </div>
           </CardContent>
         </Card>
@@ -361,8 +361,8 @@ const PostDetailResident = () => {
         open={isContactModalOpen}
         onOpenChange={setIsContactModalOpen}
         postId={post._id}
-        buildingId={typeof building === 'object' ? building?._id : ""}
-        buildingName={typeof building === 'object' ? building?.name : ""}
+        buildingId={typeof building === "object" ? building?._id : ""}
+        buildingName={typeof building === "object" ? building?.name : ""}
         postTitle={post.title}
         rooms={rooms}
       />

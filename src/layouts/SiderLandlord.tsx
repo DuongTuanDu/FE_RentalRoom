@@ -179,7 +179,12 @@ const menuItems = [
         title: "Mẫu hợp đồng",
         icon: FileSpreadsheet,
         path: "/landlord/contracts-template",
-      }
+      },
+      {
+        title: "Yêu cầu tạo hợp đồng",
+        icon: FileText,
+        path: "/landlord/contact-management",
+      },
     ],
   },
   {
@@ -195,13 +200,8 @@ const menuItems = [
         title: "Cài đặt lịch",
         icon: Calendar,
         path: "/landlord/availability-day",
-      }
-    ]
-  },
-  {
-    title: "Yêu cầu tạo hợp đồng",
-    icon: FileText,
-    path: "/landlord/contact-management",
+      },
+    ],
   },
   {
     title: "Gói dịch vụ",
