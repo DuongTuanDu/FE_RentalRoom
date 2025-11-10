@@ -24,6 +24,9 @@ const landlordRoutes = (
     <Route path='contracts-template' element={lazyLoad(() => import('@/pages/ContractTemplateManagement'))} />
     <Route path='contact-management' element={lazyLoad(() => import('@/pages/ContactManageLandlord/ContactManageLandlord'))} />
     <Route path='maintenance' element={lazyLoad(() => import('@/pages/MaintenanceManagement'))} />
+    <Route path='availability-management' element={lazyLoad(() => import('@/pages/AvailabilityManageLandlord'))} />
+    <Route path='appointment-management' element={lazyLoad(() => import('@/pages/AppointmentManageLandlord'))} />
+
   </>
 ) as ReactElement
 

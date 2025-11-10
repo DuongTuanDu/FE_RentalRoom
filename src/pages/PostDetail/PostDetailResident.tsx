@@ -33,6 +33,7 @@ import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IGetPostResidentDetailResponse } from "@/types/post";
 import CreateContact from "./components/CreateContact";
+import BookingAppointment from "./components/BookingAppointment";
 
 const roomStatusToBadge: Record<
   string,
@@ -63,9 +64,14 @@ const PostDetailResident = () => {
   const building = post?.buildingId;
   const rooms = post?.rooms ?? [];
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const handleContactCreate = () => {
     setIsContactModalOpen(true);
+  };
+
+  const handleBooking = () => {
+    setIsBookingModalOpen(true);
   };
 
   if (isLoading) {
@@ -224,12 +230,12 @@ const PostDetailResident = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <Button className="bg-[#4C9288]">
-                  Đặt lịch xem phòng ngay
-                </Button>
-                <Button onClick={handleContactCreate}>
-                  Yêu cầu tạo hợp đồng
-                </Button>
+              <Button className="bg-[#4C9288]" onClick={() => handleBooking()}>
+                Đặt lịch xem phòng ngay
+              </Button>
+              <Button onClick={handleContactCreate}>
+                Yêu cầu tạo hợp đồng
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -365,6 +371,16 @@ const PostDetailResident = () => {
         buildingName={typeof building === "object" ? building?.name : ""}
         postTitle={post.title}
         rooms={rooms}
+      />
+
+      <BookingAppointment
+        open={isBookingModalOpen}
+        onOpenChange={setIsBookingModalOpen}
+        postId={post._id}
+        buildingId={typeof building === "object" ? building?._id : ""}
+        buildingName={typeof building === "object" ? building?.name : ""}
+        postTitle={post.title}
+        address={post.address}
       />
     </div>
   );

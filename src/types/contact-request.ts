@@ -8,9 +8,18 @@ export interface IContact {
     phone: string;
     email: string;
   };
+  landlordId: string | {
+    _id: string;
+    email: string;
+    userInfo: {
+      fullName: string;
+      phoneNumber: string;
+    };
+  };
   buildingId: string | {
     _id: string;
     name: string;
+    address: string;
   };
   roomId: string | {
     _id: string;

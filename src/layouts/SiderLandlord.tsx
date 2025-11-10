@@ -194,12 +194,12 @@ const menuItems = [
       {
         title: "Lịch xem phòng",
         icon: Calendar,
-        path: "/landlord/appointments",
+        path: "/landlord/appointment-management",
       },
       {
         title: "Cài đặt lịch",
         icon: Calendar,
-        path: "/landlord/availability-day",
+        path: "/landlord/availability-management",
       },
     ],
   },
