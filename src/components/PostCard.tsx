@@ -24,6 +24,7 @@ type PostCardProps = {
   formatPrice?: (v: number) => string;
   className?: string;
   children?: ReactNode;
+  onViewDetail?: (post: IPost) => void;
 };
 
 const PostCard = ({
@@ -31,12 +32,25 @@ const PostCard = ({
   formatDate = (v) => (v ? new Date(v).toLocaleDateString() : ""),
   formatPrice = (v) => (typeof v === "number" ? v.toLocaleString("vi-VN") : ""),
   className,
+  onViewDetail
 }: PostCardProps) => {
   const navigate = useNavigate();
   const images = post.images || [];
   const hasImages = images.length > 0;
   const firstImage = hasImages ? images[0] : undefined;
   const extraCount = hasImages && images.length > 1 ? images.length - 1 : 0;
+
+  const handleViewDetail = () => {
+    console.log("lừa à");
+    // Gọi callback để lưu vào localStorage
+    if (onViewDetail) {
+      console.log("bịp");
+      
+      onViewDetail(post);
+    }
+    // Navigate đến trang chi tiết
+    navigate(`/posts/${post.slug + `-` + post._id}`);
+  };
 
   return (
     <Card
@@ -142,9 +156,7 @@ const PostCard = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              navigate(`/posts/${post.slug + `-` + post._id}`)
-            }
+            onClick={handleViewDetail}
             className="gap-2 flex-1"
           >
             <Eye className="h-4 w-4" />

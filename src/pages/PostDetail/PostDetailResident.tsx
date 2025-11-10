@@ -64,7 +64,7 @@ const PostDetailResident = () => {
   const building = post?.buildingId;
   const rooms = post?.rooms ?? [];
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const handleContactCreate = () => {
     setIsContactModalOpen(true);
@@ -229,11 +229,11 @@ const PostDetailResident = () => {
               </div>
             </div>
 
-            <div className="pt-2">
-              <Button className="w-full bg-[#4C9288]" onClick={() => handleBooking()}>Đặt lịch hẹn xem phòng ngay</Button>
-            </div>
-            <div>
-              <Button className="w-full" onClick={handleContactCreate}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <Button className="bg-[#4C9288]" onClick={() => handleBooking()}>
+                Đặt lịch xem phòng ngay
+              </Button>
+              <Button onClick={handleContactCreate}>
                 Yêu cầu tạo hợp đồng
               </Button>
             </div>
@@ -367,18 +367,18 @@ const PostDetailResident = () => {
         open={isContactModalOpen}
         onOpenChange={setIsContactModalOpen}
         postId={post._id}
-        buildingId={typeof building === 'object' ? building?._id : ""}
-        buildingName={typeof building === 'object' ? building?.name : ""}
+        buildingId={typeof building === "object" ? building?._id : ""}
+        buildingName={typeof building === "object" ? building?.name : ""}
         postTitle={post.title}
         rooms={rooms}
       />
 
-       <BookingAppointment
+      <BookingAppointment
         open={isBookingModalOpen}
         onOpenChange={setIsBookingModalOpen}
         postId={post._id}
-        buildingId={typeof building === 'object' ? building?._id : ""}
-        buildingName={typeof building === 'object' ? building?.name : ""}
+        buildingId={typeof building === "object" ? building?._id : ""}
+        buildingName={typeof building === "object" ? building?.name : ""}
         postTitle={post.title}
         address={post.address}
       />
