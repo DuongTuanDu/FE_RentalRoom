@@ -110,7 +110,7 @@ const menuItems = [
       {
         title: "Thu chi",
         icon: ClipboardList,
-        path: "/landlord/transactions",
+        path: "/landlord/revenues",
       },
       {
         title: "Báo cáo doanh thu",
