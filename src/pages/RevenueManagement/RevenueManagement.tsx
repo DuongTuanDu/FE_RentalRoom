@@ -78,11 +78,7 @@ const RevenueManagement = () => {
   const now = useMemo(() => new Date(), []);
   const [statsYear, setStatsYear] = useState<number>(now.getFullYear());
   const [statsMonth, setStatsMonth] = useState<number>(now.getMonth() + 1);
-  const [statsBuildingId, setStatsBuildingId] = useState<string>("");
-
-  const [exportBuildingId, setExportBuildingId] = useState("");
-  const [exportStartDate, setExportStartDate] = useState("");
-  const [exportEndDate, setExportEndDate] = useState("");
+  // const [statsBuildingId, setStatsBuildingId] = useState<string>("");
 
   const {
     data: revenuesData,
@@ -102,7 +98,7 @@ const RevenueManagement = () => {
 
   const { data: statsData } = useGetRevenueByStatsQuery(
     {
-      buildingId: statsBuildingId || undefined,
+      buildingId: selectedBuildingId || undefined,
       year: statsYear,
       month: statsMonth,
     },
@@ -184,9 +180,9 @@ const RevenueManagement = () => {
   const handleExportExcel = async () => {
     try {
       const blob = await triggerExportExcel({
-        buildingId: exportBuildingId || undefined,
-        startDate: exportStartDate || undefined,
-        endDate: exportEndDate || undefined,
+        buildingId: selectedBuildingId || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       }).unwrap();
 
       const url = URL.createObjectURL(blob);
@@ -220,10 +216,21 @@ const RevenueManagement = () => {
             Quản lý các khoản thu chi của tòa nhà
           </p>
         </div>
-        <Button className="gap-2" onClick={handleOpenCreateModal}>
-          <Plus className="h-4 w-4" />
-          Thêm Thu Chi
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            variant="outline"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? "Đang xuất..." : "Xuất Excel"}
+          </Button>
+          <Button className="gap-2" onClick={handleOpenCreateModal}>
+            <Plus className="h-4 w-4" />
+            Thêm Thu Chi
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Card */}
@@ -239,8 +246,8 @@ const RevenueManagement = () => {
             <div className="space-y-2">
               <Label>Tòa nhà</Label>
               <BuildingSelectCombobox
-                value={statsBuildingId}
-                onValueChange={setStatsBuildingId}
+                value={selectedBuildingId}
+                onValueChange={setSelectedBuildingId}
               />
             </div>
             <div className="space-y-2">
@@ -335,67 +342,22 @@ const RevenueManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Export Excel Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Xuất Excel báo cáo</CardTitle>
-          <CardDescription>Xuất báo cáo thu chi ra file Excel</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Tòa nhà</Label>
-              <BuildingSelectCombobox
-                value={exportBuildingId}
-                onValueChange={setExportBuildingId}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Từ ngày</Label>
-              <Input
-                type="date"
-                value={exportStartDate}
-                onChange={(e) => setExportStartDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Đến ngày</Label>
-              <Input
-                type="date"
-                value={exportEndDate}
-                onChange={(e) => setExportEndDate(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end">
-              <Button
-                onClick={handleExportExcel}
-                disabled={isExporting}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {isExporting ? "Đang xuất..." : "Xuất Excel"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Bộ lọc</CardTitle>
           <CardDescription>
-            Lọc danh sách thu chi theo các tiêu chí
+            Lọc danh sách thu chi và xuất Excel theo các tiêu chí
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="space-y-2">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* <div className="space-y-2">
             <Label>Tòa nhà</Label>
             <BuildingSelectCombobox
               value={selectedBuildingId}
               onValueChange={setSelectedBuildingId}
             />
-          </div>
+          </div> */}
           <div className="space-y-2">
             <Label>Loại</Label>
             <Select
