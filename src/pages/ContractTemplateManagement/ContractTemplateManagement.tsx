@@ -27,8 +27,8 @@ import {
   useGetContractTemplatesQuery,
   useUpdateContractTemplateMutation,
   useLazyGetPreviewContractPdfQuery,
-} from "@/services/contract/contract.service";
-import type { IContractTemplate } from "@/types/contract";
+} from "@/services/contract-template/contract-template.service";
+import type { IContractTemplate } from "@/types/contract-template";
 import { CreateEditContractTemplateModal } from "./components/CreateEditContractTemplateModal";
 import { DeleteContractTemplateDialog } from "./components/DeleteContractTemplateDialog";
 import { Spinner } from "@/components/ui/spinner";

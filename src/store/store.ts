@@ -17,7 +17,7 @@ import storage from "redux-persist/lib/storage";
 import { packageSubscriptionApi } from "@/services/package-services/package-subscription.service";
 import { accountApi } from "@/services/account/account.service";
 import { termApi } from "@/services/term/term.service";
-import { contractTemplateApi } from "@/services/contract/contract.service";
+import { contractTemplateApi } from "@/services/contract-template/contract-template.service";
 import { contactRequestApi } from "@/services/contact-request/contact-request.service";
 import { maintenanceApi } from "@/services/maintenance/maintenance.service";
 import { landlordScheduleApi } from "@/services/landlord-schedule/landlord-schedule.service";

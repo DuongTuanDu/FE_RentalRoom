@@ -6,7 +6,7 @@ import type {
   IContractTemplateCreateRequest,
   IContractTemplateResponse,
   IContractTemplateUpdateRequest,
-} from "@/types/contract";
+} from "@/types/contract-template";
 
 export const contractTemplateApi = createApi({
   reducerPath: "contractTemplateApi",
