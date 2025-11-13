@@ -11,5 +11,7 @@ export default {
   postDetailUserPath: '/posts/:slug',
   contactRequestPath: '/contact-requests',
   roleAdmin: "admin",
-  roleLandlord: "landlord"
+  roleLandlord: "landlord",
+  roleStaff: "staff",
+
 }

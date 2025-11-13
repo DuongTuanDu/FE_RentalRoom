@@ -9,12 +9,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UserX, UserCheck, Loader2, AlertTriangle } from "lucide-react";
-import type { IAccount } from "@/types/account";
+import type { IStaff } from "@/types/staff";
 
 interface AlertToggleAccountStatusProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  account: IAccount | null;
+  staff: IStaff | null;
   onConfirm: () => void;
   isLoading?: boolean;
   isActive: boolean;
@@ -23,13 +23,12 @@ interface AlertToggleAccountStatusProps {
 const AlertToggleAccountStatus = ({
   open,
   onOpenChange,
-  account,
+  staff,
   onConfirm,
   isLoading = false,
   isActive,
 }: AlertToggleAccountStatusProps) => {
-  if (!account) return null;
-
+  if (!staff) return null;
   const actionText = isActive ? "Vô hiệu hóa" : "Kích hoạt";
   const color = isActive ? "yellow" : "green";
   const icon = isActive ? <UserX className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />;
@@ -59,7 +58,7 @@ const AlertToggleAccountStatus = ({
               <p>
                 Bạn có chắc chắn muốn {actionText.toLowerCase()} tài khoản của người dùng{" "}
                 <span className="font-semibold text-slate-900 dark:text-slate-100">
-                  "{account.email}"
+                  "{staff.accountId.email}"
                 </span>
                 ?
               </p>
