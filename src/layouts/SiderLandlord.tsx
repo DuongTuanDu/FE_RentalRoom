@@ -60,104 +60,130 @@ const menuItems = [
     title: "Tổng quan",
     icon: LayoutDashboard,
     path: "/landlord/dashboard",
+    staffAccess: false,
   },
   {
     title: "Quản lý nhà trọ",
     icon: Building2,
+    staffAccess: true,
     items: [
       {
         title: "Danh sách nhà trọ",
         icon: Building2,
         path: "/landlord/buildings",
+        staffAccess: true,
       },
       {
-        title: "Quản lý tầng",
+        title: "Quản lý tầng",
         icon: Layers,
         path: "/landlord/floors",
+        staffAccess: true,
       },
       {
         title: "Quản lý phòng",
         icon: Home,
         path: "/landlord/rooms",
+        staffAccess: true,
+      },
+      {
+        title: "Quản lý nhân viên",
+        icon: Users,
+        path: "/landlord/staff-management",
+        staffAccess: false,
       },
     ],
   },
   {
     title: "Người thuê",
     icon: Users,
+    staffAccess: true,
     items: [
       {
         title: "Danh sách người thuê",
         icon: UserCheck,
         path: "/landlord/tenants",
+        staffAccess: true,
       },
       {
         title: "Hợp đồng thuê",
         icon: FileText,
         path: "/landlord/contracts",
+        staffAccess: true,
       },
     ],
   },
   {
     title: "Tài chính",
     icon: DollarSign,
+    staffAccess: true, 
     items: [
       {
         title: "Hóa đơn",
         icon: FileText,
         path: "/landlord/invoices",
+        staffAccess: true,
       },
       {
         title: "Thu chi",
         icon: ClipboardList,
         path: "/landlord/revenues",
+        staffAccess: true,
       },
       {
         title: "Báo cáo doanh thu",
         icon: BarChart3,
         path: "/landlord/revenue-reports",
+        staffAccess: true,
       },
     ],
   },
   {
     title: "Dịch vụ & Tiện ích",
     icon: Wrench,
+    staffAccess: true,
     items: [
       {
         title: "Dịch vụ phòng",
         icon: Wrench,
         path: "/landlord/building-services",
+        staffAccess: true,
       },
       {
         title: "Yêu cầu sửa chữa",
         icon: ClipboardList,
         path: "/landlord/maintenance",
+        staffAccess: true,
       },
       {
         title: "Quản lý quy định tòa",
         icon: FileText,
         path: "/landlord/regulations",
+        staffAccess: true,
       },
     ],
   },
   {
     title: "Quản lý nội thất",
     icon: Layers,
+    staffAccess: true,
     items: [
       {
         title: "Danh mục nội thất",
         icon: ListChecks,
         path: "/landlord/furnitures",
+        staffAccess: true,
       },
       {
         title: "Quản lý theo tòa nhà",
         icon: Building2,
         path: "/landlord/building-furniture",
+        staffAccess: true,
       },
       {
         title: "Quản lý theo phòng",
         icon: BedDouble,
         path: "/landlord/room-furniture",
+        staffAccess: true,
       },
     ],
   },
@@ -165,57 +191,68 @@ const menuItems = [
     title: "Quản lý bài viết",
     icon: Newspaper,
     path: "/landlord/posts",
+    staffAccess: true, 
   },
   {
     title: "Quản lý hợp đồng",
     icon: ScrollText,
+    staffAccess: true,
     items: [
       {
         title: "Quản lý điều khoản",
         icon: FileSignature,
         path: "/landlord/terms",
+        staffAccess: true
       },
       {
         title: "Mẫu hợp đồng",
         icon: FileSpreadsheet,
         path: "/landlord/contracts-template",
+        staffAccess: true,
       },
       {
         title: "Yêu cầu tạo hợp đồng",
         icon: FileText,
         path: "/landlord/contact-management",
+        staffAccess: true,
       },
     ],
   },
   {
     title: "Quản lý lịch xem phòng",
     icon: Calendar,
+    staffAccess: true,
     items: [
       {
         title: "Lịch xem phòng",
         icon: Calendar,
         path: "/landlord/appointment-management",
+        staffAccess: true,
       },
       {
         title: "Cài đặt lịch",
         icon: Calendar,
         path: "/landlord/availability-management",
+        staffAccess: true,
       },
     ],
   },
   {
     title: "Gói dịch vụ",
     icon: Layers,
+    staffAccess: false, 
     items: [
       {
         title: "Các gói dịch vụ",
         icon: Building2,
         path: "/landlord/package-services",
+        staffAccess: false,
       },
       {
         title: "Lịch sử gói dịch vụ",
         icon: ListChecks,
         path: "/landlord/history-subscription",
+        staffAccess: false,
       },
     ],
   },
@@ -223,16 +260,19 @@ const menuItems = [
     title: "Thông báo",
     icon: Bell,
     path: "/landlord/notifications",
+    staffAccess: true,
   },
   {
     title: "Lịch hẹn",
     icon: Calendar,
     path: "/landlord/appointments",
+    staffAccess: true,
   },
   {
     title: "Cài đặt",
     icon: Settings,
     path: "/landlord/settings",
+    staffAccess: true,
   },
 ];
 
@@ -242,12 +282,16 @@ const AppSidebar = () => {
   const dispatch = useDispatch();
   const authState = useSelector((state: any) => state.auth);
 
+  const isStaff = authState.userInfo?.role === "staff" || 
+                  authState.userInfo?.userType === "staff" ||
+                  authState.role === "staff";
+
   const adminInfo = {
-    name: authState.userInfo ? "Chủ trọ" : "Quản trị viên",
+    name: authState.userInfo?.name || (isStaff ? "Nhân viên" : "Chủ trọ"),
     email: authState.userInfo?.email || "landlord@phongtro.com",
     avatar:
       authState.userInfo?.avatar || "https://avatar.iran.liara.run/public/41",
-    role: "landlord",
+    role: isStaff ? "Nhân viên" : "Chủ trọ",
   };
 
   const handleLogout = () => {
@@ -260,6 +304,29 @@ const AppSidebar = () => {
   };
 
   const isActivePath = (path: string) => location.pathname === path;
+
+  const filterMenuItems = (items: any[]) => {
+    return items.filter(item => {
+      if (!isStaff) return true;
+      
+      if (item.items) {
+        const filteredSubItems = item.items.filter((subItem: any) => subItem.staffAccess);
+        return item.staffAccess && filteredSubItems.length > 0;
+      }
+      
+      return item.staffAccess;
+    }).map(item => {
+      if (item.items && isStaff) {
+        return {
+          ...item,
+          items: item.items.filter((subItem: any) => subItem.staffAccess)
+        };
+      }
+      return item;
+    });
+  };
+
+  const filteredMenuItems = filterMenuItems(menuItems);
 
   return (
     <Sidebar>
@@ -277,7 +344,7 @@ const AppSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {filteredMenuItems.map((item) => {
                 const Icon = item.icon;
 
                 if (item.items) {
@@ -297,7 +364,7 @@ const AppSidebar = () => {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub>
-                            {item.items.map((subItem) => {
+                            {item.items.map((subItem: any) => {
                               const SubIcon = subItem.icon;
                               return (
                                 <SidebarMenuSubItem key={subItem.title}>
@@ -350,7 +417,7 @@ const AppSidebar = () => {
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
                       {adminInfo.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")
                         .toUpperCase()}
                     </AvatarFallback>

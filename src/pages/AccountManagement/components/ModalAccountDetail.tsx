@@ -3,20 +3,9 @@ import { User, Mail, Calendar, Shield, CheckCircle, XCircle, Save } from "lucide
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {useGetAccountByIdQuery, useUpdateAccountRoleMutation } from "@/services/account/account.service";
 import { toast } from "sonner";
 
@@ -119,8 +108,6 @@ const AccountDetailModal = ({ open, onOpenChange, accountId }: AccountDetailModa
     }
   }
 
-  const availableRoles = ["landlord", "tenant"];
-
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,23 +134,19 @@ const AccountDetailModal = ({ open, onOpenChange, accountId }: AccountDetailModa
   }
 
   const roleIcon = getRoleIcon(account.role);
-  const hasRoleChanged = selectedRole !== account.role;
 
-  return (
+ return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 ${roleIcon.bg} rounded-full flex items-center justify-center`}>
-              <User className={`w-7 h-7 ${roleIcon.icon}`} />
+      <DialogContent className="!max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        <div className="p-6 border-b">
+          <div className="flex items-start gap-4">
+            <div className={`w-16 h-16 ${roleIcon.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+              <User className={`w-8 h-8 ${roleIcon.icon}`} />
             </div>
-            <div className="flex-1">
-              <DialogTitle className="text-2xl">{account.email}</DialogTitle>
-              <DialogDescription className="flex items-center gap-2 mt-2">
-                <Badge
-                  variant="outline"
-                  className={getRoleBadgeStyle(account.role)}
-                >
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-xl font-bold truncate">{account.email}</DialogTitle>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <Badge variant="outline" className={getRoleBadgeStyle(account.role)}>
                   {getRoleLabel(account.role)}
                 </Badge>
                 {account.isActivated ? (
@@ -177,189 +160,80 @@ const AccountDetailModal = ({ open, onOpenChange, accountId }: AccountDetailModa
                     Vô hiệu hóa
                   </Badge>
                 )}
-              </DialogDescription>
+              </div>
             </div>
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <Card>
-            <CardHeader className="">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Thông tin cơ bản
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-slate-600">Email</label>
-                <p className="text-sm font-medium text-slate-900 mt-1">
-                  {account.email}
-                </p>
-              </div>
-              
-              {account.userInfo && (
+        <div className="p-6 space-y-6">
+          <div className="border rounded-lg p-4 bg-white">
+            <h3 className="font-semibold text-base flex items-center gap-2 mb-4 text-slate-800">
+              <Mail className="w-4 h-4 text-blue-600" />
+              Thông tin cơ bản
+            </h3>
+            {account.userInfo ? (
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-600">
-                    ID Thông tin người dùng
-                  </label>
-                  {account.userInfo && (
-                  <div className="space-y-1 text-sm text-slate-700 mt-1">
-                    <p><strong>Họ và tên:</strong> {account.userInfo.fullName}</p>
-                    <p><strong>Số điện thoại:</strong> {account.userInfo.phoneNumber}</p>
-                    <p><strong>Giới tính:</strong> {getGenderLabel(account.userInfo.gender)}</p>
-                    <p><strong>Ngày sinh:</strong> {new Date(account.userInfo.dob).toLocaleDateString("vi-VN")}</p>
-                   <p>
-                    <strong>Địa chỉ:</strong>
-                    <ul className="list-disc ml-5 mt-1 text-slate-700">
-                      {account.userInfo.address.map((addr, index) => (
-                        <li key={index}>
-                          {addr.address}, {addr.wardName}, {addr.districtName}, {addr.provinceName}
-                        </li>
-                      ))}
-                    </ul>
-                  </p>
-                  </div>
-                )}
+                  <label className="text-xs text-slate-500">Họ và tên</label>
+                  <p className="text-sm font-medium text-slate-900">{account.userInfo.fullName}</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div>
+                  <label className="text-xs text-slate-500">Email</label>
+                  <p className="text-sm font-medium text-slate-900 truncate">{account.email}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500">Số điện thoại</label>
+                  <p className="text-sm font-medium text-slate-900">{account.userInfo.phoneNumber}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500">Giới tính</label>
+                  <p className="text-sm font-medium text-slate-900">{getGenderLabel(account.userInfo.gender)}</p>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-slate-500">Ngày sinh</label>
+                  <p className="text-sm font-medium text-slate-900">
+                    {new Date(account.userInfo.dob).toLocaleDateString("vi-VN")}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">Chưa có thông tin người dùng</p>
+            )}
+          </div>
 
-          <Card>
-            <CardHeader >
-              <CardTitle className="text-base flex items-center gap-2">
-                <Shield className="w-4 h-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-base flex items-center gap-2 mb-3 text-slate-800">
+                <Shield className="w-4 h-4 text-purple-600" />
                 Quản lý quyền
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              </h3>
               <div>
-                <label className="text-xs font-medium text-slate-600 mb-2 block">
-                  Vai trò hiện tại
-                </label>
-                <Badge
-                  variant="outline"
-                  className={`${getRoleBadgeStyle(account.role)} px-3 py-1`}
-                >
+                <label className="text-xs text-slate-500 block mb-2">Vai trò hiện tại</label>
+                <Badge variant="outline" className={`${getRoleBadgeStyle(account.role)} px-3 py-1.5`}>
                   {getRoleLabel(account.role)}
                 </Badge>
               </div>
+            </div>
 
-              <div>
-                <label className="text-xs font-medium text-slate-600 mb-2 block">
-                  Thay đổi vai trò
-                </label>
-                <Select
-                  value={selectedRole}
-                  onValueChange={setSelectedRole}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRoles.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {getRoleLabel(role)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {hasRoleChanged && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
-                  <p className="text-xs text-amber-800">
-                    <strong>Lưu ý:</strong> Thay đổi từ{" "}
-                    <strong>{getRoleLabel(account.role)}</strong> sang{" "}
-                    <strong>{getRoleLabel(selectedRole)}</strong>
-                  </p>
-                </div>
-              )}
-
-               {hasRoleChanged && (
-                  <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedRole(account.role)}
-                    >
-                      Hủy thay đổi
-                    </Button>
-                    <Button
-                      onClick={handleUpdateRole}
-                      disabled={isUpdatingRole}
-                      className="gap-2"
-                    >
-                      <Save className="w-4 h-4" />
-                      {isUpdatingRole ? "Đang lưu..." : "Lưu thay đổi"}
-                    </Button>
-                  </div>
-                )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader >
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+            <div className="border rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-base flex items-center gap-2 mb-3 text-slate-800">
+                <Calendar className="w-4 h-4 text-orange-600" />
                 Thời gian
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-slate-600">
-                  Ngày tạo tài khoản
-                </label>
-                <p className="text-sm text-slate-900 mt-1">
-                  {formatDate(account.createdAt)}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600">
-                  Cập nhật lần cuối
-                </label>
-                <p className="text-sm text-slate-900 mt-1">
-                  {formatDate(account.updatedAt)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader >
-              <CardTitle className="text-base flex items-center gap-2">
-                {account.isActivated ? (
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-gray-600" />
-                )}
-                Trạng thái tài khoản
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">
-                    {account.isActivated ? "Đang hoạt động" : "Bị vô hiệu hóa"}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {account.isActivated
-                      ? "Có thể đăng nhập"
-                      : "Không thể đăng nhập"}
-                  </p>
+              </h3>
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-slate-500">Ngày tạo</label>
+                  <p className="text-sm text-slate-900">{formatDate(account.createdAt)}</p>
                 </div>
-                {account.isActivated ? (
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                ) : (
-                  <XCircle className="w-6 h-6 text-gray-600" />
-                )}
+                <div>
+                  <label className="text-xs text-slate-500">Cập nhật cuối</label>
+                  <p className="text-sm text-slate-900">{formatDate(account.updatedAt)}</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
 
-       
+        </div>
       </DialogContent>
     </Dialog>
   );

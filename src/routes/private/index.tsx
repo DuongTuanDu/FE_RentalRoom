@@ -29,7 +29,7 @@ const RequireAdminRole = () => {
   return <Outlet />;
 };
 
-const RequireLandlordRole = () => {
+const RequireLandlordOrStaffRole = () => {
   const { accessToken, isAuthenticated, role } = useSelector(
     (state: any) => state.auth
   );
@@ -39,7 +39,7 @@ const RequireLandlordRole = () => {
     return <Navigate to={config.loginPath} replace />;
   }
 
-  if (!accessToken || !isAuthenticated || role !== "landlord") {
+  if (!accessToken || !isAuthenticated || (role !== "landlord" && role !== "staff")) {
     return <Navigate to="/" replace />;
   }
 
@@ -74,7 +74,7 @@ const routes = (
     <Route path="admin" element={<RequireAdminRole />}>
       <Route element={<LayoutAdmin />}>{adminRoutes}</Route>
     </Route>
-    <Route path="landlord" element={<RequireLandlordRole />}>
+    <Route path="landlord" element={<RequireLandlordOrStaffRole />}>
       <Route element={<LayoutLandlord />}>{landlordRoutes}</Route>
     </Route>
   </>
