@@ -78,7 +78,6 @@ const RevenueManagement = () => {
   const now = useMemo(() => new Date(), []);
   const [statsYear, setStatsYear] = useState<number>(now.getFullYear());
   const [statsMonth, setStatsMonth] = useState<number>(now.getMonth() + 1);
-  // const [statsBuildingId, setStatsBuildingId] = useState<string>("");
 
   const {
     data: revenuesData,
@@ -351,13 +350,6 @@ const RevenueManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* <div className="space-y-2">
-            <Label>Tòa nhà</Label>
-            <BuildingSelectCombobox
-              value={selectedBuildingId}
-              onValueChange={setSelectedBuildingId}
-            />
-          </div> */}
           <div className="space-y-2">
             <Label>Loại</Label>
             <Select

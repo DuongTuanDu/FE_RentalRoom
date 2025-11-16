@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import type { IContractTemplate } from "@/types/contract";
+import type { IContractTemplate } from "@/types/contract-template";
 
 interface Props {
   open: boolean;

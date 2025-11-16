@@ -3,7 +3,7 @@ import {
   useGetContactsQuery,
   useUpdateContactStatusMutation,
 } from "@/services/contact-request/contact-request.service";
-import { FileText, Search, Eye, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Search, Eye, CheckCircle, XCircle, Plus } from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -43,6 +43,9 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { SendContractModal } from "./components/SendContractModal";
+import { useCreateContractMutation } from "@/services/contract/contract.service";
+import type { IContractData } from "@/types/contract";
 
 const ContactManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,9 +59,13 @@ const ContactManageLandlord = () => {
   const [landlordNote, setLandlordNote] = useState("");
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [viewingContact, setViewingContact] = useState<IContact | null>(null);
+  const [isSendContractModalOpen, setIsSendContractModalOpen] = useState(false);
+  const [contractData, setContractData] = useState<IContractData | null>(null);
+  const [acceptedContactIds, setAcceptedContactIds] = useState<Set<string>>(new Set());
 
   const formatDate = useFormatDate();
   const [updateContactStatus, { isLoading: isUpdating }] = useUpdateContactStatusMutation();
+  const [createContract, { isLoading: isCreatingContract }] = useCreateContractMutation();
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -110,6 +117,11 @@ const ContactManageLandlord = () => {
         },
       }).unwrap();
 
+      // If accepted, add to accepted contacts set
+      if (actionType === "accepted") {
+        setAcceptedContactIds((prev) => new Set(prev).add(selectedContact._id));
+      }
+
       setIsActionDialogOpen(false);
       setSelectedContact(null);
       setActionType(null);
@@ -125,6 +137,20 @@ const ContactManageLandlord = () => {
         description:
           error?.data?.message ||
           "Không thể cập nhật trạng thái. Vui lòng thử lại",
+      });
+    }
+  };
+
+  const handleCreateContract = async (contactId: string) => {
+    try {
+      const result = await createContract({ contactId }).unwrap();
+      setContractData(result.contract);
+      setIsSendContractModalOpen(true);
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra", {
+        description:
+          error?.data?.message ||
+          "Không thể tạo hợp đồng. Vui lòng thử lại",
       });
     }
   };
@@ -388,6 +414,27 @@ const ContactManageLandlord = () => {
                                   </TooltipProvider>
                                 </>
                               )}
+
+                              {((contact.status === "accepted" || acceptedContactIds.has(contact._id)) && contact.contractId === null) && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleCreateContract(contact._id)}
+                                        disabled={isCreatingContract}
+                                      >
+                                        <Plus className="w-4 h-4 text-blue-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Tạo hợp đồng</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -604,6 +651,12 @@ const ContactManageLandlord = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SendContractModal
+        open={isSendContractModalOpen}
+        onOpenChange={setIsSendContractModalOpen}
+        contractData={contractData}
+      />
     </div>
   );
 };

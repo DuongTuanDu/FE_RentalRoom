@@ -1,85 +1,76 @@
-// src/services/contractTemplate.api.ts
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type {
-  IContractTemplate,
-  IContractTemplateCreateRequest,
-  IContractTemplateResponse,
-  IContractTemplateUpdateRequest,
-} from "@/types/contract";
+import type { IContractCreateResponse, IContractDetailResponse, IContractResponse, IUpdateContractRequest } from "@/types/contract";
 
-export const contractTemplateApi = createApi({
-  reducerPath: "contractTemplateApi",
+export const contractApi = createApi({
+  reducerPath: "contractApi",
   baseQuery: async (args) => {
-    const { url, method, data, params, responseType, config } = args as any;
-    return baseQuery({ url, method, data, params, responseType, config });
+    const { url, method, data, params } = args;
+    return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["ContractTemplate"],
+  tagTypes: ["Contract"],
   endpoints: (builder) => ({
-    getContractTemplates: builder.query<IContractTemplateResponse, void>({
-      query: () => ({ url: "/landlords/contract-templates", method: "GET" }),
-      providesTags: ["ContractTemplate"],
+    getContracts: builder.query<IContractResponse, void>({
+      query: () => ({
+        url: "/landlords/contracts",
+        method: "GET",
+      }),
+      providesTags: ["Contract"],
     }),
-    createContractTemplate: builder.mutation<
-      IContractTemplate,
-      IContractTemplateCreateRequest
-    >({
+    createContract: builder.mutation<IContractCreateResponse, { contactId: string }>({
       query: (data) => ({
-        url: "/landlords/contract-templates",
+        url: "/landlords/contracts/from-contact",
         method: "POST",
         data,
       }),
-      invalidatesTags: ["ContractTemplate"],
+      invalidatesTags: ["Contract"],
     }),
-    updateContractTemplate: builder.mutation<
-      IContractTemplate,
-      { id: string; data: IContractTemplateUpdateRequest }
-    >({
+    updateContract: builder.mutation<IContractResponse, { id: string; data: IUpdateContractRequest }>({
       query: ({ id, data }) => ({
-        url: `/landlords/contract-templates/${id}`,
+        url: `/landlords/contracts/${id}`,
         method: "PUT",
         data,
       }),
-      invalidatesTags: ["ContractTemplate"],
+      invalidatesTags: ["Contract"],
     }),
-    deleteContractTemplate: builder.mutation<IContractTemplateResponse, string>(
-      {
-        query: (id) => ({
-          url: `/landlords/contract-templates/${id}`,
-          method: "DELETE",
-        }),
-        invalidatesTags: ["ContractTemplate"],
-      }
-    ),
-    getPreviewContractPdf: builder.query<
-      Blob,
-      {
-        buildingId: string;
-        termIds?: string[];
-        regulationIds?: string[];
-        fileName?: string;
-      }
-    >({
-      query: ({ buildingId, termIds = [], regulationIds = [], fileName }) => ({
-        url: "/landlords/contract-templates/preview-pdf",
+    getContractDetails: builder.query<IContractDetailResponse, string>({
+      query: (id) => ({
+        url: `/landlords/contracts/${id}`,
         method: "GET",
-        params: {
-          buildingId,
-          fileName,
-          // gửi mảng như ?termIds=...&termIds=...
-          ...(termIds.length ? { termIds } : {}),
-          ...(regulationIds.length ? { regulationIds } : {}),
-        },
-        responseType: "blob",
       }),
+      providesTags: ["Contract"],
     }),
+    signLandlord: builder.mutation<IContractResponse, { id: string, data: { signatureUrl: string } }>({ // Lưu trữ ký của chủ trọ và đánh dấu đã ký của chủ trọ
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/sign-landlord`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract"],
+    }),
+    sendToTenant: builder.mutation<IContractResponse, { id: string}>({ // Gửi hợp đồng nội bộ tới tenant
+      query: ({ id }) => ({
+        url: `/landlords/contracts/${id}/send-to-tenant`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Contract"],
+    }),
+    confirmMoveIn: builder.mutation<IContractResponse, { id: string}>({ // Xác nhận người thuê đã vào ở
+      query: ({ id }) => ({
+        url: `/landlords/contracts/${id}/confirm-move-in`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Contract"],
+    })
   }),
 });
 
 export const {
-  useGetContractTemplatesQuery,
-  useCreateContractTemplateMutation,
-  useUpdateContractTemplateMutation,
-  useDeleteContractTemplateMutation,
-  useLazyGetPreviewContractPdfQuery,
-} = contractTemplateApi;
+  useGetContractsQuery,
+  useCreateContractMutation,
+  useUpdateContractMutation,
+  useGetContractDetailsQuery,
+  useSignLandlordMutation,
+  useSendToTenantMutation,
+  useConfirmMoveInMutation
+} = contractApi;
