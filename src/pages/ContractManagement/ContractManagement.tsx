@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   useGetContractsQuery,
   useSignLandlordMutation,
@@ -58,6 +58,8 @@ const ContractManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageLimit, setPageLimit] = useState(20);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -68,15 +70,26 @@ const ContractManagement = () => {
   const [sendConfirmPopoverOpen, setSendConfirmPopoverOpen] = useState<Record<string, boolean>>({});
 
   const formatDate = useFormatDate();
-  const { data, error, isLoading } = useGetContractsQuery();
+  const { data, error, isLoading } = useGetContractsQuery({
+    page: currentPage,
+    limit: pageLimit,
+    status: statusFilter !== "all" ? (statusFilter as IContractStatus) : undefined,
+    search: debouncedSearch || undefined,
+  });
   const [signLandlord, { isLoading: isSigningLandlord }] = useSignLandlordMutation();
   const [sendToTenant, { isLoading: isSending }] = useSendToTenantMutation();
   const [confirmMoveIn, { isLoading: isConfirming }] = useConfirmMoveInMutation();
+
+  // Reset pagination when filter/search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, debouncedSearch]);
 
   const debouncedSetSearch = useMemo(
     () =>
       _.debounce((value: string) => {
         setDebouncedSearch(value);
+        setCurrentPage(1); // Reset về trang 1 khi search
       }, 700),
     []
   );
@@ -208,34 +221,8 @@ const ContractManagement = () => {
     );
   };
 
-  const filteredData = useMemo(() => {
-    if (!data?.items) return [];
-    
-    let filtered = data.items;
-    
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((contract) => contract.status === statusFilter);
-    }
-    
-    if (debouncedSearch) {
-      const searchLower = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((contract) => {
-        const tenantName = contract.tenantId?.userInfo?.fullName?.toLowerCase() || '';
-        const buildingName = contract.buildingId?.name?.toLowerCase() || '';
-        const roomName = contract.roomId?.roomNumber?.toLowerCase() || '';
-        const contractNo = contract.contract?.no?.toLowerCase() || '';
-
-        return (
-          tenantName.includes(searchLower) ||
-          buildingName.includes(searchLower) ||
-          roomName.includes(searchLower) ||
-          contractNo.includes(searchLower)
-        );
-      });
-    }
-    
-    return filtered;
-  }, [data?.items, debouncedSearch, statusFilter]);
+  // Tính toán totalPages từ API response
+  const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
 
   return (
     <div className="">
@@ -275,6 +262,7 @@ const ContractManagement = () => {
                   value={statusFilter}
                   onValueChange={(value) => {
                     setStatusFilter(value);
+                    setCurrentPage(1); // Reset về trang 1 khi thay đổi filter
                   }}
                 >
                   <SelectTrigger className="w-48">
@@ -312,7 +300,7 @@ const ContractManagement = () => {
                   Vui lòng thử lại sau
                 </p>
               </div>
-            ) : !filteredData || filteredData.length === 0 ? (
+            ) : !data?.items || data.items.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-600 font-medium">
@@ -340,7 +328,7 @@ const ContractManagement = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredData.map((contract) => (
+                      {data.items.map((contract) => (
                         <TableRow key={contract._id} className="hover:bg-slate-50">
                           <TableCell className="text-slate-600 font-medium">
                             {contract.contract?.no || "—"}
@@ -519,16 +507,90 @@ const ContractManagement = () => {
                   </Table>
                 </div>
 
+                {/* Pagination */}
                 {data && data.total > 0 && (
                   <div className="flex items-center justify-between pt-4">
                     <p className="text-sm text-slate-600">
                       Hiển thị{" "}
                       <span className="font-medium">
-                        {filteredData.length}
+                        {(currentPage - 1) * pageLimit + 1}
+                      </span>{" "}
+                      đến{" "}
+                      <span className="font-medium">
+                        {Math.min(currentPage * pageLimit, data.total)}
                       </span>{" "}
                       trong tổng số{" "}
                       <span className="font-medium">{data.total}</span> hợp đồng
                     </p>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={pageLimit.toString()}
+                        onValueChange={(value) => {
+                          setPageLimit(Number(value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 hợp đồng</SelectItem>
+                          <SelectItem value="20">20 hợp đồng</SelectItem>
+                          <SelectItem value="50">50 hợp đồng</SelectItem>
+                          <SelectItem value="100">100 hợp đồng</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        Trước
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={
+                                  currentPage === pageNum ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => setCurrentPage(pageNum)}
+                                className="w-9"
+                              >
+                                {pageNum}
+                              </Button>
+                            );
+                          }
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        Sau
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
