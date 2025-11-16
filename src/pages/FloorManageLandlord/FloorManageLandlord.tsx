@@ -54,6 +54,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Permission from "@/layouts/Permission";
 
 const FloorManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -200,6 +201,8 @@ const FloorManageLandlord = () => {
             Quản lý thông tin các tầng trong tòa nhà
           </p>
         </div>
+      
+      <Permission permission="floor:create">
         <div className="flex gap-2">
           <Button
             className="gap-2"
@@ -219,6 +222,7 @@ const FloorManageLandlord = () => {
             Thiết lập nhanh
           </Button>
         </div>
+      </Permission>
       </div>
 
       {/* Building Selection Card */}
@@ -307,6 +311,7 @@ const FloorManageLandlord = () => {
                           <TableCell>{formatDate(floor.createdAt)}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
+                              <Permission permission="floor:edit">
                               <div className="flex items-center">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -338,15 +343,19 @@ const FloorManageLandlord = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                onClick={() => handleOpenDeleteDialog(floor)}
-                                title="Xóa"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              </Permission>
+
+                              <Permission permission="floor:delete">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  onClick={() => handleOpenDeleteDialog(floor)}
+                                  title="Xóa"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </Permission>
                             </div>
                           </TableCell>
                         </TableRow>

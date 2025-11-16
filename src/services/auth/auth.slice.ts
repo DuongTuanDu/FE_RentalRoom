@@ -28,6 +28,7 @@ interface IAuthState {
     updatedAt: string;
   };
   role: string;
+  staffPermissions: string[];
 }
 
 const initialState: IAuthState = {
@@ -58,6 +59,7 @@ const initialState: IAuthState = {
     updatedAt: "",
   },
   role: "",
+  staffPermissions: [],
 };
 
 const authSlice = createSlice({
@@ -112,6 +114,9 @@ const authSlice = createSlice({
     setUserInfo(state, action) {
       state.userInfo = action.payload;
     },
+    setPermission(state, action){
+      state.staffPermissions = action.payload
+    }
   },
 });
 
@@ -121,7 +126,8 @@ export const {
   setEmailVerify,
   setIsAuthenticated,
   setUserInfo,
-  setRole
+  setRole,
+  setPermission
 } = authSlice.actions;
 
 export default authSlice.reducer;

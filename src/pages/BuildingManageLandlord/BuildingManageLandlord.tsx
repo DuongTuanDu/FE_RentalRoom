@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   useCreateBuildingMutation,
   useGetBuildingsQuery,
@@ -50,6 +50,8 @@ import type {
 } from "@/types/building";
 import { toast } from "sonner";
 import { toText } from "@/utils/errors";
+import { useSelector } from "react-redux";
+import Permission from "@/layouts/Permission";
 
 const BuildingManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -290,6 +292,7 @@ const BuildingManageLandlord = () => {
             </div>
           </div>
 
+      <Permission permission="building:create">
           <div className="flex flex-wrap gap-3">
             {/* Nút tải template */}
             <Button
@@ -337,6 +340,8 @@ const BuildingManageLandlord = () => {
               Thiết lập nhanh
             </Button>
           </div>
+        </Permission>
+          
         </div>
 
         {/* Filter Section */}
@@ -522,14 +527,16 @@ const BuildingManageLandlord = () => {
                               >
                                 <Eye className="w-4 h-4 text-blue-600" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleOpenEditModal(building)}
-                              >
-                                <Edit className="w-4 h-4 text-amber-600" />
-                              </Button>
+                              <Permission permission="building:edit">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleOpenEditModal(building)}
+                                >
+                                  <Edit className="w-4 h-4 text-amber-600" />
+                                </Button>
+                              </Permission>
                               {/* <Button
                                 variant="ghost"
                                 size="icon"

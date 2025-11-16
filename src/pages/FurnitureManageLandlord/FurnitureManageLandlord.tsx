@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import type { IFurniture, IFurnitureRequest } from "@/types/furniture";
 import { ModalFurniture } from "./components/ModalFurniture";
 import { DeleteFurniturePopover } from "./components/DeleteFurniturePopover";
+import Permission from "@/layouts/Permission";
 
 const FurnitureManageLandlord = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,10 +114,12 @@ const FurnitureManageLandlord = () => {
             Quản lý thông tin các loại nội thất cho phòng trọ
           </p>
         </div>
-        <Button className="gap-2" onClick={handleOpenCreateModal}>
-          <Plus className="h-4 w-4" />
-          Thêm Nội Thất Mới
-        </Button>
+        <Permission  permission="furniture:create">
+          <Button className="gap-2" onClick={handleOpenCreateModal}>
+            <Plus className="h-4 w-4" />
+            Thêm Nội Thất Mới
+          </Button>
+        </Permission>
       </div>
 
       {/* Furnitures Table */}
@@ -198,6 +201,7 @@ const FurnitureManageLandlord = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2">
+                          <Permission permission="furniture:edit">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -206,6 +210,8 @@ const FurnitureManageLandlord = () => {
                           >
                             <Edit className="h-4 w-4 text-amber-600" />
                           </Button>
+                          </Permission>
+                          <Permission permission="furniture:delete">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -214,6 +220,7 @@ const FurnitureManageLandlord = () => {
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
+                          </Permission>
                         </div>
                       </TableCell>
                     </TableRow>

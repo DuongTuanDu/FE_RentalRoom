@@ -127,6 +127,7 @@ const StaffManagementLandlord = () => {
       const result = await updateStaffStatus({ staffId: staff._id, body: { isActive: !staff.accountId.isActivated } }).unwrap();
       setIsActivatedOpen(false);
       setSelectedStaff(null);
+      refetch();
       toast.success(result.message || "Cập nhật trạng thái thành công");
     } catch (error: any) {
       toast(error?.data?.message || "Cập nhật trạng thái thất bại");
@@ -159,15 +160,15 @@ const StaffManagementLandlord = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Users className="w-8 h-8" />
-              Quản lý Nhân viên
+              Quản lý người quản lý tòa nhà
             </h1>
             <p className="text-slate-600 mt-1">
-              Quản lý nhân viên và phân quyền quản lý tòa nhà
+              Quản lý người phụ trách vận hành và giám sát các tòa nhà
             </p>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleOpenCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
-            Thêm nhân viên
+            Thêm quản lý
           </Button>
         </div>
 
@@ -176,7 +177,7 @@ const StaffManagementLandlord = () => {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Tổng nhân viên</p>
+                  <p className="text-sm text-slate-600">Tổng quản lý</p>
                   <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -259,10 +260,10 @@ const StaffManagementLandlord = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10 nhân viên</SelectItem>
-                    <SelectItem value="20">20 nhân viên</SelectItem>
-                    <SelectItem value="50">50 nhân viên</SelectItem>
-                    <SelectItem value="100">100 nhân viên</SelectItem>
+                    <SelectItem value="10">10 quản lý</SelectItem>
+                    <SelectItem value="20">20 quản lý</SelectItem>
+                    <SelectItem value="50">50 quản lý</SelectItem>
+                    <SelectItem value="100">100 quản lý</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -273,7 +274,7 @@ const StaffManagementLandlord = () => {
         <Card>
           <CardHeader>
             <CardTitle>
-              Danh sách nhân viên ({filteredStaff.length})
+              Danh sách các quản lý ({filteredStaff.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -285,12 +286,12 @@ const StaffManagementLandlord = () => {
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-600 font-medium">
-                  Không tìm thấy nhân viên nào
+                  Không tìm thấy quản lý nào
                 </p>
                 <p className="text-slate-500 text-sm mt-2">
                   {searchQuery || statusFilter !== "all"
                     ? "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
-                    : "Chưa có nhân viên trong hệ thống"}
+                    : "Chưa có quản lý trong hệ thống"}
                 </p>
               </div>
             ) : (
@@ -299,7 +300,7 @@ const StaffManagementLandlord = () => {
                   <table className="w-full">
                     <thead className="bg-slate-50 border-b">
                       <tr>
-                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Nhân viên</th>
+                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Người quản lý</th>
                         <th className="text-left py-3 px-4 font-semibold text-slate-700">Liên hệ</th>
                         <th className="text-left py-3 px-4 font-semibold text-slate-700">Tòa nhà</th>
                         <th className="text-left py-3 px-4 font-semibold text-slate-700">Ngày tạo</th>
@@ -434,7 +435,7 @@ const StaffManagementLandlord = () => {
                       {Math.min(currentPage * pageLimit, filteredStaff.length)}
                     </span>{" "}
                     trong tổng số{" "}
-                    <span className="font-medium">{filteredStaff.length}</span> nhân viên
+                    <span className="font-medium">{filteredStaff.length}</span> quản lý
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -518,8 +519,8 @@ const StaffManagementLandlord = () => {
         onOpenChange={(open) => {
           setIsCreateOpen(open);
         }}
-        onSuccess={() => {
-          refetch();
+        onSuccess={async () => {
+          await refetch(); 
         }}
       />
 
