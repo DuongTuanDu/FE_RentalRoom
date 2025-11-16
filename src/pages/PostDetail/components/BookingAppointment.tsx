@@ -18,7 +18,6 @@ import {
   useGetAvailableSlotsQuery,
 } from "@/services/room-appointment/room-appointment.service";
 import { toast } from "sonner";
-import type { IAvailableDay, ITimeSlot } from "@/types/room-appointment";
 import { useGetProfileQuery } from "@/services/profile/profile.service";
 import { useSelector } from "react-redux";
 

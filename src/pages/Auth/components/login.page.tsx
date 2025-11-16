@@ -52,9 +52,9 @@ const Login = () => {
         dispatch(setIsAuthenticated(true));
         dispatch(setRole(res.role));
         await triggerGetProfile();
-        if (res.role === config.roleAdmin) {
+        if (res.role === config.roleAdmin ) {
           navigate(config.adminDashboardPath);
-        } else if (res.role === config.roleLandlord) {
+        } else if (res.role === config.roleLandlord || res.role === config.roleStaff) {
           navigate(config.landlordDashboardPath);
         } else {
           navigate(config.homePath);
