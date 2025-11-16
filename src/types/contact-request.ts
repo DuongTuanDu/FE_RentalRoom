@@ -33,6 +33,14 @@ export interface IContact {
   contactPhone: string;
   tenantNote?: string;
   landlordNote?: string;
+  contractId: {
+    _id: string;
+    landlordId: string;
+    tenantId: string;
+    buildingId: string;
+    roomId: string;
+    postId: string;
+  };
   status: ContactStatus;
   createdAt?: string;
   updatedAt?: string;

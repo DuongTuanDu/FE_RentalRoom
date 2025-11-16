@@ -185,6 +185,11 @@ const menuItems = [
         icon: FileText,
         path: "/landlord/contact-management",
       },
+      {
+        title: "Quản lý hợp đồng",
+        icon: ScrollText,
+        path: "/landlord/contracts",
+      },
     ],
   },
   {
