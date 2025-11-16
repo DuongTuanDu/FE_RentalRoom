@@ -55,7 +55,7 @@ import { DeleteRoomPopover } from "./components/DeleteRoomPopover";
 import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
 import type { IRoom } from "@/types/room";
-
+import Permission from "@/layouts/Permission";
 const RoomManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
   const [selectedFloorId, setSelectedFloorId] = useState("");
@@ -277,6 +277,7 @@ const RoomManageLandlord = () => {
             Quản lý thông tin các phòng trong tòa nhà
           </p>
         </div>
+        <Permission permission="room:create">
         <div className="flex gap-2">
           <Button
             className="gap-2"
@@ -296,6 +297,7 @@ const RoomManageLandlord = () => {
             Thiết lập nhanh
           </Button>
         </div>
+        </Permission>
       </div>
 
       {/* Filters Card */}
@@ -481,24 +483,28 @@ const RoomManageLandlord = () => {
                             >
                               <Eye className="h-4 w-4 text-blue-600" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleOpenEditModal(room)}
-                              title="Chỉnh sửa"
-                            >
-                              <Edit className="h-4 w-4 text-amber-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleOpenDeleteDialog(room)}
-                              title="Xóa phòng"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
+                            <Permission permission="room:edit">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleOpenEditModal(room)}
+                                title="Chỉnh sửa"
+                              >
+                                <Edit className="h-4 w-4 text-amber-600" />
+                              </Button>
+                            </Permission>
+                            <Permission permission="room:delete">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleOpenDeleteDialog(room)}
+                                title="Xóa phòng"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </Permission>
                           </div>
                         </TableCell>
                       </TableRow>

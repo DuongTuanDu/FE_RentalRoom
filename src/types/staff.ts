@@ -37,8 +37,6 @@ export interface IPermission {
 
 export interface ICreateStaffRequest {
   email: string;
-  password: string;
-  confirmPassword: string;
   fullName: string;
   phoneNumber: string;
   dob: string;
@@ -46,6 +44,29 @@ export interface ICreateStaffRequest {
   address: string;
   assignedBuildings: string[];
   permissions: string[];
+}
+
+export interface ICreateStaffResponse {
+  message: string,
+  staff: IStaff
+}
+
+export interface IFirstTimeChangePasswordRequest {
+  token: string; 
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface IFirstTimeChangePasswordResponse {
+  message: string;
+}
+
+export interface IResendTemporaryPasswordRequest {
+  staffId: string;
+}
+
+export interface IResendTemporaryPasswordResponse {
+  message: string;
 }
 
 export interface IUpdateInactiveStaffRequest {

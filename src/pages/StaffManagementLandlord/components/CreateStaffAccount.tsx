@@ -40,8 +40,6 @@ const ModalCreateStaffAccount = ({
 }: ModalCreateStaffAccountProps) => {
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
-    confirmPassword: "",
     fullName: "",
     phoneNumber: "",
     dob: "",
@@ -66,8 +64,6 @@ const ModalCreateStaffAccount = ({
     if (!open) {
       setFormData({
         email: "",
-        password: "",
-        confirmPassword: "",
         fullName: "",
         phoneNumber: "",
         dob: "",
@@ -142,16 +138,6 @@ const ModalCreateStaffAccount = ({
       newErrors.email = "Email không hợp lệ";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Mật khẩu là bắt buộc";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
-    }
-
     if (!formData.fullName) {
       newErrors.fullName = "Họ tên là bắt buộc";
     }
@@ -221,32 +207,32 @@ const ModalCreateStaffAccount = ({
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      toast.error("Vui lòng kiểm tra lại thông tin");
-      return;
-    }
+  if (!validateForm()) {
+    toast.error("Vui lòng kiểm tra lại thông tin");
+    return;
+  }
 
-    try {
-      await createStaff({
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
-        dob: formData.dob,
-        gender: formData.gender,
-        address: formData.address,
-        assignedBuildings: selectedBuildings,
-        permissions: selectedPermissions,
-      }).unwrap();
+  try {
+    await createStaff({
+      email: formData.email,
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      dob: formData.dob,
+      gender: formData.gender,
+      address: formData.address,
+      assignedBuildings: selectedBuildings,
+      permissions: selectedPermissions,
+    }).unwrap();
 
-      toast.success("Tạo tài khoản nhân viên thành công");
-      onSuccess?.();
-      onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Tạo tài khoản thất bại");
-    }
-  };
+    toast.success("Tạo tài khoản nhân viên thành công");
+    
+    await onSuccess?.();
+    
+    onOpenChange(false);
+  } catch (error: any) {
+    toast.error(error?.data?.message || "Tạo tài khoản thất bại");
+  }
+};
 
   const isGroupFullySelected = (groupName: string) => {
     const groupPermissions = permissionGroups[groupName] || [];
@@ -316,41 +302,7 @@ const ModalCreateStaffAccount = ({
                       <p className="text-xs text-red-500">{errors.fullName}</p>
                     )}
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">
-                      Mật khẩu <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      className={errors.password ? "border-red-500" : ""}
-                    />
-                    {errors.password && (
-                      <p className="text-xs text-red-500">{errors.password}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                      Xác nhận mật khẩu <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                      className={errors.confirmPassword ? "border-red-500" : ""}
-                    />
-                    {errors.confirmPassword && (
-                      <p className="text-xs text-red-500">{errors.confirmPassword}</p>
-                    )}
-                  </div>
-
+              
                   <div className="space-y-2">
                     <Label htmlFor="phoneNumber" className="text-sm font-medium">
                       Số điện thoại <span className="text-red-500">*</span>

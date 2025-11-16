@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { ModalBuildingService } from "./components/ModalBuildingService";
 import { DeleteBuildingServicePopup } from "./components/DeleteBuildingServicePopup";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
+import Permission from "@/layouts/Permission";
 
 const BuildingServiceManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -225,6 +226,7 @@ const BuildingServiceManageLandlord = () => {
             Quản lý các dịch vụ của tòa nhà
           </p>
         </div>
+        <Permission permission="buildingService:create">
         <Button
           disabled={!selectedBuildingId || isCreating}
           onClick={openCreateModal}
@@ -232,6 +234,7 @@ const BuildingServiceManageLandlord = () => {
           <Plus className="h-4 w-4 mr-2" />
           {isCreating ? "Đang tạo..." : "Thêm dịch vụ"}
         </Button>
+        </Permission>
       </div>
 
       {/* Filters */}
@@ -351,14 +354,17 @@ const BuildingServiceManageLandlord = () => {
                             </Button>
                           ) : (
                             <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isUpdating}
-                                onClick={() => openEditModal(service)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              <Permission permission = "buildingService:edit">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isUpdating}
+                                  onClick={() => openEditModal(service)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Permission>
+                              <Permission permission = "buildingService:delete">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -367,6 +373,7 @@ const BuildingServiceManageLandlord = () => {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
+                              </Permission>
                             </>
                           )}
                         </div>

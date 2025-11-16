@@ -8,6 +8,7 @@ export default interface IAuth {
     status: number;
     role: number;
   };
+  id: string;
   role: string;
   message: string;
   status: boolean;

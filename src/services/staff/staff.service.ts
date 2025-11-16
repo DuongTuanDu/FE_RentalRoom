@@ -4,6 +4,9 @@ import type {
   IStaff,
   IPermission,
   ICreateStaffRequest,
+  ICreateStaffResponse,
+  IFirstTimeChangePasswordResponse,
+  IFirstTimeChangePasswordRequest,
   IUpdateInactiveStaffRequest,
   IUpdateInactiveStaffResponse,
   IUpdateStaffInfoRequest,
@@ -36,13 +39,32 @@ export const staffApi = createApi({
       providesTags: ["Staff"],
     }),
 
-    createStaff: builder.mutation<IStaff, ICreateStaffRequest>({
+    getPermissionsByAccountId: builder.query<string[], {accountId: string}>({
+      query: ({ accountId }) => ({
+        url: `/landlords/staffs/${accountId}/permissions`,
+        method: "GET",
+      }),
+      providesTags: ["Staff"],
+    }),
+
+    createStaff: builder.mutation<ICreateStaffResponse, ICreateStaffRequest>({
       query: (data) => ({
         url: `/landlords/staffs/create`,
         method: "POST",
         data,
       }),
       invalidatesTags: ["Staff"],
+    }),
+
+    firstTimeChangePassword: builder.mutation<
+      IFirstTimeChangePasswordResponse,
+      IFirstTimeChangePasswordRequest
+    >({
+      query: (data) => ({
+        url: `/auth/change-password-first`,
+        method: "POST",
+        data,
+      }),
     }),
 
     updateStaffStatus: builder.mutation<
@@ -86,7 +108,10 @@ export const staffApi = createApi({
 export const {
   useGetStaffListQuery,
   useGetPermissionsQuery,
+  useGetPermissionsByAccountIdQuery,
+  useLazyGetPermissionsByAccountIdQuery,
   useCreateStaffMutation,
+  useFirstTimeChangePasswordMutation,
   useUpdateStaffStatusMutation,
   useUpdateStaffInfoMutation,
   useUpdateStaffPermissionsMutation,
