@@ -17,13 +17,18 @@ export interface ISubscription {
   endDate: string;
   status: string;   
   amount: number;
+  isTrial: boolean;
+  isRenewal: boolean;
   paymentMethod: string;
   paymentId: string;
 }
 
 export interface ISubscriptionResponse {
   success: boolean;
-  data: ISubscription[];
+  message: string;
+  data: {
+    data: ISubscription[];
+  };
 }
 
 export interface ICreateSubscriptionRequest {

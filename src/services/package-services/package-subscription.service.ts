@@ -4,6 +4,7 @@ import type {
   ISubscriptionResponse,
   ICreateSubscriptionRequest,
   ICreateSubscriptionResponse,
+  ISubscription,
 } from "@/types/package-subscription";
 
 export const packageSubscriptionApi = createApi({
@@ -14,11 +15,15 @@ export const packageSubscriptionApi = createApi({
   },
   tagTypes: ["PackageSubscription"],
   endpoints: (builder) => ({
-    getMySubscriptions: builder.query<ISubscriptionResponse, void>({
+    getMySubscriptions: builder.query<ISubscription[], void>({
       query: () => ({
         url: "/subscriptions/history",
         method: "GET",
       }),
+      transformResponse: (response: ISubscriptionResponse) => {
+        // Transform để trả về array trực tiếp
+        return response?.data?.data || [];
+      },
       providesTags: ["PackageSubscription"],
     }),
 
