@@ -23,6 +23,22 @@ export interface IContract {
   updatedAt: string;
 }
 
+export interface ITenantContract {
+  _id: string;
+  buildingId: {
+    _id: string;
+    name: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+  };
+  contract: IContractInfo;
+  status: IContractStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type IPerson = {
   name: string;
   dob: string;
@@ -193,4 +209,26 @@ export interface IContractData {
 export interface IContractCreateResponse {
   alreadyCreated: boolean;
   contract: IContractData;
+}
+
+export interface IUpdateTenantContractRequest {
+  B: IPerson;
+  bikes: {
+    bikeNumber: string;
+    color: string;
+    brand: string;
+  }[];
+  roommates: IPerson[];
+}
+
+export interface IRequestExtendRequest {
+  months: number;
+  note: string;
+}
+
+export interface ITenantContractResponse {
+  items: ITenantContract[];
+  total: number;
+  page: number;
+  limit: number;
 }

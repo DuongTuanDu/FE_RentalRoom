@@ -10,6 +10,7 @@ export default {
   profilePath: '/profile',
   postDetailUserPath: '/posts/:slug',
   contactRequestPath: '/contact-requests',
+  contractPath: '/contracts',
   roleAdmin: "admin",
   roleLandlord: "landlord",
   roleStaff: "staff",

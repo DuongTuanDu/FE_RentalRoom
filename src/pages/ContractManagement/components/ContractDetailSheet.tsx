@@ -5,13 +5,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { FileText } from "lucide-react";
-import { useFormatDate } from "@/hooks/useFormatDate";
 import { useGetContractDetailsQuery } from "@/services/contract/contract.service";
-import type { IContractStatus } from "@/types/contract";
 
 interface ContractDetailSheetProps {
   open: boolean;
@@ -19,33 +16,31 @@ interface ContractDetailSheetProps {
   contractId: string | null;
 }
 
-const getStatusBadge = (status: IContractStatus) => {
-  const statusConfig = {
-    draft: { label: "Bản nháp", className: "bg-gray-100 text-gray-800" },
-    sent_to_tenant: { label: "Đã gửi", className: "bg-blue-100 text-blue-800" },
-    signed_by_tenant: { label: "Đã ký bởi khách", className: "bg-yellow-100 text-yellow-800" },
-    signed_by_landlord: { label: "Đã ký bởi chủ trọ", className: "bg-green-100 text-green-800" },
-    completed: { label: "Hoàn thành", className: "bg-green-100 text-green-800" },
-  };
-  const config = statusConfig[status] || statusConfig.draft;
-  return (
-    <Badge className={config.className} variant="outline">
-      {config.label}
-    </Badge>
-  );
-};
-
 export const ContractDetailSheet = ({
   open,
   onOpenChange,
   contractId,
 }: ContractDetailSheetProps) => {
-  const formatDate = useFormatDate();
 
   const { data: contractDetail, isLoading: isLoadingDetail } = useGetContractDetailsQuery(
     contractId || "",
     { skip: !contractId }
   );
+
+  const formatDateDisplay = (dateString: string | null | undefined): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  };
 
   if (!contractId) return null;
 
@@ -91,7 +86,7 @@ export const ContractDetailSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-screen-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -102,172 +97,146 @@ export const ContractDetailSheet = ({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 px-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-slate-500">Số hợp đồng</Label>
-              <p className="font-medium">{contractDetail.contract?.no || "—"}</p>
+        <div className="space-y-6 px-8 pb-4">
+          {/* Contract Header */}
+          <div className="space-y-3 bg-muted/40 rounded-md">
+            <div className="text-center">
+              <div className="font-semibold">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+              </div>
+              <div>ĐỘC LẬP – TỰ DO – HẠNH PHÚC</div>
             </div>
-            <div>
-              <Label className="text-slate-500">Trạng thái</Label>
-              <div className="mt-1">
-                {getStatusBadge(contractDetail.status)}
+            <Separator />
+            <div className="text-center">
+              <div className="text-xl font-bold">HỢP ĐỒNG THUÊ PHÒNG</div>
+              <div className="text-sm text-muted-foreground">
+                Số: {contractDetail.contract?.no || "—"}
               </div>
             </div>
-            <div>
-              <Label className="text-slate-500">Tòa nhà</Label>
-              <p className="font-medium">{contractDetail.buildingId?.name || "—"}</p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Phòng</Label>
-              <p className="font-medium">{contractDetail.roomId?.roomNumber || "—"}</p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Giá thuê</Label>
-              <p className="font-medium">
-                {contractDetail.contract?.price
-                  ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.price) + " VNĐ"
-                  : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Tiền cọc</Label>
-              <p className="font-medium">
-                {contractDetail.contract?.deposit
-                  ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.deposit) + " VNĐ"
-                  : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Ngày ký</Label>
-              <p className="font-medium">
-                {contractDetail.contract?.signDate ? formatDate(contractDetail.contract.signDate) : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Địa điểm ký</Label>
-              <p className="font-medium">{contractDetail.contract?.signPlace || "—"}</p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Ngày bắt đầu</Label>
-              <p className="font-medium">
-                {contractDetail.contract?.startDate ? formatDate(contractDetail.contract.startDate) : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Ngày kết thúc</Label>
-              <p className="font-medium">
-                {contractDetail.contract?.endDate ? formatDate(contractDetail.contract.endDate) : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Ngày tạo</Label>
-              <p className="font-medium">
-                {contractDetail.createdAt ? formatDate(contractDetail.createdAt) : "—"}
-              </p>
-            </div>
-            <div>
-              <Label className="text-slate-500">Ngày gửi cho khách</Label>
-              <p className="font-medium">
-                {contractDetail.sentToTenantAt ? formatDate(contractDetail.sentToTenantAt) : "—"}
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <Label className="text-lg text-slate-700 mb-2">Thông tin chủ trọ (Bên A)</Label>
-            <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-lg">
+            <div className="space-y-1 text-sm">
               <div>
-                <Label className="text-slate-500">Họ và tên</Label>
-                <p className="font-medium">{contractDetail.A?.name || "—"}</p>
+                Hôm nay, ngày {formatDateDisplay(contractDetail.contract?.signDate) || "—"} tại: {contractDetail.contract?.signPlace || "—"}
+              </div>
+              <div className="font-semibold">BÊN CHO THUÊ NHÀ (BÊN A):</div>
+              <div>
+                Đại diện (Ông/Bà): {contractDetail.A?.name || "—"}
               </div>
               <div>
-                <Label className="text-slate-500">Ngày sinh</Label>
-                <p className="font-medium">{contractDetail.A?.dob || "—"}</p>
+                Ngày sinh: {formatDateDisplay(contractDetail.A?.dob) || "—"}
               </div>
               <div>
-                <Label className="text-slate-500">CCCD</Label>
-                <p className="font-medium">{contractDetail.A?.cccd || "—"}</p>
+                CCCD: {contractDetail.A?.cccd || "—"} Cấp ngày:{" "}
+                {formatDateDisplay(contractDetail.A?.cccdIssuedDate) || "—"}, Nơi cấp: {contractDetail.A?.cccdIssuedPlace || "—"}
               </div>
               <div>
-                <Label className="text-slate-500">Điện thoại</Label>
-                <p className="font-medium">{contractDetail.A?.phone || "—"}</p>
+                Hộ khẩu thường trú: {contractDetail.A?.permanentAddress || "—"}
               </div>
               <div>
-                <Label className="text-slate-500">Email</Label>
-                <p className="font-medium">{contractDetail.A?.email || "—"}</p>
+                Điện thoại: {contractDetail.A?.phone || "—"}
               </div>
               <div>
-                <Label className="text-slate-500">Địa chỉ thường trú</Label>
-                <p className="font-medium">{contractDetail.A?.permanentAddress || "—"}</p>
+                Email: {contractDetail.A?.email || "—"}
+              </div>
+              <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
+              <div>
+                Đại diện (Ông/Bà): {contractDetail.B?.name || "—"}
+              </div>
+              <div>
+                Ngày sinh: {formatDateDisplay(contractDetail.B?.dob) || "—"}
+              </div>
+              <div>
+                CCCD: {contractDetail.B?.cccd || "—"} Cấp ngày:{" "}
+                {formatDateDisplay(contractDetail.B?.cccdIssuedDate) || "—"}, Nơi cấp: {contractDetail.B?.cccdIssuedPlace || "—"}
+              </div>
+              <div>
+                Hộ khẩu thường trú: {contractDetail.B?.permanentAddress || "—"}
+              </div>
+              <div>
+                Điện thoại: {contractDetail.B?.phone || "—"}
+              </div>
+              <div>
+                Email: {contractDetail.B?.email || "—"}
               </div>
             </div>
           </div>
 
-          <div>
-            <Label className="text-lg text-slate-700 mb-2">Thông tin khách thuê (Bên B)</Label>
-            <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-lg">
+          {/* Contract Details */}
+          <div className="space-y-4">
+            <div className="font-semibold">Thông tin hợp đồng</div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-slate-500">Họ và tên</Label>
-                <p className="font-medium">{contractDetail.B?.name || "—"}</p>
+                <Label className="text-slate-500">Giá thuê (VNĐ)</Label>
+                <p className="font-medium">
+                  {contractDetail.contract?.price
+                    ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.price) + " VNĐ"
+                    : "—"}
+                </p>
               </div>
               <div>
-                <Label className="text-slate-500">Ngày sinh</Label>
-                <p className="font-medium">{contractDetail.B?.dob || "—"}</p>
+                <Label className="text-slate-500">Tiền cọc (VNĐ)</Label>
+                <p className="font-medium">
+                  {contractDetail.contract?.deposit
+                    ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.deposit) + " VNĐ"
+                    : "—"}
+                </p>
               </div>
               <div>
-                <Label className="text-slate-500">CCCD</Label>
-                <p className="font-medium">{contractDetail.B?.cccd || "—"}</p>
+                <Label className="text-slate-500">Ngày bắt đầu</Label>
+                <p className="font-medium">
+                  {contractDetail.contract?.startDate ? formatDateDisplay(contractDetail.contract.startDate) : "—"}
+                </p>
               </div>
               <div>
-                <Label className="text-slate-500">Điện thoại</Label>
-                <p className="font-medium">{contractDetail.B?.phone || "—"}</p>
-              </div>
-              <div>
-                <Label className="text-slate-500">Email</Label>
-                <p className="font-medium">{contractDetail.B?.email || "—"}</p>
-              </div>
-              <div>
-                <Label className="text-slate-500">Địa chỉ thường trú</Label>
-                <p className="font-medium">{contractDetail.B?.permanentAddress || "—"}</p>
+                <Label className="text-slate-500">Ngày kết thúc</Label>
+                <p className="font-medium">
+                  {contractDetail.contract?.endDate ? formatDateDisplay(contractDetail.contract.endDate) : "—"}
+                </p>
               </div>
             </div>
           </div>
 
-          {contractDetail.terms && contractDetail.terms.length > 0 && (
-            <div>
-              <Label className="text-lg text-slate-700 mb-2">Điều khoản</Label>
-              <div className="space-y-2">
-                {contractDetail.terms
-                  .sort((a, b) => a.order - b.order)
-                  .map((term, index) => (
-                    <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                      <div className="font-medium">{term.name}</div>
-                      <div className="text-sm text-slate-600 mt-1">{term.description}</div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
+          {/* Terms and Regulations */}
+          {(contractDetail.terms && contractDetail.terms.length > 0) || (contractDetail.regulations && contractDetail.regulations.length > 0) ? (
+            <div className="space-y-4">
+              {contractDetail.terms && contractDetail.terms.length > 0 && (
+                <div className="space-y-2">
+                  <div className="font-semibold">Nội dung điều khoản</div>
+                  <div className="space-y-2 text-sm">
+                    {contractDetail.terms
+                      .sort((a, b) => a.order - b.order)
+                      .map((term, index) => (
+                        <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                          <div className="font-medium">{term.name}</div>
+                          <div className="text-muted-foreground mt-1">
+                            {term.description}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
-          {contractDetail.regulations && contractDetail.regulations.length > 0 && (
-            <div>
-              <Label className="text-lg text-slate-700 mb-2">Quy định</Label>
-              <div className="space-y-2">
-                {contractDetail.regulations
-                  .sort((a, b) => a.order - b.order)
-                  .map((reg, index) => (
-                    <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                      <div className="font-medium">{reg.title}</div>
-                      <div className="text-sm text-slate-600 mt-1">{reg.description}</div>
-                    </div>
-                  ))}
-              </div>
+              {contractDetail.regulations && contractDetail.regulations.length > 0 && (
+                <div className="space-y-2">
+                  <div className="font-semibold">Nội dung quy định</div>
+                  <div className="space-y-2 text-sm">
+                    {contractDetail.regulations
+                      .sort((a, b) => a.order - b.order)
+                      .map((reg, index) => (
+                        <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                          <div className="font-medium">{reg.title}</div>
+                          <div className="text-muted-foreground mt-1">
+                            {reg.description}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
 
+          {/* Additional Info */}
           {contractDetail.roommates && contractDetail.roommates.length > 0 && (
             <div>
               <Label className="text-lg text-slate-700 mb-2">Người ở cùng</Label>
@@ -318,6 +287,21 @@ export const ContractDetailSheet = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Landlord Signature */}
+          {contractDetail.landlordSignatureUrl && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="font-semibold">Chữ ký chủ trọ</div>
+              <div className="flex justify-center">
+                <img
+                  src={contractDetail.landlordSignatureUrl}
+                  alt="Chữ ký chủ trọ"
+                  className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                  style={{ maxHeight: "200px" }}
+                />
               </div>
             </div>
           )}

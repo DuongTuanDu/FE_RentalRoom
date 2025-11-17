@@ -61,24 +61,31 @@ const ContractManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(
+    null
+  );
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [isSignDialogOpen, setIsSignDialogOpen] = useState(false);
   const signatureRef = useRef<SignatureCanvas>(null);
   const [signatureUrl, setSignatureUrl] = useState<string>("");
   const [isUploadingSignature, setIsUploadingSignature] = useState(false);
-  const [sendConfirmPopoverOpen, setSendConfirmPopoverOpen] = useState<Record<string, boolean>>({});
+  const [sendConfirmPopoverOpen, setSendConfirmPopoverOpen] = useState<
+    Record<string, boolean>
+  >({});
 
   const formatDate = useFormatDate();
   const { data, error, isLoading } = useGetContractsQuery({
     page: currentPage,
     limit: pageLimit,
-    status: statusFilter !== "all" ? (statusFilter as IContractStatus) : undefined,
+    status:
+      statusFilter !== "all" ? (statusFilter as IContractStatus) : undefined,
     search: debouncedSearch || undefined,
   });
-  const [signLandlord, { isLoading: isSigningLandlord }] = useSignLandlordMutation();
+  const [signLandlord, { isLoading: isSigningLandlord }] =
+    useSignLandlordMutation();
   const [sendToTenant, { isLoading: isSending }] = useSendToTenantMutation();
-  const [confirmMoveIn, { isLoading: isConfirming }] = useConfirmMoveInMutation();
+  const [confirmMoveIn, { isLoading: isConfirming }] =
+    useConfirmMoveInMutation();
 
   // Reset pagination when filter/search changes
   useEffect(() => {
@@ -141,7 +148,7 @@ const ContractManagement = () => {
     try {
       setIsUploadingSignature(true);
       const dataURL = signatureRef.current.toDataURL("image/png");
-      
+
       const response = await fetch(dataURL);
       const blob = await response.blob();
 
@@ -177,9 +184,7 @@ const ContractManagement = () => {
       setSelectedContractId(null);
       setSignatureUrl("");
     } catch (error: any) {
-      toast.error(
-        error?.message?.message || "Có lỗi xảy ra khi ký hợp đồng"
-      );
+      toast.error(error?.message?.message || "Có lỗi xảy ra khi ký hợp đồng");
     }
   };
 
@@ -188,9 +193,7 @@ const ContractManagement = () => {
       await sendToTenant({ id: contractId }).unwrap();
       toast.success("Gửi hợp đồng tới khách thuê thành công");
     } catch (error: any) {
-      toast.error(
-        error?.message?.message || "Có lỗi xảy ra khi gửi hợp đồng"
-      );
+      toast.error(error?.message?.message || "Có lỗi xảy ra khi gửi hợp đồng");
     }
   };
 
@@ -199,19 +202,29 @@ const ContractManagement = () => {
       await confirmMoveIn({ id: contractId }).unwrap();
       toast.success("Xác nhận khách thuê vào ở thành công");
     } catch (error: any) {
-      toast.error(
-        error?.message?.message || "Có lỗi xảy ra khi xác nhận"
-      );
+      toast.error(error?.message?.message || "Có lỗi xảy ra khi xác nhận");
     }
   };
 
   const getStatusBadge = (status: IContractStatus) => {
     const statusConfig = {
       draft: { label: "Bản nháp", className: "bg-gray-100 text-gray-800" },
-      sent_to_tenant: { label: "Đã gửi", className: "bg-blue-100 text-blue-800" },
-      signed_by_tenant: { label: "Đã ký bởi khách", className: "bg-yellow-100 text-yellow-800" },
-      signed_by_landlord: { label: "Đã ký bởi chủ trọ", className: "bg-green-100 text-green-800" },
-      completed: { label: "Hoàn thành", className: "bg-green-100 text-green-800" },
+      sent_to_tenant: {
+        label: "Đã gửi",
+        className: "bg-blue-100 text-blue-800",
+      },
+      signed_by_tenant: {
+        label: "Đã ký bởi khách",
+        className: "bg-yellow-100 text-yellow-800",
+      },
+      signed_by_landlord: {
+        label: "Đã ký bởi chủ trọ",
+        className: "bg-green-100 text-green-800",
+      },
+      completed: {
+        label: "Hoàn thành",
+        className: "bg-green-100 text-green-800",
+      },
     };
     const config = statusConfig[status] || statusConfig.draft;
     return (
@@ -272,8 +285,12 @@ const ContractManagement = () => {
                     <SelectItem value="all">Tất cả trạng thái</SelectItem>
                     <SelectItem value="draft">Bản nháp</SelectItem>
                     <SelectItem value="sent_to_tenant">Đã gửi</SelectItem>
-                    <SelectItem value="signed_by_tenant">Đã ký bởi khách</SelectItem>
-                    <SelectItem value="signed_by_landlord">Đã ký bởi chủ trọ</SelectItem>
+                    <SelectItem value="signed_by_tenant">
+                      Đã ký bởi khách
+                    </SelectItem>
+                    <SelectItem value="signed_by_landlord">
+                      Đã ký bởi chủ trọ
+                    </SelectItem>
                     <SelectItem value="completed">Hoàn thành</SelectItem>
                   </SelectContent>
                 </Select>
@@ -316,12 +333,20 @@ const ContractManagement = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50">
-                        <TableHead className="font-semibold">Số hợp đồng</TableHead>
-                        <TableHead className="font-semibold">Khách thuê</TableHead>
+                        <TableHead className="font-semibold">
+                          Số hợp đồng
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Khách thuê
+                        </TableHead>
                         <TableHead className="font-semibold">Tòa nhà</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">Trạng thái</TableHead>
-                        <TableHead className="font-semibold">Ngày tạo</TableHead>
+                        <TableHead className="font-semibold">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Ngày tạo
+                        </TableHead>
                         <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
@@ -329,7 +354,10 @@ const ContractManagement = () => {
                     </TableHeader>
                     <TableBody>
                       {data.items.map((contract) => (
-                        <TableRow key={contract._id} className="hover:bg-slate-50">
+                        <TableRow
+                          key={contract._id}
+                          className="hover:bg-slate-50"
+                        >
                           <TableCell className="text-slate-600 font-medium">
                             {contract.contract?.no || "—"}
                           </TableCell>
@@ -346,7 +374,9 @@ const ContractManagement = () => {
                             {getStatusBadge(contract.status)}
                           </TableCell>
                           <TableCell className="text-slate-600 text-sm">
-                            {contract.createdAt ? formatDate(contract.createdAt) : '—'}
+                            {contract.createdAt
+                              ? formatDate(contract.createdAt)
+                              : "—"}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
@@ -357,7 +387,9 @@ const ContractManagement = () => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8"
-                                      onClick={() => handleOpenDetailSheet(contract._id)}
+                                      onClick={() =>
+                                        handleOpenDetailSheet(contract._id)
+                                      }
                                     >
                                       <Eye className="w-4 h-4 text-blue-600" />
                                     </Button>
@@ -368,7 +400,7 @@ const ContractManagement = () => {
                                 </Tooltip>
                               </TooltipProvider>
 
-                              {/* {contract.status === "draft" && ( */}
+                              {contract.status !== "sent_to_tenant" && (
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -376,7 +408,9 @@ const ContractManagement = () => {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8"
-                                        onClick={() => handleOpenUpdateDialog(contract._id)}
+                                        onClick={() =>
+                                          handleOpenUpdateDialog(contract._id)
+                                        }
                                       >
                                         <Edit className="h-4 w-4 text-amber-600" />
                                       </Button>
@@ -386,7 +420,7 @@ const ContractManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
-                               {/* )} */}
+                              )}
 
                               {contract.status === "draft" && (
                                 <TooltipProvider>
@@ -396,7 +430,9 @@ const ContractManagement = () => {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8"
-                                        onClick={() => handleOpenSignDialog(contract._id)}
+                                        onClick={() =>
+                                          handleOpenSignDialog(contract._id)
+                                        }
                                       >
                                         <CheckCircle className="w-4 h-4 text-green-600" />
                                       </Button>
@@ -408,18 +444,27 @@ const ContractManagement = () => {
                                 </TooltipProvider>
                               )}
 
-                              {(contract.status === "signed_by_landlord") && (
-                                <Popover 
-                                  open={sendConfirmPopoverOpen[contract._id] || false}
+                              {contract.status === "signed_by_landlord" && (
+                                <Popover
+                                  open={
+                                    sendConfirmPopoverOpen[contract._id] ||
+                                    false
+                                  }
                                   onOpenChange={(open) => {
-                                    setSendConfirmPopoverOpen(prev => ({
+                                    setSendConfirmPopoverOpen((prev) => ({
                                       ...prev,
-                                      [contract._id]: open
+                                      [contract._id]: open,
                                     }));
                                   }}
                                 >
                                   <TooltipProvider>
-                                    <Tooltip open={!sendConfirmPopoverOpen[contract._id] ? undefined : false}>
+                                    <Tooltip
+                                      open={
+                                        !sendConfirmPopoverOpen[contract._id]
+                                          ? undefined
+                                          : false
+                                      }
+                                    >
                                       <TooltipTrigger asChild>
                                         <PopoverTrigger asChild>
                                           <Button
@@ -440,9 +485,12 @@ const ContractManagement = () => {
                                   <PopoverContent className="w-80" align="end">
                                     <div className="space-y-4">
                                       <div className="space-y-2">
-                                        <h4 className="font-medium leading-none">Xác nhận gửi hợp đồng</h4>
+                                        <h4 className="font-medium leading-none">
+                                          Xác nhận gửi hợp đồng
+                                        </h4>
                                         <p className="text-sm text-muted-foreground">
-                                          Bạn có chắc chắn muốn gửi hợp đồng này cho khách thuê không?
+                                          Bạn có chắc chắn muốn gửi hợp đồng này
+                                          cho khách thuê không?
                                         </p>
                                       </div>
                                       <div className="flex justify-end gap-2">
@@ -450,10 +498,12 @@ const ContractManagement = () => {
                                           variant="outline"
                                           size="sm"
                                           onClick={() => {
-                                            setSendConfirmPopoverOpen(prev => ({
-                                              ...prev,
-                                              [contract._id]: false
-                                            }));
+                                            setSendConfirmPopoverOpen(
+                                              (prev) => ({
+                                                ...prev,
+                                                [contract._id]: false,
+                                              })
+                                            );
                                           }}
                                           disabled={isSending}
                                         >
@@ -463,15 +513,21 @@ const ContractManagement = () => {
                                           variant="default"
                                           size="sm"
                                           onClick={async () => {
-                                            await handleSendToTenant(contract._id);
-                                            setSendConfirmPopoverOpen(prev => ({
-                                              ...prev,
-                                              [contract._id]: false
-                                            }));
+                                            await handleSendToTenant(
+                                              contract._id
+                                            );
+                                            setSendConfirmPopoverOpen(
+                                              (prev) => ({
+                                                ...prev,
+                                                [contract._id]: false,
+                                              })
+                                            );
                                           }}
                                           disabled={isSending}
                                         >
-                                          {isSending ? "Đang gửi..." : "Xác nhận"}
+                                          {isSending
+                                            ? "Đang gửi..."
+                                            : "Xác nhận"}
                                         </Button>
                                       </div>
                                     </div>
@@ -487,7 +543,9 @@ const ContractManagement = () => {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8"
-                                        onClick={() => handleConfirmMoveIn(contract._id)}
+                                        onClick={() =>
+                                          handleConfirmMoveIn(contract._id)
+                                        }
                                         disabled={isConfirming}
                                       >
                                         <CheckCircle className="w-4 h-4 text-purple-600" />
@@ -568,7 +626,9 @@ const ContractManagement = () => {
                               <Button
                                 key={pageNum}
                                 variant={
-                                  currentPage === pageNum ? "default" : "outline"
+                                  currentPage === pageNum
+                                    ? "default"
+                                    : "outline"
                                 }
                                 size="sm"
                                 onClick={() => setCurrentPage(pageNum)}
@@ -584,7 +644,9 @@ const ContractManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
                         }
                         disabled={currentPage === totalPages}
                       >
@@ -628,7 +690,7 @@ const ContractManagement = () => {
 
       {/* Dialog Ký hợp đồng */}
       <Dialog open={isSignDialogOpen} onOpenChange={setIsSignDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent style={{ maxWidth: "36rem" }}>
           <DialogHeader>
             <DialogTitle>Ký hợp đồng</DialogTitle>
             <DialogDescription>
@@ -642,7 +704,7 @@ const ContractManagement = () => {
                 canvasProps={{
                   width: 500,
                   height: 200,
-                  className: "signature-canvas w-full border rounded bg-white",
+                  className: "signature-canvas border rounded bg-white",
                 }}
               />
             </div>
