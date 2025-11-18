@@ -103,7 +103,7 @@ const PaymentSuccess = () => {
         if (paymentResult) {
           if (paymentResult.success && paymentResult.data) {
             // Backend trả về subscription details
-            setSubscriptionDetails(paymentResult.data);
+            setSubscriptionDetails(paymentResult.data.subscription);
             setPaymentStatus({
               isProcessing: false,
               success: true,
@@ -280,7 +280,7 @@ const PaymentSuccess = () => {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <h3 className="font-semibold text-lg">
-                      {subscriptionDetails.packageId.name}
+                      {subscriptionDetails?.packageId?.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {subscriptionDetails.packageId.description}

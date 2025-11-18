@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Package, Calendar, CreditCard, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useGetMySubscriptionsQuery } from "@/services/package-services/package-subscription.service";
 
@@ -33,8 +33,7 @@ export const HistorySubscription = () => {
   const [pageLimit, setPageLimit] = useState(20);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const result = useGetMySubscriptionsQuery();
-  const isSubscriptionsLoading = result.isLoading;
+  const { data: subscriptions, isLoading } = useGetMySubscriptionsQuery();
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("vi-VN");
@@ -54,13 +53,17 @@ export const HistorySubscription = () => {
     return diff > 0 ? diff : 0;
   };
 
-  // Filter subscriptions
-  const allSubscriptions = Array.isArray(result.data?.data) ? result.data?.data : [];
+  // Bây giờ subscriptions đã là array trực tiếp
+  const allSubscriptions = subscriptions || [];
+
+  useEffect(() => {
+    console.log("Subscriptions:", subscriptions);
+  }, [subscriptions]);
+
   const filteredSubscriptions = statusFilter === "all" 
     ? allSubscriptions 
     : allSubscriptions.filter(sub => sub.status === statusFilter);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredSubscriptions.length / pageLimit);
   const startIndex = (currentPage - 1) * pageLimit;
   const endIndex = startIndex + pageLimit;
@@ -134,29 +137,29 @@ export const HistorySubscription = () => {
           <div className="flex items-center justify-between">
             <CardTitle>Danh sách gói dịch vụ</CardTitle>
             <div className="flex items-center gap-4">
-                <label className="text-sm font-medium">Trạng thái</label>
-                    <Select 
-                        value={statusFilter} 
-                        onValueChange={(value) => {
-                        setStatusFilter(value);
-                        setCurrentPage(1);
-                        }}
-                    >
-                        <SelectTrigger>
-                        <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="active">Đang hoạt động</SelectItem>
-                        <SelectItem value="expired">Đã hết hạn</SelectItem>
-                        <SelectItem value="cancelled">Đã hủy</SelectItem>
-                        </SelectContent>
-                    </Select>
+              <label className="text-sm font-medium">Trạng thái</label>
+              <Select 
+                value={statusFilter} 
+                onValueChange={(value) => {
+                  setStatusFilter(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="active">Đang hoạt động</SelectItem>
+                  <SelectItem value="expired">Đã hết hạn</SelectItem>
+                  <SelectItem value="cancelled">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {isSubscriptionsLoading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
@@ -254,7 +257,7 @@ export const HistorySubscription = () => {
                 </Table>
               </div>
 
-              {/* Pagination - Giống RoomManageLandlord */}
+              {/* Pagination */}
               <div className="flex items-center justify-between pt-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">
