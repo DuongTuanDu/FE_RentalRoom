@@ -4,7 +4,12 @@ import type {
   IContractCreateResponse,
   IContractDetailResponse,
   IContractResponse,
+  IRequestExtendRequest,
+  ITenantContractDetailResponse,
+  ITenantContractResponse,
+  ITerminateContractRequest,
   IUpdateContractRequest,
+  IUpdateTenantContractRequest,
 } from "@/types/contract";
 
 export const contractApi = createApi({
@@ -13,7 +18,7 @@ export const contractApi = createApi({
     const { url, method, data, params } = args;
     return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["Contract"],
+  tagTypes: ["Contract", "TenantContract", "ContractRenewal"],
   endpoints: (builder) => ({
     getContracts: builder.query<
       IContractResponse,
@@ -100,12 +105,156 @@ export const contractApi = createApi({
     }),
     confirmMoveIn: builder.mutation<IContractResponse, { id: string }>({
       // Xác nhận người thuê đã vào ở
+      // Chỉ cho phép khi hợp đồng ở trạng thái completed
       query: ({ id }) => ({
         url: `/landlords/contracts/${id}/confirm-move-in`,
         method: "POST",
       }),
       invalidatesTags: ["Contract"],
     }),
+    deleteContract: builder.mutation<IContractResponse, string>({ // chỉ cho phép xóa khi đang bản nháp (draft)
+      query: (id) => ({
+        url: `/landlords/contracts/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Contract"],
+    }),
+    getRenewalRequests: builder.query<IContractResponse, { // Lấy danh sách hợp đồng có yêu cầu gia hạn
+      buildingId?: string;
+      status?: "pending" | "approved" | "rejected" | "cancelled";
+      page?: number;
+      limit?: number;
+    }>({
+      query: ({ buildingId, status, page = 1, limit = 10 }) => ({
+        url: `/landlords/contracts/renewal-requests`,
+        method: "GET",
+        params: {
+          page,
+          limit,
+          ...(buildingId ? { buildingId } : {}),
+          ...(status ? { status } : {}),
+        },
+      }),
+      providesTags: ["ContractRenewal"],
+    }),
+    approveExtension: builder.mutation<IContractResponse, { id: string; data: { note: string } }>({
+      // Chủ trọ phê duyệt yêu cầu gia hạn hợp đồng
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/approve-extension`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    rejectExtension: builder.mutation<IContractResponse, { id: string; data: { reason: string } }>({
+      // Chủ trọ từ chối yêu cầu gia hạn hợp đồng
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/reject-extension`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    terminateContract: builder.mutation<IContractResponse, { id: string; data: ITerminateContractRequest }>({
+      // Chấm dứt hợp đồng trước hạn
+      // Chỉ cho phép khi hợp đồng đã ở trạng thái completed và đã xác nhận người thuê vào ở
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/terminate`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+
+    // Tenant
+    getTenantContracts: builder.query<ITenantContractResponse, {
+      page?: number;
+      limit?: number;
+      status?:
+        | "draft"
+        | "sent_to_tenant"
+        | "signed_by_tenant"
+        | "signed_by_landlord"
+        | "completed";
+    }>({
+      query: ({ page = 1, limit = 10, status  }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (status) {
+          params.append("status", status);
+        }
+
+        return {
+          url: `/contracts?${params.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["TenantContract"],
+    }),
+    getTenantContractDetails: builder.query<ITenantContractDetailResponse, string>({
+      query: (id) => ({
+        url: `/contracts/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["TenantContract"],
+    }),
+    updateTenantContract: builder.mutation<
+      ITenantContractResponse,
+      { id: string; data: IUpdateTenantContractRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/contracts/${id}`,
+        method: "PATCH",
+        data,
+      }),
+      invalidatesTags: ["TenantContract"],
+    }),
+    signTenant: builder.mutation<
+      IContractResponse,
+      { id: string; data: { signatureUrl: string } }
+    >({
+      // Người thuê ký hợp đồng
+      query: ({ id, data }) => ({
+        url: `/contracts/${id}/sign`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["TenantContract"],
+    }),
+    getUpcomingExpire: builder.query<IContractResponse, { // Danh sách hợp đồng sắp hết hạn của người thuê
+      days?: number
+      page?: number;
+      limit?: number;
+    }>({
+      query: ({ page = 1, limit = 10, days  }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (days) {
+          params.append("days", days.toString());
+        }
+
+        return {
+          url: `/contracts/upcoming-expire?${params.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["TenantContract"],
+    }),
+    requestExtend: builder.mutation<IContractResponse, { id: string, data: IRequestExtendRequest }>({
+      // Người thuê gửi yêu cầu gia hạn hợp đồng
+      query: ({ id, data }) => ({
+        url: `/contracts/${id}/request-extend`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["TenantContract"],
+    })
   }),
 });
 
@@ -117,4 +266,17 @@ export const {
   useSignLandlordMutation,
   useSendToTenantMutation,
   useConfirmMoveInMutation,
+  useDeleteContractMutation,
+  useGetRenewalRequestsQuery,
+  useApproveExtensionMutation,
+  useRejectExtensionMutation,
+  useTerminateContractMutation,
+
+  // Tenant
+  useGetTenantContractsQuery,
+  useGetTenantContractDetailsQuery,
+  useUpdateTenantContractMutation,
+  useSignTenantMutation,
+  useGetUpcomingExpireQuery,
+  useRequestExtendMutation
 } = contractApi;

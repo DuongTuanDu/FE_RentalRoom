@@ -8,7 +8,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { FileText } from "lucide-react";
-import { useGetContractDetailsQuery } from "@/services/contract/contract.service";
+import { useGetTenantContractDetailsQuery } from "@/services/contract/contract.service";
 
 interface ContractDetailSheetProps {
   open: boolean;
@@ -21,8 +21,7 @@ export const ContractDetailSheet = ({
   onOpenChange,
   contractId,
 }: ContractDetailSheetProps) => {
-
-  const { data: contractDetail, isLoading: isLoadingDetail } = useGetContractDetailsQuery(
+  const { data: contractDetail, isLoading: isLoadingDetail } = useGetTenantContractDetailsQuery(
     contractId || "",
     { skip: !contractId }
   );
@@ -208,7 +207,7 @@ export const ContractDetailSheet = ({
                         <div key={index} className="p-3 bg-slate-50 rounded-lg">
                           <div className="font-medium">{term.name}</div>
                           <div className="text-muted-foreground mt-1">
-                            <div dangerouslySetInnerHTML={{ __html: term.description }} />
+                            {term.description}
                           </div>
                         </div>
                       ))}
@@ -291,17 +290,96 @@ export const ContractDetailSheet = ({
             </div>
           )}
 
-          {/* Landlord Signature */}
-          {contractDetail.landlordSignatureUrl && (
+          {/* Signatures */}
+          {(contractDetail.landlordSignatureUrl || contractDetail.tenantSignatureUrl) && (
             <div className="space-y-4 pt-4 border-t">
-              <div className="font-semibold">Chữ ký chủ trọ</div>
-              <div className="flex justify-center">
-                <img
-                  src={contractDetail.landlordSignatureUrl}
-                  alt="Chữ ký chủ trọ"
-                  className="max-w-full h-auto border rounded-lg p-2 bg-white"
-                  style={{ maxHeight: "200px" }}
-                />
+              <div className="font-semibold">Chữ ký</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {contractDetail.landlordSignatureUrl && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-slate-600">
+                      Chữ ký chủ trọ (Bên A)
+                    </div>
+                    <div className="flex justify-center">
+                      <img
+                        src={contractDetail.landlordSignatureUrl}
+                        alt="Chữ ký chủ trọ"
+                        className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                        style={{ maxHeight: "200px" }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {contractDetail.tenantSignatureUrl && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-slate-600">
+                      Chữ ký của tôi (Bên B)
+                    </div>
+                    <div className="flex justify-center">
+                      <img
+                        src={contractDetail.tenantSignatureUrl}
+                        alt="Chữ ký của tôi"
+                        className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                        style={{ maxHeight: "200px" }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Renewal Request */}
+          {contractDetail.renewalRequest && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="font-semibold">Yêu cầu gia hạn</div>
+              <div className="p-4 bg-slate-50 rounded-lg space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Số tháng gia hạn</Label>
+                    <p className="font-medium">{contractDetail.renewalRequest.months} tháng</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Ngày kết thúc dự kiến</Label>
+                    <p className="font-medium">
+                      {formatDateDisplay(contractDetail.renewalRequest.requestedEndDate)}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Trạng thái</Label>
+                    <p className="font-medium">
+                      {contractDetail.renewalRequest.status === "pending" ? "Đang chờ" :
+                       contractDetail.renewalRequest.status === "approved" ? "Đã chấp nhận" :
+                       contractDetail.renewalRequest.status === "rejected" ? "Đã từ chối" :
+                       contractDetail.renewalRequest.status === "cancelled" ? "Đã hủy" :
+                       contractDetail.renewalRequest.status}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Ngày yêu cầu</Label>
+                    <p className="font-medium">
+                      {formatDateDisplay(contractDetail.renewalRequest.requestedAt)}
+                    </p>
+                  </div>
+                </div>
+                {contractDetail.renewalRequest.note && (
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Ghi chú</Label>
+                    <p className="text-sm text-slate-700">
+                      {contractDetail.renewalRequest.note}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Completed At */}
+          {contractDetail.completedAt && (
+            <div className="space-y-2 pt-4 border-t">
+              <div className="font-semibold">Thông tin hoàn thành</div>
+              <div className="text-sm text-slate-600">
+                Ngày hoàn thành: {formatDateDisplay(contractDetail.completedAt)}
               </div>
             </div>
           )}

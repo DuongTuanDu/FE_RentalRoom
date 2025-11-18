@@ -55,8 +55,18 @@ const Header = () => {
 
   const navItems = [
     { path: "/", label: "Trang chủ", icon: Home },
-    { path: config.contactRequestPath, label: "Yêu cầu hợp đồng", icon: ScrollText, requiresAuth: true },
-    { path: "/resident/my-appointments", label: "Lịch hẹn xem phòng", icon: ScrollText, requiresAuth: true },
+    {
+      path: config.contractPath,
+      label: "Hợp đồng của tôi",
+      icon: ScrollText,
+      requiresAuth: true,
+    },
+    {
+      path: "/resident/my-appointments",
+      label: "Lịch hẹn xem phòng",
+      icon: ScrollText,
+      requiresAuth: true,
+    },
     { path: "/about-us", label: "Về chúng tôi", icon: Handshake },
   ];
 
@@ -153,6 +163,13 @@ const Header = () => {
                     >
                       <User className="mr-2 h-4 w-4" />
                       <span>Tài khoản</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.contactRequestPath)}
+                      className="cursor-pointer"
+                    >
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      <span>Yêu cầu hợp đồng</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate("/settings")}

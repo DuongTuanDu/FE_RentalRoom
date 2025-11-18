@@ -25,12 +25,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractData: IContractData | null;
+  refetch: () => void;
 }
 
 export const SendContractModal = ({
   open,
   onOpenChange,
   contractData,
+  refetch
 }: Props) => {
   const signatureRef = useRef<SignatureCanvas>(null);
   const [signatureUrl, setSignatureUrl] = useState<string>("");
@@ -55,8 +57,10 @@ export const SendContractModal = ({
   const [personAEmail, setPersonAEmail] = useState("");
   const [personABankAccount, setPersonABankAccount] = useState("");
 
-  const [updateContract, { isLoading: isUpdating }] = useUpdateContractMutation();
-  const [signLandlord, { isLoading: isSigningLandlord }] = useSignLandlordMutation();
+  const [updateContract, { isLoading: isUpdating }] =
+    useUpdateContractMutation();
+  const [signLandlord, { isLoading: isSigningLandlord }] =
+    useSignLandlordMutation();
   const [sendToTenant, { isLoading: isSending }] = useSendToTenantMutation();
 
   useEffect(() => {
@@ -110,7 +114,7 @@ export const SendContractModal = ({
     try {
       setIsUploadingSignature(true);
       const dataURL = signatureRef.current.toDataURL("image/png");
-      
+
       // Convert data URL to Blob
       const response = await fetch(dataURL);
       const blob = await response.blob();
@@ -136,12 +140,26 @@ export const SendContractModal = ({
     if (!contractData) return;
 
     // Validate required fields
-    if (!contractNo || !signPlace || !signDate || !price || !deposit || !startDate || !endDate) {
+    if (
+      !contractNo ||
+      !signPlace ||
+      !signDate ||
+      !price ||
+      !deposit ||
+      !startDate ||
+      !endDate
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin hợp đồng");
       return;
     }
 
-    if (!personAName || !personADob || !personACccd || !personAPhone || !personAEmail) {
+    if (
+      !personAName ||
+      !personADob ||
+      !personACccd ||
+      !personAPhone ||
+      !personAEmail
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin bên cho thuê");
       return;
     }
@@ -187,6 +205,8 @@ export const SendContractModal = ({
         data: updateData,
       }).unwrap();
 
+      refetch();
+
       // If signature exists and has been saved, sign the contract
       if (signatureUrl && isSigning) {
         try {
@@ -202,10 +222,13 @@ export const SendContractModal = ({
         } catch (signError: any) {
           console.error("Error signing or sending contract:", signError);
           toast.error(
-            signError?.message?.message || "Có lỗi xảy ra khi ký hoặc gửi hợp đồng"
+            signError?.message?.message ||
+              "Có lỗi xảy ra khi ký hoặc gửi hợp đồng"
           );
           // Contract was updated but signing/sending failed
-          toast.success("Cập nhật hợp đồng thành công, nhưng chưa gửi tới khách thuê");
+          toast.success(
+            "Cập nhật hợp đồng thành công, nhưng chưa gửi tới khách thuê"
+          );
         }
       } else {
         toast.success("Cập nhật hợp đồng thành công");
@@ -224,13 +247,13 @@ export const SendContractModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto p-0 md:p-0">
+      <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto p-0 md:p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Gửi hợp đồng</DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-6 space-y-6">
+        <div className="px-8 pb-6 space-y-6">
           {/* Preview Header */}
-          <div className="space-y-3 bg-muted/40 rounded-md px-5 py-4">
+          <div className="space-y-3 bg-muted/40 rounded-md">
             <div className="text-center">
               <div className="font-semibold">
                 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
@@ -241,7 +264,8 @@ export const SendContractModal = ({
             <div className="text-center">
               <div className="text-xl font-bold">HỢP ĐỒNG THUÊ PHÒNG</div>
               <div className="text-sm text-muted-foreground">
-                Số: <Input
+                Số:{" "}
+                <Input
                   value={contractNo}
                   onChange={(e) => setContractNo(e.target.value)}
                   placeholder="Nhập số hợp đồng"
@@ -299,7 +323,8 @@ export const SendContractModal = ({
                   value={personACccdIssuedDate}
                   onChange={(e) => setPersonACccdIssuedDate(e.target.value)}
                   className="inline-block w-32 h-6 text-sm"
-                />, Nơi cấp:{" "}
+                />
+                , Nơi cấp:{" "}
                 <Input
                   value={personACccdIssuedPlace}
                   onChange={(e) => setPersonACccdIssuedPlace(e.target.value)}
@@ -345,14 +370,15 @@ export const SendContractModal = ({
                 />
               </div>
               <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
-              <div>
-                Đại diện (Ông/Bà): {contractData?.B?.name || "-"}
-              </div>
+              <div>Đại diện (Ông/Bà): {contractData?.B?.name || "-"}</div>
               <div>
                 CCCD/Passport: {contractData.B?.cccd || "-"} Cấp ngày:{" "}
-                {contractData.B?.cccdIssuedDate || "-"}, Tại: {contractData.B?.cccdIssuedPlace || "-"}
+                {contractData.B?.cccdIssuedDate || "-"}, Tại:{" "}
+                {contractData.B?.cccdIssuedPlace || "-"}
               </div>
-              <div>Hộ khẩu thường trú: {contractData.B?.permanentAddress || "-"}</div>
+              <div>
+                Hộ khẩu thường trú: {contractData.B?.permanentAddress || "-"}
+              </div>
               <div>Điện thoại: {contractData.B?.phone || "-"}</div>
             </div>
           </div>
@@ -399,7 +425,8 @@ export const SendContractModal = ({
           </div>
 
           {/* Terms and Regulations */}
-          {(contractData.terms.length > 0 || contractData.regulations.length > 0) && (
+          {(contractData.terms.length > 0 ||
+            contractData.regulations.length > 0) && (
             <div className="space-y-4">
               {contractData.terms.length > 0 && (
                 <div className="space-y-2">
@@ -443,16 +470,14 @@ export const SendContractModal = ({
           <div className="space-y-4">
             <div className="font-semibold">Chữ ký chủ trọ</div>
             <div className="space-y-2">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 bg-white">
-                <SignatureCanvas
-                  ref={signatureRef}
-                  canvasProps={{
-                    width: 500,
-                    height: 200,
-                    className: "signature-canvas w-full border rounded bg-white",
-                  }}
-                />
-              </div>
+              <SignatureCanvas
+                ref={signatureRef}
+                canvasProps={{
+                  width: 667,
+                  height: 200,
+                  className: "signature-canvas border rounded bg-white",
+                }}
+              />
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -500,4 +525,3 @@ export const SendContractModal = ({
     </Dialog>
   );
 };
-

@@ -94,23 +94,10 @@ const menuItems = [
     ],
   },
   {
-    title: "Người thuê",
+    title: "Danh sách người thuê",
     icon: Users,
     staffAccess: true,
-    items: [
-      {
-        title: "Danh sách người thuê",
-        icon: UserCheck,
-        path: "/landlord/tenants",
-        staffAccess: true,
-      },
-      {
-        title: "Hợp đồng thuê",
-        icon: FileText,
-        path: "/landlord/contracts",
-        staffAccess: true,
-      },
-    ],
+    path: "/landlord/tenants",
   },
   {
     title: "Tài chính",

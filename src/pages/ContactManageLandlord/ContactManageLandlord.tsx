@@ -85,7 +85,7 @@ const ContactManageLandlord = () => {
     [debouncedSetSearch]
   );
 
-  const { data, error, isLoading } = useGetContactsQuery({
+  const { data, error, isLoading, refetch } = useGetContactsQuery({
     page: currentPage,
     limit: pageLimit,
     status: statusFilter !== "all" ? statusFilter as ContactStatus : undefined,
@@ -656,6 +656,7 @@ const ContactManageLandlord = () => {
         open={isSendContractModalOpen}
         onOpenChange={setIsSendContractModalOpen}
         contractData={contractData}
+        refetch={refetch}
       />
     </div>
   );

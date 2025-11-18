@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -11,10 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useGetContractDetailsQuery, useUpdateContractMutation } from "@/services/contract/contract.service";
+import {
+  useGetContractDetailsQuery,
+  useUpdateContractMutation,
+} from "@/services/contract/contract.service";
 import { toast } from "sonner";
 import type { IUpdateContractRequest } from "@/types/contract";
 import { formatDateForInput } from "@/helpers/date";
+import { useFormatDate } from "@/hooks/useFormatDate";
 
 interface UpdateContractDialogProps {
   open: boolean;
@@ -46,11 +49,13 @@ export const UpdateContractDialog = ({
   const [personAPhone, setPersonAPhone] = useState("");
   const [personAEmail, setPersonAEmail] = useState("");
 
-  const { data: contractDetail, isLoading: isLoadingDetail } = useGetContractDetailsQuery(
-    contractId || "",
-    { skip: !contractId || !open }
-  );
-  const [updateContract, { isLoading: isUpdating }] = useUpdateContractMutation();
+  const formatDate = useFormatDate();
+  const { data: contractDetail, isLoading: isLoadingDetail } =
+    useGetContractDetailsQuery(contractId || "", {
+      skip: !contractId || !open,
+    });
+  const [updateContract, { isLoading: isUpdating }] =
+    useUpdateContractMutation();
 
   // Load contract detail data into form when dialog opens
   useEffect(() => {
@@ -63,11 +68,14 @@ export const UpdateContractDialog = ({
       setDeposit(contractDetail.contract?.deposit?.toString() || "");
       setStartDate(formatDateForInput(contractDetail.contract?.startDate));
       setEndDate(formatDateForInput(contractDetail.contract?.endDate));
-      
+
+      // Person A (Landlord)
       setPersonAName(contractDetail.A?.name || "");
       setPersonADob(formatDateForInput(contractDetail.A?.dob));
       setPersonACccd(contractDetail.A?.cccd || "");
-      setPersonACccdIssuedDate(formatDateForInput(contractDetail.A?.cccdIssuedDate));
+      setPersonACccdIssuedDate(
+        formatDateForInput(contractDetail.A?.cccdIssuedDate)
+      );
       setPersonACccdIssuedPlace(contractDetail.A?.cccdIssuedPlace || "");
       setPersonAPermanentAddress(contractDetail.A?.permanentAddress || "");
       setPersonAPhone(contractDetail.A?.phone || "");
@@ -78,12 +86,26 @@ export const UpdateContractDialog = ({
   const handleUpdateContract = async () => {
     if (!contractId || !contractDetail) return;
 
-    if (!contractNo || !signPlace || !signDate || !price || !deposit || !startDate || !endDate) {
+    if (
+      !contractNo ||
+      !signPlace ||
+      !signDate ||
+      !price ||
+      !deposit ||
+      !startDate ||
+      !endDate
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin hợp đồng");
       return;
     }
 
-    if (!personAName || !personADob || !personACccd || !personAPhone || !personAEmail) {
+    if (
+      !personAName ||
+      !personADob ||
+      !personACccd ||
+      !personAPhone ||
+      !personAEmail
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin bên cho thuê");
       return;
     }
@@ -109,17 +131,19 @@ export const UpdateContractDialog = ({
           startDate: startDate,
           endDate: endDate,
         },
-        termIds: contractDetail.terms?.map((term) => ({
-          name: term.name,
-          description: term.description,
-          order: term.order,
-        })) || [],
-        regulationIds: contractDetail.regulations?.map((reg) => ({
-          title: reg.title,
-          description: reg.description,
-          effectiveFrom: reg.effectiveFrom,
-          order: reg.order,
-        })) || [],
+        termIds:
+          contractDetail.terms?.map((term) => ({
+            name: term.name,
+            description: term.description,
+            order: term.order,
+          })) || [],
+        regulationIds:
+          contractDetail.regulations?.map((reg) => ({
+            title: reg.title,
+            description: reg.description,
+            effectiveFrom: reg.effectiveFrom,
+            order: reg.order,
+          })) || [],
       };
 
       await updateContract({
@@ -139,46 +163,180 @@ export const UpdateContractDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 md:p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Cập nhật hợp đồng</DialogTitle>
-          <DialogDescription>
-            Cập nhật thông tin hợp đồng
-          </DialogDescription>
         </DialogHeader>
         {isLoadingDetail ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : contractDetail ? (
-          <div className="space-y-6 py-4">
-            <div>
-              <Label className="text-lg text-slate-700 mb-3">Thông tin hợp đồng</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Số hợp đồng</Label>
+          <div className="px-6 pb-6 space-y-6">
+            {/* Preview Header */}
+            <div className="space-y-3 bg-muted/40 rounded-md">
+              <div className="text-center">
+                <div className="font-semibold">
+                  CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                </div>
+                <div>ĐỘC LẬP – TỰ DO – HẠNH PHÚC</div>
+              </div>
+              <Separator />
+              <div className="text-center">
+                <div className="text-xl font-bold">HỢP ĐỒNG THUÊ PHÒNG</div>
+                <div className="text-sm text-muted-foreground">
+                  Số:{" "}
                   <Input
                     value={contractNo}
                     onChange={(e) => setContractNo(e.target.value)}
                     placeholder="Nhập số hợp đồng"
+                    className="inline-block w-32 h-6 text-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Địa điểm ký</Label>
-                  <Input
-                    value={signPlace}
-                    onChange={(e) => setSignPlace(e.target.value)}
-                    placeholder="Nhập địa điểm ký"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ngày ký</Label>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div>
+                  Hôm nay, ngày{" "}
                   <Input
                     type="date"
                     value={signDate}
                     onChange={(e) => setSignDate(e.target.value)}
+                    className="inline-block w-32 h-6 text-sm"
+                  />{" "}
+                  tại:{" "}
+                  <Input
+                    value={signPlace}
+                    onChange={(e) => setSignPlace(e.target.value)}
+                    placeholder="Nhập địa điểm"
+                    className="inline-block w-48 h-6 text-sm"
                   />
                 </div>
+                <div className="font-semibold">BÊN CHO THUÊ NHÀ (BÊN A):</div>
+                <div>
+                  Đại diện (Ông/Bà):{" "}
+                  <Input
+                    value={personAName}
+                    onChange={(e) => setPersonAName(e.target.value)}
+                    placeholder="Nhập tên"
+                    className="inline-block w-48 h-6 text-sm"
+                  />
+                </div>
+                <div>
+                  Ngày sinh:{" "}
+                  <Input
+                    type="date"
+                    value={personADob}
+                    onChange={(e) => setPersonADob(e.target.value)}
+                    className="inline-block w-32 h-6 text-sm"
+                  />
+                </div>
+                <div>
+                  CCCD:{" "}
+                  <Input
+                    value={personACccd}
+                    onChange={(e) => setPersonACccd(e.target.value)}
+                    placeholder="Nhập số CCCD"
+                    className="inline-block w-40 h-6 text-sm"
+                  />{" "}
+                  Cấp ngày:{" "}
+                  <Input
+                    type="date"
+                    value={personACccdIssuedDate}
+                    onChange={(e) => setPersonACccdIssuedDate(e.target.value)}
+                    className="inline-block w-32 h-6 text-sm"
+                  />
+                  , Nơi cấp:{" "}
+                  <Input
+                    value={personACccdIssuedPlace}
+                    onChange={(e) => setPersonACccdIssuedPlace(e.target.value)}
+                    placeholder="Nhập nơi cấp"
+                    className="inline-block w-40 h-6 text-sm"
+                  />
+                </div>
+                <div>
+                  Hộ khẩu thường trú:{" "}
+                  <Input
+                    value={personAPermanentAddress}
+                    onChange={(e) => setPersonAPermanentAddress(e.target.value)}
+                    placeholder="Nhập địa chỉ"
+                    className="inline-block w-64 h-6 text-sm"
+                  />
+                </div>
+                <div>
+                  Điện thoại:{" "}
+                  <Input
+                    value={personAPhone}
+                    onChange={(e) => setPersonAPhone(e.target.value)}
+                    placeholder="Nhập số điện thoại"
+                    className="inline-block w-40 h-6 text-sm"
+                  />
+                </div>
+                <div>
+                  Email:{" "}
+                  <Input
+                    type="email"
+                    value={personAEmail}
+                    onChange={(e) => setPersonAEmail(e.target.value)}
+                    placeholder="Nhập email"
+                    className="inline-block w-48 h-6 text-sm"
+                  />
+                </div>
+                <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
+                <div>
+                  Đại diện (Ông/Bà):{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.name || "—"}
+                  </span>
+                </div>
+                <div>
+                  Ngày sinh:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.dob
+                      ? formatDate(contractDetail.B.dob)
+                      : "—"}
+                  </span>
+                </div>
+                <div>
+                  CCCD:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.cccd || "—"}
+                  </span>{" "}
+                  Cấp ngày:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.cccdIssuedDate
+                      ? formatDate(contractDetail.B.cccdIssuedDate)
+                      : "—"}
+                  </span>
+                  , Nơi cấp:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.cccdIssuedPlace || "—"}
+                  </span>
+                </div>
+                <div>
+                  Hộ khẩu thường trú:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.permanentAddress || "—"}
+                  </span>
+                </div>
+                <div>
+                  Điện thoại:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.phone || "—"}
+                  </span>
+                </div>
+                <div>
+                  Email:{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.email || "—"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract Details Form */}
+            <div className="space-y-4">
+              <div className="font-semibold">Thông tin hợp đồng</div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Giá thuê (VNĐ)</Label>
                   <Input
@@ -216,81 +374,71 @@ export const UpdateContractDialog = ({
               </div>
             </div>
 
-            <Separator />
+            {/* Terms and Regulations */}
+            {(contractDetail.terms && contractDetail.terms.length > 0) ||
+            (contractDetail.regulations &&
+              contractDetail.regulations.length > 0) ? (
+              <div className="space-y-4">
+                {contractDetail.terms && contractDetail.terms.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Nội dung điều khoản</div>
+                    <div className="space-y-2 text-sm">
+                      {contractDetail.terms
+                        .sort((a, b) => a.order - b.order)
+                        .map((term, index) => (
+                          <div
+                            key={index}
+                            className="p-3 bg-slate-50 rounded-lg"
+                          >
+                            <div className="font-medium">{term.name}</div>
+                              <div dangerouslySetInnerHTML={{ __html: term.description }} className="text-muted-foreground mt-1"/>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
-            <div>
-              <Label className="text-lg text-slate-700 mb-3">Thông tin chủ trọ (Bên A)</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Họ và tên</Label>
-                  <Input
-                    value={personAName}
-                    onChange={(e) => setPersonAName(e.target.value)}
-                    placeholder="Nhập họ và tên"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ngày sinh</Label>
-                  <Input
-                    type="date"
-                    value={personADob}
-                    onChange={(e) => setPersonADob(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>CCCD</Label>
-                  <Input
-                    value={personACccd}
-                    onChange={(e) => setPersonACccd(e.target.value)}
-                    placeholder="Nhập số CCCD"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ngày cấp CCCD</Label>
-                  <Input
-                    type="date"
-                    value={personACccdIssuedDate}
-                    onChange={(e) => setPersonACccdIssuedDate(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Nơi cấp CCCD</Label>
-                  <Input
-                    value={personACccdIssuedPlace}
-                    onChange={(e) => setPersonACccdIssuedPlace(e.target.value)}
-                    placeholder="Nhập nơi cấp"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Địa chỉ thường trú</Label>
-                  <Input
-                    value={personAPermanentAddress}
-                    onChange={(e) => setPersonAPermanentAddress(e.target.value)}
-                    placeholder="Nhập địa chỉ"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Điện thoại</Label>
-                  <Input
-                    value={personAPhone}
-                    onChange={(e) => setPersonAPhone(e.target.value)}
-                    placeholder="Nhập số điện thoại"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={personAEmail}
-                    onChange={(e) => setPersonAEmail(e.target.value)}
-                    placeholder="Nhập email"
+                {contractDetail.regulations &&
+                  contractDetail.regulations.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="font-semibold">Nội dung quy định</div>
+                      <div className="space-y-2 text-sm">
+                        {contractDetail.regulations
+                          .sort((a, b) => a.order - b.order)
+                          .map((reg, index) => (
+                            <div
+                              key={index}
+                              className="p-3 bg-slate-50 rounded-lg"
+                            >
+                              <div className="font-medium">{reg.title}</div>
+                              <div className="text-muted-foreground mt-1">
+                                {reg.description}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            ) : null}
+
+            {/* Landlord Signature */}
+            {contractDetail.landlordSignatureUrl && (
+              <div className="space-y-4 pt-4 border-t">
+                <div className="font-semibold">Chữ ký chủ trọ</div>
+                <div className="flex justify-center">
+                  <img
+                    src={contractDetail.landlordSignatureUrl}
+                    alt="Chữ ký chủ trọ"
+                    className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                    style={{ maxHeight: "200px" }}
                   />
                 </div>
               </div>
-            </div>
+            )}
           </div>
         ) : null}
-        <DialogFooter>
+        <DialogFooter className="px-6 pb-6">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -298,10 +446,7 @@ export const UpdateContractDialog = ({
           >
             Hủy
           </Button>
-          <Button
-            onClick={handleUpdateContract}
-            disabled={isUpdating}
-          >
+          <Button onClick={handleUpdateContract} disabled={isUpdating}>
             {isUpdating ? "Đang cập nhật..." : "Cập nhật"}
           </Button>
         </DialogFooter>
@@ -309,4 +454,3 @@ export const UpdateContractDialog = ({
     </Dialog>
   );
 };
-
