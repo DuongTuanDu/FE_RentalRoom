@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import type { IUpdateContractRequest } from "@/types/contract";
 import { formatDateForInput } from "@/helpers/date";
+import { useFormatDate } from "@/hooks/useFormatDate";
 
 interface UpdateContractDialogProps {
   open: boolean;
@@ -48,16 +49,7 @@ export const UpdateContractDialog = ({
   const [personAPhone, setPersonAPhone] = useState("");
   const [personAEmail, setPersonAEmail] = useState("");
 
-  // Person B (Tenant) states
-  const [personBName, setPersonBName] = useState("");
-  const [personBDob, setPersonBDob] = useState("");
-  const [personBCccd, setPersonBCccd] = useState("");
-  const [personBCccdIssuedDate, setPersonBCccdIssuedDate] = useState("");
-  const [personBCccdIssuedPlace, setPersonBCccdIssuedPlace] = useState("");
-  const [personBPermanentAddress, setPersonBPermanentAddress] = useState("");
-  const [personBPhone, setPersonBPhone] = useState("");
-  const [personBEmail, setPersonBEmail] = useState("");
-
+  const formatDate = useFormatDate();
   const { data: contractDetail, isLoading: isLoadingDetail } =
     useGetContractDetailsQuery(contractId || "", {
       skip: !contractId || !open,
@@ -88,18 +80,6 @@ export const UpdateContractDialog = ({
       setPersonAPermanentAddress(contractDetail.A?.permanentAddress || "");
       setPersonAPhone(contractDetail.A?.phone || "");
       setPersonAEmail(contractDetail.A?.email || "");
-
-      // Person B (Tenant)
-      setPersonBName(contractDetail.B?.name || "");
-      setPersonBDob(formatDateForInput(contractDetail.B?.dob));
-      setPersonBCccd(contractDetail.B?.cccd || "");
-      setPersonBCccdIssuedDate(
-        formatDateForInput(contractDetail.B?.cccdIssuedDate)
-      );
-      setPersonBCccdIssuedPlace(contractDetail.B?.cccdIssuedPlace || "");
-      setPersonBPermanentAddress(contractDetail.B?.permanentAddress || "");
-      setPersonBPhone(contractDetail.B?.phone || "");
-      setPersonBEmail(contractDetail.B?.email || "");
     }
   }, [open, contractDetail]);
 
@@ -127,17 +107,6 @@ export const UpdateContractDialog = ({
       !personAEmail
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin bên cho thuê");
-      return;
-    }
-
-    if (
-      !personBName ||
-      !personBDob ||
-      !personBCccd ||
-      !personBPhone ||
-      !personBEmail
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin bên thuê nhà");
       return;
     }
 
@@ -315,72 +284,51 @@ export const UpdateContractDialog = ({
                 <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
                 <div>
                   Đại diện (Ông/Bà):{" "}
-                  <Input
-                    value={personBName}
-                    onChange={(e) => setPersonBName(e.target.value)}
-                    placeholder="Nhập tên"
-                    className="inline-block w-48 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.name || "—"}
+                  </span>
                 </div>
                 <div>
                   Ngày sinh:{" "}
-                  <Input
-                    type="date"
-                    value={personBDob}
-                    onChange={(e) => setPersonBDob(e.target.value)}
-                    className="inline-block w-32 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.dob
+                      ? formatDate(contractDetail.B.dob)
+                      : "—"}
+                  </span>
                 </div>
                 <div>
                   CCCD:{" "}
-                  <Input
-                    value={personBCccd}
-                    onChange={(e) => setPersonBCccd(e.target.value)}
-                    placeholder="Nhập số CCCD"
-                    className="inline-block w-40 h-6 text-sm"
-                  />{" "}
+                  <span className="font-medium">
+                    {contractDetail.B?.cccd || "—"}
+                  </span>{" "}
                   Cấp ngày:{" "}
-                  <Input
-                    type="date"
-                    value={personBCccdIssuedDate}
-                    onChange={(e) => setPersonBCccdIssuedDate(e.target.value)}
-                    className="inline-block w-32 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.cccdIssuedDate
+                      ? formatDate(contractDetail.B.cccdIssuedDate)
+                      : "—"}
+                  </span>
                   , Nơi cấp:{" "}
-                  <Input
-                    value={personBCccdIssuedPlace}
-                    onChange={(e) => setPersonBCccdIssuedPlace(e.target.value)}
-                    placeholder="Nhập nơi cấp"
-                    className="inline-block w-40 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.cccdIssuedPlace || "—"}
+                  </span>
                 </div>
                 <div>
                   Hộ khẩu thường trú:{" "}
-                  <Input
-                    value={personBPermanentAddress}
-                    onChange={(e) => setPersonBPermanentAddress(e.target.value)}
-                    placeholder="Nhập địa chỉ"
-                    className="inline-block w-64 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.permanentAddress || "—"}
+                  </span>
                 </div>
                 <div>
                   Điện thoại:{" "}
-                  <Input
-                    value={personBPhone}
-                    onChange={(e) => setPersonBPhone(e.target.value)}
-                    placeholder="Nhập số điện thoại"
-                    className="inline-block w-40 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.phone || "—"}
+                  </span>
                 </div>
                 <div>
                   Email:{" "}
-                  <Input
-                    type="email"
-                    value={personBEmail}
-                    onChange={(e) => setPersonBEmail(e.target.value)}
-                    placeholder="Nhập email"
-                    className="inline-block w-48 h-6 text-sm"
-                  />
+                  <span className="font-medium">
+                    {contractDetail.B?.email || "—"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -443,9 +391,7 @@ export const UpdateContractDialog = ({
                             className="p-3 bg-slate-50 rounded-lg"
                           >
                             <div className="font-medium">{term.name}</div>
-                            <div className="text-muted-foreground mt-1">
-                              {term.description}
-                            </div>
+                              <div dangerouslySetInnerHTML={{ __html: term.description }} className="text-muted-foreground mt-1"/>
                           </div>
                         ))}
                     </div>

@@ -23,6 +23,39 @@ export interface IContract {
   updatedAt: string;
 }
 
+export interface IContractRenewal {
+  _id: string;
+  tenantId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+  };
+  buildingId: {
+    _id: string;
+    name: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+  };
+  contract: {
+    endDate: string;
+  };
+  renewalRequest: {
+    months: number;
+    requestedEndDate: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+    requestedByRole: "resident";
+  };
+}
+
 export interface ITenantContract {
   _id: string;
   buildingId: {
@@ -81,6 +114,13 @@ export interface IUpdateContractRequest {
     effectiveFrom: string;
     order: number;
   }[];
+}
+
+export interface IContractRenewalResponse {
+  items: IContractRenewal[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface IContractResponse {
@@ -231,4 +271,94 @@ export interface ITenantContractResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface ITenantContractDetailResponse {
+  _id: string;
+  landlordId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+  };
+  tenantId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+      address: {
+        address: string;
+        provinceName: string;
+        districtName: string;
+        wardName: string;
+        _id: string;
+      }[];
+      dob: string;
+    };
+  };
+  buildingId: {
+    _id: string;
+    name: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+    price: number;
+    maxTenants: number;
+  };
+  contactId: string;
+  A: IPerson;
+  B: IPerson;
+  contract: IContractInfo;
+  terms: {
+    name: string;
+    description: string;
+    order: number;
+  }[];
+  regulations: {
+    title: string;
+    description: string;
+    effectiveFrom: string;
+    order: number;
+  }[];
+  status: IContractStatus;
+  roommates: IPerson[];
+  bikes: {
+    bikeNumber: string;
+    color: string;
+    brand: string;
+  }[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  landlordSignatureUrl: string;
+  sentToTenantAt: string;
+  completedAt: string;
+  tenantSignatureUrl: string;
+  renewalRequest: {
+    months: number;
+    requestedEndDate: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+    requestedByRole: "resident";
+  }
+  furnitures: {
+    id: string;
+    name: string;
+    quantity: number;
+    condition: "good" | "damaged" | "under_repair";
+    damageCount: number;
+  }[];
+}
+
+export interface ITerminateContractRequest {
+  reason: string;
+  terminatedAt: string;
 }

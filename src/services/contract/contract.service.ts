@@ -5,7 +5,9 @@ import type {
   IContractDetailResponse,
   IContractResponse,
   IRequestExtendRequest,
+  ITenantContractDetailResponse,
   ITenantContractResponse,
+  ITerminateContractRequest,
   IUpdateContractRequest,
   IUpdateTenantContractRequest,
 } from "@/types/contract";
@@ -16,7 +18,7 @@ export const contractApi = createApi({
     const { url, method, data, params } = args;
     return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["Contract", "TenantContract"],
+  tagTypes: ["Contract", "TenantContract", "ContractRenewal"],
   endpoints: (builder) => ({
     getContracts: builder.query<
       IContractResponse,
@@ -103,11 +105,65 @@ export const contractApi = createApi({
     }),
     confirmMoveIn: builder.mutation<IContractResponse, { id: string }>({
       // Xác nhận người thuê đã vào ở
+      // Chỉ cho phép khi hợp đồng ở trạng thái completed
       query: ({ id }) => ({
         url: `/landlords/contracts/${id}/confirm-move-in`,
         method: "POST",
       }),
       invalidatesTags: ["Contract"],
+    }),
+    deleteContract: builder.mutation<IContractResponse, string>({ // chỉ cho phép xóa khi đang bản nháp (draft)
+      query: (id) => ({
+        url: `/landlords/contracts/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Contract"],
+    }),
+    getRenewalRequests: builder.query<IContractResponse, { // Lấy danh sách hợp đồng có yêu cầu gia hạn
+      buildingId?: string;
+      status?: "pending" | "approved" | "rejected" | "cancelled";
+      page?: number;
+      limit?: number;
+    }>({
+      query: ({ buildingId, status, page = 1, limit = 10 }) => ({
+        url: `/landlords/contracts/renewal-requests`,
+        method: "GET",
+        params: {
+          page,
+          limit,
+          ...(buildingId ? { buildingId } : {}),
+          ...(status ? { status } : {}),
+        },
+      }),
+      providesTags: ["ContractRenewal"],
+    }),
+    approveExtension: builder.mutation<IContractResponse, { id: string; data: { note: string } }>({
+      // Chủ trọ phê duyệt yêu cầu gia hạn hợp đồng
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/approve-extension`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    rejectExtension: builder.mutation<IContractResponse, { id: string; data: { reason: string } }>({
+      // Chủ trọ từ chối yêu cầu gia hạn hợp đồng
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/reject-extension`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    terminateContract: builder.mutation<IContractResponse, { id: string; data: ITerminateContractRequest }>({
+      // Chấm dứt hợp đồng trước hạn
+      // Chỉ cho phép khi hợp đồng đã ở trạng thái completed và đã xác nhận người thuê vào ở
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/terminate`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
     }),
 
     // Tenant
@@ -138,7 +194,7 @@ export const contractApi = createApi({
       },
       providesTags: ["TenantContract"],
     }),
-    getTenantContractDetails: builder.query<IContractDetailResponse, string>({
+    getTenantContractDetails: builder.query<ITenantContractDetailResponse, string>({
       query: (id) => ({
         url: `/contracts/${id}`,
         method: "GET",
@@ -210,6 +266,11 @@ export const {
   useSignLandlordMutation,
   useSendToTenantMutation,
   useConfirmMoveInMutation,
+  useDeleteContractMutation,
+  useGetRenewalRequestsQuery,
+  useApproveExtensionMutation,
+  useRejectExtensionMutation,
+  useTerminateContractMutation,
 
   // Tenant
   useGetTenantContractsQuery,

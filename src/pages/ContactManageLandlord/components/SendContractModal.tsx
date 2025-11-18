@@ -25,12 +25,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractData: IContractData | null;
+  refetch: () => void;
 }
 
 export const SendContractModal = ({
   open,
   onOpenChange,
   contractData,
+  refetch
 }: Props) => {
   const signatureRef = useRef<SignatureCanvas>(null);
   const [signatureUrl, setSignatureUrl] = useState<string>("");
@@ -203,6 +205,8 @@ export const SendContractModal = ({
         data: updateData,
       }).unwrap();
 
+      refetch();
+
       // If signature exists and has been saved, sign the contract
       if (signatureUrl && isSigning) {
         try {
@@ -243,13 +247,13 @@ export const SendContractModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto p-0 md:p-0">
+      <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto p-0 md:p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Gửi hợp đồng</DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-6 space-y-6">
+        <div className="px-8 pb-6 space-y-6">
           {/* Preview Header */}
-          <div className="space-y-3 bg-muted/40 rounded-md px-5 py-4">
+          <div className="space-y-3 bg-muted/40 rounded-md">
             <div className="text-center">
               <div className="font-semibold">
                 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
@@ -466,19 +470,14 @@ export const SendContractModal = ({
           <div className="space-y-4">
             <div className="font-semibold">Chữ ký chủ trọ</div>
             <div className="space-y-2">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg bg-white">
-                <div className="p-4">
-                  <SignatureCanvas
-                    ref={signatureRef}
-                    canvasProps={{
-                      width: 500,
-                      height: 200,
-                      className:
-                        "signature-canvas w-full border rounded bg-white",
-                    }}
-                  />
-                </div>
-              </div>
+              <SignatureCanvas
+                ref={signatureRef}
+                canvasProps={{
+                  width: 667,
+                  height: 200,
+                  className: "signature-canvas border rounded bg-white",
+                }}
+              />
               <div className="flex gap-2">
                 <Button
                   type="button"
