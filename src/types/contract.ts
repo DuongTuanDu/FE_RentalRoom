@@ -19,6 +19,7 @@ export interface IContract {
   };
   contract: IContractInfo;
   status: IContractStatus;
+  moveInConfirmedAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,12 +104,12 @@ export interface IContractInfo {
 export interface IUpdateContractRequest {
   A: IPerson;
   contract: IContractInfo;
-  termIds: {
+  terms: {
     name: string;
     description: string;
     order: number;
   }[];
-  regulationIds: {
+  regulations: {
     title: string;
     description: string;
     effectiveFrom: string;
@@ -195,6 +196,7 @@ export interface IContractDetailResponse {
   __v: number;
   landlordSignatureUrl: string;
   sentToTenantAt: string;
+  tenantSignatureUrl: string;
   furnitures: {
     id: string;
     name: string;

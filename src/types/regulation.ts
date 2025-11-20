@@ -5,7 +5,15 @@ export interface IRegulation {
   description: string;
   status: "active" | "inactive";
   effectiveFrom: string;
-  createdBy: string;
+  createdBy: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+  };
   createdAt: string;
   updatedAt: string;
   __v: number;

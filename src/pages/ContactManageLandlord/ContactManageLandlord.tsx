@@ -146,6 +146,7 @@ const ContactManageLandlord = () => {
       const result = await createContract({ contactId }).unwrap();
       setContractData(result.contract);
       setIsSendContractModalOpen(true);
+      refetch();
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
@@ -656,7 +657,6 @@ const ContactManageLandlord = () => {
         open={isSendContractModalOpen}
         onOpenChange={setIsSendContractModalOpen}
         contractData={contractData}
-        refetch={refetch}
       />
     </div>
   );

@@ -179,6 +179,7 @@ export const ContractTable = ({
                         <ContractActionsMenu
                           contractId={contract._id}
                           status={contract.status}
+                          moveInConfirmedAt={contract.moveInConfirmedAt}
                           onViewDetail={onViewDetail}
                           onUpdate={onUpdate}
                           onSign={onSign}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,11 @@ import { toast } from "sonner";
 import type { IUpdateContractRequest } from "@/types/contract";
 import { formatDateForInput } from "@/helpers/date";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import type { Element } from "slate";
+import { SlateEditor } from "@/pages/TermManagement/components/SlateEditor";
+import { htmlToSlate, slateToHtml } from "@/pages/TermManagement/components/slateHelpers";
+
+type SlateValue = Element[];
 
 interface UpdateContractDialogProps {
   open: boolean;
@@ -48,6 +53,12 @@ export const UpdateContractDialog = ({
   const [personAPermanentAddress, setPersonAPermanentAddress] = useState("");
   const [personAPhone, setPersonAPhone] = useState("");
   const [personAEmail, setPersonAEmail] = useState("");
+  const [termSlateValues, setTermSlateValues] = useState<Record<number, SlateValue>>({});
+  const [termSlateValuesInitialized, setTermSlateValuesInitialized] = useState(false);
+  const [termNames, setTermNames] = useState<Record<number, string>>({});
+  const [regulationSlateValues, setRegulationSlateValues] = useState<Record<number, SlateValue>>({});
+  const [regulationSlateValuesInitialized, setRegulationSlateValuesInitialized] = useState(false);
+  const [regulationNames, setRegulationNames] = useState<Record<number, string>>({});
 
   const formatDate = useFormatDate();
   const { data: contractDetail, isLoading: isLoadingDetail } =
@@ -56,6 +67,22 @@ export const UpdateContractDialog = ({
     });
   const [updateContract, { isLoading: isUpdating }] =
     useUpdateContractMutation();
+
+  // Memoize sorted terms to ensure consistency
+  const sortedTerms = useMemo(() => {
+    if (!contractDetail?.terms || contractDetail.terms.length === 0) {
+      return [];
+    }
+    return [...contractDetail.terms].sort((a, b) => a.order - b.order);
+  }, [contractDetail?.terms]);
+
+  // Memoize sorted regulations to ensure consistency
+  const sortedRegulations = useMemo(() => {
+    if (!contractDetail?.regulations || contractDetail.regulations.length === 0) {
+      return [];
+    }
+    return [...contractDetail.regulations].sort((a, b) => a.order - b.order);
+  }, [contractDetail?.regulations]);
 
   // Load contract detail data into form when dialog opens
   useEffect(() => {
@@ -80,8 +107,52 @@ export const UpdateContractDialog = ({
       setPersonAPermanentAddress(contractDetail.A?.permanentAddress || "");
       setPersonAPhone(contractDetail.A?.phone || "");
       setPersonAEmail(contractDetail.A?.email || "");
+
+      // Initialize Slate values and names for terms
+      if (sortedTerms.length > 0) {
+        const newTermSlateValues: Record<number, SlateValue> = {};
+        const newTermNames: Record<number, string> = {};
+        sortedTerms.forEach((term, index) => {
+          const html = term.description || "";
+          newTermSlateValues[index] = htmlToSlate(html);
+          newTermNames[index] = term.name || "";
+        });
+        setTermSlateValues(newTermSlateValues);
+        setTermNames(newTermNames);
+        setTermSlateValuesInitialized(true);
+      } else {
+        setTermSlateValues({});
+        setTermNames({});
+        setTermSlateValuesInitialized(false);
+      }
+
+      // Initialize Slate values and names for regulations
+      if (sortedRegulations.length > 0) {
+        const newRegulationSlateValues: Record<number, SlateValue> = {};
+        const newRegulationNames: Record<number, string> = {};
+        sortedRegulations.forEach((reg, index) => {
+          const html = reg.description || "";
+          newRegulationSlateValues[index] = htmlToSlate(html);
+          newRegulationNames[index] = reg.title || "";
+        });
+        setRegulationSlateValues(newRegulationSlateValues);
+        setRegulationNames(newRegulationNames);
+        setRegulationSlateValuesInitialized(true);
+      } else {
+        setRegulationSlateValues({});
+        setRegulationNames({});
+        setRegulationSlateValuesInitialized(false);
+      }
+    } else if (!open) {
+      // Reset when dialog closes
+      setTermSlateValues({});
+      setTermNames({});
+      setTermSlateValuesInitialized(false);
+      setRegulationSlateValues({});
+      setRegulationNames({});
+      setRegulationSlateValuesInitialized(false);
     }
-  }, [open, contractDetail]);
+  }, [open, contractDetail, sortedTerms, sortedRegulations]);
 
   const handleUpdateContract = async () => {
     if (!contractId || !contractDetail) return;
@@ -131,16 +202,20 @@ export const UpdateContractDialog = ({
           startDate: startDate,
           endDate: endDate,
         },
-        termIds:
-          contractDetail.terms?.map((term) => ({
-            name: term.name,
-            description: term.description,
+        terms:
+          sortedTerms.map((term, index) => ({
+            name: termNames[index] || term.name,
+            description: termSlateValues[index]
+              ? slateToHtml(termSlateValues[index])
+              : term.description,
             order: term.order,
           })) || [],
-        regulationIds:
-          contractDetail.regulations?.map((reg) => ({
-            title: reg.title,
-            description: reg.description,
+        regulations:
+          sortedRegulations.map((reg, index) => ({
+            title: regulationNames[index] || reg.title,
+            description: regulationSlateValues[index]
+              ? slateToHtml(regulationSlateValues[index])
+              : reg.description,
             effectiveFrom: reg.effectiveFrom,
             order: reg.order,
           })) || [],
@@ -379,46 +454,107 @@ export const UpdateContractDialog = ({
             (contractDetail.regulations &&
               contractDetail.regulations.length > 0) ? (
               <div className="space-y-4">
-                {contractDetail.terms && contractDetail.terms.length > 0 && (
+                {sortedTerms.length > 0 && (
                   <div className="space-y-2">
                     <div className="font-semibold">Nội dung điều khoản</div>
-                    <div className="space-y-2 text-sm">
-                      {contractDetail.terms
-                        .sort((a, b) => a.order - b.order)
-                        .map((term, index) => (
+                    <div className="space-y-4 text-sm">
+                      {sortedTerms.map((term, index) => {
+                        const slateValue = termSlateValues[index];
+                        // Use order as part of key to ensure consistency
+                        const termKey = `term-${term.order}`;
+                        return (
                           <div
-                            key={index}
-                            className="p-3 bg-slate-50 rounded-lg"
+                            key={termKey}
+                            className="p-3 bg-slate-50 rounded-lg space-y-2"
                           >
-                            <div className="font-medium">{term.name}</div>
-                              <div dangerouslySetInnerHTML={{ __html: term.description }} className="text-muted-foreground mt-1"/>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Tên điều khoản</Label>
+                              <Input
+                                value={termNames[index] || term.name || ""}
+                                onChange={(e) => {
+                                  setTermNames((prev) => ({
+                                    ...prev,
+                                    [index]: e.target.value,
+                                  }));
+                                }}
+                                placeholder="Nhập tên điều khoản"
+                                className="h-8 text-sm font-medium"
+                              />
+                            </div>
+                            <div className="mt-1">
+                              {slateValue && termSlateValuesInitialized ? (
+                                <SlateEditor
+                                  key={`${termKey}-editor-${term.description?.slice(0, 20) || 'empty'}`}
+                                  value={slateValue}
+                                  onChange={(value) => {
+                                    setTermSlateValues((prev) => ({
+                                      ...prev,
+                                      [index]: value,
+                                    }));
+                                  }}
+                                  placeholder="Nhập mô tả điều khoản..."
+                                />
+                              ) : (
+                                <div className="flex items-center justify-center p-4 border border-input rounded-md bg-background">
+                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
-                {contractDetail.regulations &&
-                  contractDetail.regulations.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="font-semibold">Nội dung quy định</div>
-                      <div className="space-y-2 text-sm">
-                        {contractDetail.regulations
-                          .sort((a, b) => a.order - b.order)
-                          .map((reg, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-slate-50 rounded-lg"
-                            >
-                              <div className="font-medium">{reg.title}</div>
-                              <div className="text-muted-foreground mt-1">
-                                {reg.description}
-                              </div>
+                {sortedRegulations.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Nội dung quy định</div>
+                    <div className="space-y-4 text-sm">
+                      {sortedRegulations.map((reg, index) => {
+                        const slateValue = regulationSlateValues[index];
+                        const regKey = `reg-${reg.order}`;
+                        return (
+                          <div key={regKey} className="p-3 bg-slate-50 rounded-lg space-y-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Tên quy định</Label>
+                              <Input
+                                value={regulationNames[index] || reg.title || ""}
+                                onChange={(e) => {
+                                  setRegulationNames((prev) => ({
+                                    ...prev,
+                                    [index]: e.target.value,
+                                  }));
+                                }}
+                                placeholder="Nhập tên quy định"
+                                className="h-8 text-sm font-medium"
+                              />
                             </div>
-                          ))}
-                      </div>
+                            <div className="mt-1">
+                              {slateValue && regulationSlateValuesInitialized ? (
+                                <SlateEditor
+                                  key={`${regKey}-editor-${reg.description?.slice(0, 20) || 'empty'}`}
+                                  value={slateValue}
+                                  onChange={(value) => {
+                                    setRegulationSlateValues((prev) => ({
+                                      ...prev,
+                                      [index]: value,
+                                    }));
+                                  }}
+                                  placeholder="Nhập mô tả quy định..."
+                                />
+                              ) : (
+                                <div className="flex items-center justify-center p-4 border border-input rounded-md bg-background">
+                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             ) : null}
 
