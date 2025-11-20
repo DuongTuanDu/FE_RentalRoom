@@ -422,6 +422,7 @@ const ContractManagement = () => {
             setSignatureUrl("");
           }
         }}
+        contractId={selectedContractId}
         signatureUrl={signatureUrl}
         onSignatureUrlChange={setSignatureUrl}
         onSign={handleSignContract}

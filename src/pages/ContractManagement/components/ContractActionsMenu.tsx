@@ -27,6 +27,7 @@ interface ContractActionsMenuProps {
   isConfirming: boolean;
   sendConfirmPopoverOpen: boolean;
   onSendPopoverOpenChange: (open: boolean) => void;
+  moveInConfirmedAt: string | null;
 }
 
 export const ContractActionsMenu = ({
@@ -43,6 +44,7 @@ export const ContractActionsMenu = ({
   isConfirming,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
+  moveInConfirmedAt,
 }: ContractActionsMenuProps) => {
   return (
     <div className="flex items-center justify-center gap-2">
@@ -164,7 +166,7 @@ export const ContractActionsMenu = ({
         </Popover>
       )}
 
-      {(status === "signed_by_tenant" || status === "completed") && (
+      {((status === "completed" && moveInConfirmedAt === null)) && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -205,7 +207,7 @@ export const ContractActionsMenu = ({
         </TooltipProvider>
       )}
 
-      {status === "completed" && (
+      {((status === "completed" && moveInConfirmedAt !== null)) && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

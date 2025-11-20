@@ -21,10 +21,8 @@ export const ContractDetailSheet = ({
   onOpenChange,
   contractId,
 }: ContractDetailSheetProps) => {
-  const { data: contractDetail, isLoading: isLoadingDetail } = useGetTenantContractDetailsQuery(
-    contractId || "",
-    { skip: !contractId }
-  );
+  const { data: contractDetail, isLoading: isLoadingDetail } =
+    useGetTenantContractDetailsQuery(contractId || "", { skip: !contractId });
 
   const formatDateDisplay = (dateString: string | null | undefined): string => {
     if (!dateString) return "";
@@ -114,48 +112,40 @@ export const ContractDetailSheet = ({
             </div>
             <div className="space-y-1 text-sm">
               <div>
-                Hôm nay, ngày {formatDateDisplay(contractDetail.contract?.signDate) || "—"} tại: {contractDetail.contract?.signPlace || "—"}
+                Hôm nay, ngày{" "}
+                {formatDateDisplay(contractDetail.contract?.signDate) || "—"}{" "}
+                tại: {contractDetail.contract?.signPlace || "—"}
               </div>
               <div className="font-semibold">BÊN CHO THUÊ NHÀ (BÊN A):</div>
-              <div>
-                Đại diện (Ông/Bà): {contractDetail.A?.name || "—"}
-              </div>
+              <div>Đại diện (Ông/Bà): {contractDetail.A?.name || "—"}</div>
               <div>
                 Ngày sinh: {formatDateDisplay(contractDetail.A?.dob) || "—"}
               </div>
               <div>
                 CCCD: {contractDetail.A?.cccd || "—"} Cấp ngày:{" "}
-                {formatDateDisplay(contractDetail.A?.cccdIssuedDate) || "—"}, Nơi cấp: {contractDetail.A?.cccdIssuedPlace || "—"}
+                {formatDateDisplay(contractDetail.A?.cccdIssuedDate) || "—"},
+                Nơi cấp: {contractDetail.A?.cccdIssuedPlace || "—"}
               </div>
               <div>
                 Hộ khẩu thường trú: {contractDetail.A?.permanentAddress || "—"}
               </div>
-              <div>
-                Điện thoại: {contractDetail.A?.phone || "—"}
-              </div>
-              <div>
-                Email: {contractDetail.A?.email || "—"}
-              </div>
+              <div>Điện thoại: {contractDetail.A?.phone || "—"}</div>
+              <div>Email: {contractDetail.A?.email || "—"}</div>
               <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
-              <div>
-                Đại diện (Ông/Bà): {contractDetail.B?.name || "—"}
-              </div>
+              <div>Đại diện (Ông/Bà): {contractDetail.B?.name || "—"}</div>
               <div>
                 Ngày sinh: {formatDateDisplay(contractDetail.B?.dob) || "—"}
               </div>
               <div>
                 CCCD: {contractDetail.B?.cccd || "—"} Cấp ngày:{" "}
-                {formatDateDisplay(contractDetail.B?.cccdIssuedDate) || "—"}, Nơi cấp: {contractDetail.B?.cccdIssuedPlace || "—"}
+                {formatDateDisplay(contractDetail.B?.cccdIssuedDate) || "—"},
+                Nơi cấp: {contractDetail.B?.cccdIssuedPlace || "—"}
               </div>
               <div>
                 Hộ khẩu thường trú: {contractDetail.B?.permanentAddress || "—"}
               </div>
-              <div>
-                Điện thoại: {contractDetail.B?.phone || "—"}
-              </div>
-              <div>
-                Email: {contractDetail.B?.email || "—"}
-              </div>
+              <div>Điện thoại: {contractDetail.B?.phone || "—"}</div>
+              <div>Email: {contractDetail.B?.email || "—"}</div>
             </div>
           </div>
 
@@ -167,7 +157,9 @@ export const ContractDetailSheet = ({
                 <Label className="text-slate-500">Giá thuê (VNĐ)</Label>
                 <p className="font-medium">
                   {contractDetail.contract?.price
-                    ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.price) + " VNĐ"
+                    ? new Intl.NumberFormat("vi-VN").format(
+                        contractDetail.contract.price
+                      ) + " VNĐ"
                     : "—"}
                 </p>
               </div>
@@ -175,27 +167,35 @@ export const ContractDetailSheet = ({
                 <Label className="text-slate-500">Tiền cọc (VNĐ)</Label>
                 <p className="font-medium">
                   {contractDetail.contract?.deposit
-                    ? new Intl.NumberFormat("vi-VN").format(contractDetail.contract.deposit) + " VNĐ"
+                    ? new Intl.NumberFormat("vi-VN").format(
+                        contractDetail.contract.deposit
+                      ) + " VNĐ"
                     : "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-500">Ngày bắt đầu</Label>
                 <p className="font-medium">
-                  {contractDetail.contract?.startDate ? formatDateDisplay(contractDetail.contract.startDate) : "—"}
+                  {contractDetail.contract?.startDate
+                    ? formatDateDisplay(contractDetail.contract.startDate)
+                    : "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-500">Ngày kết thúc</Label>
                 <p className="font-medium">
-                  {contractDetail.contract?.endDate ? formatDateDisplay(contractDetail.contract.endDate) : "—"}
+                  {contractDetail.contract?.endDate
+                    ? formatDateDisplay(contractDetail.contract.endDate)
+                    : "—"}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Terms and Regulations */}
-          {(contractDetail.terms && contractDetail.terms.length > 0) || (contractDetail.regulations && contractDetail.regulations.length > 0) ? (
+          {(contractDetail.terms && contractDetail.terms.length > 0) ||
+          (contractDetail.regulations &&
+            contractDetail.regulations.length > 0) ? (
             <div className="space-y-4">
               {contractDetail.terms && contractDetail.terms.length > 0 && (
                 <div className="space-y-2">
@@ -204,10 +204,14 @@ export const ContractDetailSheet = ({
                     {contractDetail.terms
                       .sort((a, b) => a.order - b.order)
                       .map((term, index) => (
-                        <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                        <div key={index} className="p-3 border rounded-lg">
                           <div className="font-medium">{term.name}</div>
-                          <div className="text-muted-foreground mt-1">
-                            {term.description}
+                          <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: term.description,
+                              }}
+                            />
                           </div>
                         </div>
                       ))}
@@ -215,30 +219,40 @@ export const ContractDetailSheet = ({
                 </div>
               )}
 
-              {contractDetail.regulations && contractDetail.regulations.length > 0 && (
-                <div className="space-y-2">
-                  <div className="font-semibold">Nội dung quy định</div>
-                  <div className="space-y-2 text-sm">
-                    {contractDetail.regulations
-                      .sort((a, b) => a.order - b.order)
-                      .map((reg, index) => (
-                        <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                          <div className="font-medium">{reg.title}</div>
-                          <div className="text-muted-foreground mt-1">
-                            {reg.description}
+              {contractDetail.regulations &&
+                contractDetail.regulations.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Nội dung quy định</div>
+                    <div className="space-y-2 text-sm">
+                      {contractDetail.regulations
+                        .sort((a, b) => a.order - b.order)
+                        .map((reg, index) => (
+                          <div
+                            key={index}
+                            className="p-3 border rounded-lg"
+                          >
+                            <div className="font-medium">{reg.title}</div>
+                            <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: reg.description,
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           ) : null}
 
           {/* Additional Info */}
           {contractDetail.roommates && contractDetail.roommates.length > 0 && (
             <div>
-              <Label className="text-lg text-slate-700 mb-2">Người ở cùng</Label>
+              <Label className="text-lg text-slate-700 mb-2">
+                Người ở cùng
+              </Label>
               <div className="space-y-2">
                 {contractDetail.roommates.map((roommate, index) => (
                   <div key={index} className="p-3 bg-slate-50 rounded-lg">
@@ -258,7 +272,9 @@ export const ContractDetailSheet = ({
               <div className="space-y-2">
                 {contractDetail.bikes.map((bike, index) => (
                   <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="font-medium">Biển số: {bike.bikeNumber}</div>
+                    <div className="font-medium">
+                      Biển số: {bike.bikeNumber}
+                    </div>
                     <div className="text-sm text-slate-600 mt-1">
                       {bike.brand} - {bike.color}
                     </div>
@@ -268,30 +284,37 @@ export const ContractDetailSheet = ({
             </div>
           )}
 
-          {contractDetail.furnitures && contractDetail.furnitures.length > 0 && (
-            <div>
-              <Label className="text-lg text-slate-700 mb-2">Đồ nội thất</Label>
-              <div className="space-y-2">
-                {contractDetail.furnitures.map((furniture, index) => (
-                  <div key={index} className="p-3 bg-slate-50 rounded-lg">
-                    <div className="font-medium">{furniture.name}</div>
-                    <div className="text-sm text-slate-600 mt-1">
-                      Số lượng: {furniture.quantity} | 
-                      Tình trạng: {
-                        furniture.condition === "good" ? "Tốt" :
-                        furniture.condition === "damaged" ? "Hư hỏng" :
-                        furniture.condition === "under_repair" ? "Đang sửa chữa" : furniture.condition
-                      }
-                      {furniture.damageCount > 0 && ` | Số chỗ hư: ${furniture.damageCount}`}
+          {contractDetail.furnitures &&
+            contractDetail.furnitures.length > 0 && (
+              <div>
+                <Label className="text-lg text-slate-700 mb-2">
+                  Đồ nội thất
+                </Label>
+                <div className="space-y-2">
+                  {contractDetail.furnitures.map((furniture, index) => (
+                    <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                      <div className="font-medium">{furniture.name}</div>
+                      <div className="text-sm text-slate-600 mt-1">
+                        Số lượng: {furniture.quantity} | Tình trạng:{" "}
+                        {furniture.condition === "good"
+                          ? "Tốt"
+                          : furniture.condition === "damaged"
+                          ? "Hư hỏng"
+                          : furniture.condition === "under_repair"
+                          ? "Đang sửa chữa"
+                          : furniture.condition}
+                        {furniture.damageCount > 0 &&
+                          ` | Số chỗ hư: ${furniture.damageCount}`}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Signatures */}
-          {(contractDetail.landlordSignatureUrl || contractDetail.tenantSignatureUrl) && (
+          {(contractDetail.landlordSignatureUrl ||
+            contractDetail.tenantSignatureUrl) && (
             <div className="space-y-4 pt-4 border-t">
               <div className="font-semibold">Chữ ký</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -300,14 +323,12 @@ export const ContractDetailSheet = ({
                     <div className="text-sm font-medium text-slate-600">
                       Chữ ký chủ trọ (Bên A)
                     </div>
-                    <div className="flex justify-center">
-                      <img
-                        src={contractDetail.landlordSignatureUrl}
-                        alt="Chữ ký chủ trọ"
-                        className="max-w-full h-auto border rounded-lg p-2 bg-white"
-                        style={{ maxHeight: "200px" }}
-                      />
-                    </div>
+                    <img
+                      src={contractDetail.landlordSignatureUrl}
+                      alt="Chữ ký chủ trọ"
+                      className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                      style={{ minHeight: "200px", maxHeight: "200px" }}
+                    />
                   </div>
                 )}
                 {contractDetail.tenantSignatureUrl && (
@@ -315,14 +336,12 @@ export const ContractDetailSheet = ({
                     <div className="text-sm font-medium text-slate-600">
                       Chữ ký của tôi (Bên B)
                     </div>
-                    <div className="flex justify-center">
-                      <img
-                        src={contractDetail.tenantSignatureUrl}
-                        alt="Chữ ký của tôi"
-                        className="max-w-full h-auto border rounded-lg p-2 bg-white"
-                        style={{ maxHeight: "200px" }}
-                      />
-                    </div>
+                    <img
+                      src={contractDetail.tenantSignatureUrl}
+                      alt="Chữ ký của tôi"
+                      className="max-w-full h-auto border rounded-lg p-2 bg-white"
+                      style={{ minHeight: "200px", maxHeight: "200px" }}
+                    />
                   </div>
                 )}
               </div>
@@ -337,28 +356,40 @@ export const ContractDetailSheet = ({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="space-y-2">
                     <Label className="text-slate-500">Số tháng gia hạn</Label>
-                    <p className="font-medium">{contractDetail.renewalRequest.months} tháng</p>
+                    <p className="font-medium">
+                      {contractDetail.renewalRequest.months} tháng
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-500">Ngày kết thúc dự kiến</Label>
+                    <Label className="text-slate-500">
+                      Ngày kết thúc dự kiến
+                    </Label>
                     <p className="font-medium">
-                      {formatDateDisplay(contractDetail.renewalRequest.requestedEndDate)}
+                      {formatDateDisplay(
+                        contractDetail.renewalRequest.requestedEndDate
+                      )}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-500">Trạng thái</Label>
                     <p className="font-medium">
-                      {contractDetail.renewalRequest.status === "pending" ? "Đang chờ" :
-                       contractDetail.renewalRequest.status === "approved" ? "Đã chấp nhận" :
-                       contractDetail.renewalRequest.status === "rejected" ? "Đã từ chối" :
-                       contractDetail.renewalRequest.status === "cancelled" ? "Đã hủy" :
-                       contractDetail.renewalRequest.status}
+                      {contractDetail.renewalRequest.status === "pending"
+                        ? "Đang chờ"
+                        : contractDetail.renewalRequest.status === "approved"
+                        ? "Đã chấp nhận"
+                        : contractDetail.renewalRequest.status === "rejected"
+                        ? "Đã từ chối"
+                        : contractDetail.renewalRequest.status === "cancelled"
+                        ? "Đã hủy"
+                        : contractDetail.renewalRequest.status}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-500">Ngày yêu cầu</Label>
                     <p className="font-medium">
-                      {formatDateDisplay(contractDetail.renewalRequest.requestedAt)}
+                      {formatDateDisplay(
+                        contractDetail.renewalRequest.requestedAt
+                      )}
                     </p>
                   </div>
                 </div>
@@ -388,4 +419,3 @@ export const ContractDetailSheet = ({
     </Sheet>
   );
 };
-

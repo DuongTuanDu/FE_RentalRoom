@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,15 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Shield, Loader2, Calendar } from "lucide-react";
 import { BuildingSelectCombobox } from "../../FloorManageLandlord/components/BuildingSelectCombobox";
 import type { IRegulation, IRegulationRequest } from "@/types/regulation";
+import type { Element } from "slate";
+import { SlateEditor } from "../../TermManagement/components/SlateEditor";
+import { htmlToSlate, slateToHtml } from "../../TermManagement/components/slateHelpers";
+
+type SlateValue = Element[];
 
 const regulationSchema = z.object({
   buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
@@ -32,11 +36,6 @@ const regulationSchema = z.object({
     .string()
     .min(1, "Tiêu đề không được để trống")
     .max(200, "Tiêu đề không được quá 200 ký tự"),
-  description: z
-    .string()
-    .min(1, "Mô tả không được để trống")
-    .max(1000, "Mô tả không được quá 1000 ký tự"),
-
   effectiveFrom: z.string().min(1, "Vui lòng chọn ngày hiệu lực từ"),
 });
 
@@ -61,13 +60,24 @@ export const ModalRegulation = ({
 }: ModalRegulationProps) => {
   const isEditMode = !!regulation;
 
+  const initialValue: SlateValue = useMemo(
+    () => [
+      {
+        type: "paragraph",
+        children: [{ text: "" }],
+      },
+    ],
+    []
+  );
+
+  const [slateValue, setSlateValue] = useState<SlateValue>(initialValue);
+  const [descriptionError, setDescriptionError] = useState<string>("");
+
   const form = useForm<RegulationFormValues>({
     resolver: zodResolver(regulationSchema) as any,
     defaultValues: {
       buildingId: "",
       title: "",
-      description: "",
-
       effectiveFrom: "",
     },
   });
@@ -78,26 +88,43 @@ export const ModalRegulation = ({
         form.reset({
           buildingId: regulation.buildingId,
           title: regulation.title,
-          description: regulation.description,
-
           effectiveFrom: regulation.effectiveFrom.split("T")[0],
         });
+        const html = regulation.description || "";
+        const value = htmlToSlate(html);
+        setSlateValue(value);
       } else {
         form.reset({
           buildingId: defaultBuildingId,
           title: "",
-          description: "",
-
           effectiveFrom: "",
         });
+        setSlateValue(initialValue);
       }
+      setDescriptionError("");
+    } else {
+      setSlateValue(initialValue);
+      setDescriptionError("");
     }
-  }, [open, regulation, defaultBuildingId, form]);
+  }, [open, regulation, defaultBuildingId, form, initialValue]);
 
   const handleSubmit = async (data: RegulationFormValues) => {
+    // Validate description
+    const description = slateToHtml(slateValue).trim();
+    if (!description) {
+      setDescriptionError("Mô tả không được để trống");
+      return;
+    }
+    if (description.length > 1000) {
+      setDescriptionError("Mô tả không được quá 1000 ký tự");
+      return;
+    }
+    setDescriptionError("");
+
     // Convert dates to ISO format
     const formattedData: IRegulationRequest = {
       ...data,
+      description,
       effectiveFrom: new Date(data.effectiveFrom).toISOString(),
     };
     await onSubmit(formattedData);
@@ -178,27 +205,21 @@ export const ModalRegulation = ({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Mô tả <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Mô tả chi tiết về quy định..."
-                        className="resize-none"
-                        rows={4}
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-2">
+                <FormLabel>
+                  Mô tả <span className="text-red-500">*</span>
+                </FormLabel>
+                <SlateEditor
+                  value={slateValue}
+                  onChange={setSlateValue}
+                  placeholder="Mô tả chi tiết về quy định..."
+                />
+                {descriptionError && (
+                  <p className="text-sm font-medium text-destructive">
+                    {descriptionError}
+                  </p>
                 )}
-              />
+              </div>
             </div>
 
             {/* Effective Dates */}
