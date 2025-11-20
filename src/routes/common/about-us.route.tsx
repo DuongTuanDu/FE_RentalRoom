@@ -1,5 +1,11 @@
 import { Route } from "react-router-dom";
+import PostsPage from "@/pages/PostPage/PostPage";   
+import AboutUsPage from "@/pages/About-us";       
 
-import AboutUsPage from "@/pages/About-us";
+export default (
+  <>
+    <Route path="/posts" element={<PostsPage />} />
 
-export default (<Route path="/about-us" element={<AboutUsPage />} />);
+    <Route path="/about-us" element={<AboutUsPage />} />
+  </>
+);
