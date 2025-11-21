@@ -5,6 +5,11 @@ import type {
   ICreateSubscriptionRequest,
   ICreateSubscriptionResponse,
   ISubscription,
+  startTrialSubscriptionResponse,
+  IRenewSubscriptionResponse,
+  ICurrentSubscriptionResponse,
+  IDetailSubscriptionResponse,
+  ICancelSubscriptionResponse,
 } from "@/types/package-subscription";
 
 export const packageSubscriptionApi = createApi({
@@ -21,10 +26,25 @@ export const packageSubscriptionApi = createApi({
         method: "GET",
       }),
       transformResponse: (response: ISubscriptionResponse) => {
-        // Transform để trả về array trực tiếp
         return response?.data?.data || [];
       },
       providesTags: ["PackageSubscription"],
+    }),
+
+    startTrialSubscription: builder.mutation<startTrialSubscriptionResponse, void>({
+      query: () => ({
+        url: "/subscriptions/start-trial",
+        method: "POST",
+      }),
+      invalidatesTags: ["PackageSubscription"],
+    }),
+
+    renewSubscription: builder.mutation<IRenewSubscriptionResponse, void>({
+      query: () => ({
+        url: `/subscriptions/renew`,
+        method: "POST",
+      }),
+      invalidatesTags: ["PackageSubscription"],
     }),
 
     // mua gói dịch vụ -> trả về URL thanh toán VNPay
@@ -48,6 +68,36 @@ export const packageSubscriptionApi = createApi({
         params,
       }),
     }),
+
+    currentSubscription: builder.query<ICurrentSubscriptionResponse | null, void>({
+      query: () => ({
+        url: "/subscriptions/current",
+        method: "GET",
+      }),
+      transformResponse: (response: ICurrentSubscriptionResponse) => {
+        return response || null;
+      },
+      providesTags: ["PackageSubscription"],
+    }),
+
+    detailSubscription: builder.query<IDetailSubscriptionResponse | null, string>({
+      query: (subscriptionId) => ({
+        url: `/subscriptions/${subscriptionId}`,
+        method: "GET",
+      }),
+      transformResponse: (response: IDetailSubscriptionResponse) => {
+        return response || null;
+      },
+      providesTags: ["PackageSubscription"], 
+    }),
+
+    cancelSubscription: builder.mutation<ICancelSubscriptionResponse, void>({
+      query: () => ({
+        url: `/subscriptions/cancel`,
+        method: "POST",
+      }),
+      invalidatesTags: ["PackageSubscription"],
+    }),
   }),
 });
 
@@ -55,4 +105,9 @@ export const {
   useGetMySubscriptionsQuery,
   useBuySubscriptionMutation,
   useHandleVNPayReturnQuery,
+  useDetailSubscriptionQuery,
+  useStartTrialSubscriptionMutation,
+  useRenewSubscriptionMutation,
+  useCurrentSubscriptionQuery,
+  useCancelSubscriptionMutation,
 } = packageSubscriptionApi;
