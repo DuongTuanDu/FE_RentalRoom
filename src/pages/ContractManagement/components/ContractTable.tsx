@@ -37,8 +37,11 @@ interface ContractTableProps {
   onConfirmMoveIn: (contractId: string) => void;
   onDelete: (contractId: string) => void;
   onTerminate: (contractId: string) => void;
+  onDisable?: (contractId: string) => void;
+  onDownload?: (contractId: string) => void;
   isSending: boolean;
   isConfirming: boolean;
+  isDownloading: boolean;
   sendConfirmPopoverOpen: Record<string, boolean>;
   onSendPopoverOpenChange: (contractId: string, open: boolean) => void;
 }
@@ -62,8 +65,16 @@ const getStatusBadge = (status: IContractStatus) => {
       label: "Hoàn thành",
       className: "bg-green-100 text-green-800",
     },
+    voided: {
+      label: "Vô hiệu hóa",
+      className: "bg-red-100 text-red-800",
+    },
+    terminated: {
+      label: "Đã chấm dứt",
+      className: "bg-red-100 text-red-800",
+    },
   };
-  const config = statusConfig[status] || statusConfig.draft;
+  const config = statusConfig[status];
   return (
     <Badge className={config.className} variant="outline">
       {config.label}
@@ -87,8 +98,11 @@ export const ContractTable = ({
   onConfirmMoveIn,
   onDelete,
   onTerminate,
+  onDisable,
+  onDownload,
   isSending,
   isConfirming,
+  isDownloading,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
 }: ContractTableProps) => {
@@ -187,8 +201,11 @@ export const ContractTable = ({
                           onConfirmMoveIn={onConfirmMoveIn}
                           onDelete={onDelete}
                           onTerminate={onTerminate}
+                          onDisable={onDisable}
+                          onDownload={onDownload}
                           isSending={isSending}
                           isConfirming={isConfirming}
+                          isDownloading={isDownloading}
                           sendConfirmPopoverOpen={
                             sendConfirmPopoverOpen[contract._id] || false
                           }

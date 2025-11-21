@@ -83,8 +83,6 @@ export const ModalRoom = ({
   isLoading = false,
   defaultBuildingId = "",
 }: ModalRoomProps) => {
-  console.log("room", room);
-  
   const isEditMode = !!room;
   
   // Image management states
@@ -120,8 +118,8 @@ export const ModalRoom = ({
         console.log("room", room);
         
         form.reset({
-          buildingId: (room.buildingId as any).id,
-          floorId: (room.floorId as any).id,
+          buildingId: (room.buildingId)._id,
+          floorId: (room.floorId)._id,
           roomNumber: room.roomNumber,
           area: room.area,
           price: room.price,
