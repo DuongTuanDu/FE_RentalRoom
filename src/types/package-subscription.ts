@@ -41,3 +41,55 @@ export interface ICreateSubscriptionResponse {
     paymentUrl: string;
   }; 
 }
+
+export interface startTrialSubscriptionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    subscription: ISubscription;
+    endate: string;
+    durationDays: number;
+  };
+}
+
+export interface IRenewSubscriptionResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ICurrentSubscriptionResponse {
+  success: boolean;
+    data: {
+      hasActive: boolean;
+      isTrial: boolean;
+      action: string,
+      daysLeft: number,
+      package: {
+        _id: string,
+        name: string,
+        price: number,
+        durationDays: number,
+        roomLimit: number,
+        type: string,
+        description: string
+    }
+  }
+}
+
+export interface IDetailSubscriptionResponse {
+  success: boolean;
+  data: {
+    subscription: ISubscription;
+    starts: {
+      dayUsed: number;
+      dayLeft: number;
+      isActive: boolean;
+      isExpired: boolean;
+    };
+  };
+}
+
+export interface ICancelSubscriptionResponse {
+  cancelledSubscription: ISubscription;
+  message: string;
+}
