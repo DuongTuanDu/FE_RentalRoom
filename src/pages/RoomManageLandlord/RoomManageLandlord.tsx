@@ -171,7 +171,7 @@ const RoomManageLandlord = () => {
   };
 
   const handleOpenRoomDetail = (room: IRoom) => {
-    setViewingRoomId(room.id);
+    setViewingRoomId(room._id);
     setIsRoomDetailOpen(true);
   };
 
@@ -194,7 +194,7 @@ const RoomManageLandlord = () => {
         console.log("Updating room with filtered data:", updateData);
 
         await updateRoom({
-          id: editingRoom.id,
+          id: editingRoom._id,
           data: updateData,
         }).unwrap();
         toast.success("Cập nhật phòng thành công!");
@@ -220,7 +220,7 @@ const RoomManageLandlord = () => {
         if (data.images && data.images.length > 0) {
           try {
             await addRoomImages({
-              id: createdRoom.id,
+              id: createdRoom._id,
               images: data.images,
             }).unwrap();
             toast.success("Tải lên ảnh thành công!");
@@ -244,7 +244,7 @@ const RoomManageLandlord = () => {
     if (!deletingRoom) return;
 
     try {
-      await deleteRoom(deletingRoom.id).unwrap();
+      await deleteRoom(deletingRoom._id).unwrap();
       toast.success("Xóa phòng thành công!");
       setIsDeleteDialogOpen(false);
       setDeletingRoom(null);
@@ -421,7 +421,7 @@ const RoomManageLandlord = () => {
                   </TableHeader>
                   <TableBody>
                     {roomsData.data.map((room) => (
-                      <TableRow key={room.id}>
+                      <TableRow key={room._id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <DoorOpen className="h-4 w-4 text-muted-foreground" />

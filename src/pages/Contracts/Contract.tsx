@@ -2,9 +2,11 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   useGetTenantContractsQuery,
   useGetUpcomingExpireQuery,
+  useDownloadTenantContractMutation,
 } from "@/services/contract/contract.service";
-import { FileText, Search, Eye, Edit, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { FileText, Search, Eye, Edit, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
 import _ from "lodash";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -63,6 +65,9 @@ const Contract = () => {
     days: 30, // Hiển thị hợp đồng hết hạn trong 30 ngày tới
   });
 
+  const [downloadTenantContract, { isLoading: isDownloading }] =
+    useDownloadTenantContractMutation();
+
   // Reset pagination when filter/search changes
   useEffect(() => {
     setCurrentPage(1);
@@ -106,6 +111,28 @@ const Contract = () => {
     setIsExtendDialogOpen(true);
   };
 
+  const handleDownloadContract = async (contractId: string) => {
+    try {
+      const blob = await downloadTenantContract({ id: contractId }).unwrap();
+      
+      // Tạo URL từ blob và tải file
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `HopDong_${contractId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast.success("Tải hợp đồng PDF thành công");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Có lỗi xảy ra khi tải hợp đồng PDF"
+      );
+    }
+  };
+
   const getStatusBadge = (status: IContractStatus) => {
     const statusConfig = {
       draft: { label: "Bản nháp", className: "bg-gray-100 text-gray-800" },
@@ -125,8 +152,16 @@ const Contract = () => {
         label: "Hoàn thành",
         className: "bg-green-100 text-green-800",
       },
+      voided: {
+        label: "Vô hiệu hóa",
+        className: "bg-red-100 text-red-800",
+      },
+      terminated: {
+        label: "Đã chấm dứt",
+        className: "bg-red-100 text-red-800",
+      },
     };
-    const config = statusConfig[status] || statusConfig.draft;
+    const config = statusConfig[status];
     return (
       <Badge className={config.className} variant="outline">
         {config.label}
@@ -416,6 +451,29 @@ const Contract = () => {
                                       </Tooltip>
                                     </TooltipProvider>
                                   )}
+
+                                {contract.status === "completed" && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() =>
+                                            handleDownloadContract(contract._id)
+                                          }
+                                          disabled={isDownloading}
+                                        >
+                                          <Download className="w-4 h-4 text-indigo-600" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Tải PDF hợp đồng</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>

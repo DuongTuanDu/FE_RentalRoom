@@ -89,7 +89,9 @@ export type IContractStatus =
   | "sent_to_tenant"
   | "signed_by_tenant"
   | "signed_by_landlord"
-  | "completed";
+  | "completed"
+  | "voided"
+  | "terminated";
 
 export interface IContractInfo {
   no: string;
@@ -197,6 +199,7 @@ export interface IContractDetailResponse {
   landlordSignatureUrl: string;
   sentToTenantAt: string;
   tenantSignatureUrl: string;
+  moveInConfirmedAt?: string | null;
   furnitures: {
     id: string;
     name: string;

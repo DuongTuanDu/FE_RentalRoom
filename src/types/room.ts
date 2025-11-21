@@ -1,7 +1,7 @@
 // types/room.ts
 
 export interface IRoom {
-  id: string;
+  _id: string;
   buildingId: {
     _id: string;
     name: string;
