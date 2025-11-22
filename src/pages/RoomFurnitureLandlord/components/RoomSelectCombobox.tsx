@@ -78,14 +78,14 @@ export const RoomSelectCombobox = ({
         if (page === 1) {
           return data.data;
         }
-        const existingIds = new Set(prev.map((r) => r.id));
-        const newRooms = data.data.filter((r) => !existingIds.has(r.id));
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newRooms = data.data.filter((r) => !existingIds.has(r._id));
         return [...prev, ...newRooms];
       });
     }
   }, [data, page]);
 
-  const selectedRoom = allRooms.find((r) => r.id === value);
+  const selectedRoom = allRooms.find((r) => r._id === value);
   const hasMore = data?.total ? allRooms.length < data.total : false;
 
   const handleSelect = (roomId: string) => {
@@ -168,17 +168,17 @@ export const RoomSelectCombobox = ({
               <>
                 {allRooms.map((room) => (
                   <button
-                    key={room.id}
-                    onClick={() => handleSelect(room.id)}
+                    key={room._id}
+                    onClick={() => handleSelect(room._id)}
                     className={cn(
                       "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors",
-                      value === room.id && "bg-accent"
+                      value === room._id && "bg-accent"
                     )}
                   >
                     <Check
                       className={cn(
                         "h-4 w-4 shrink-0",
-                        value === room.id ? "opacity-100" : "opacity-0"
+                        value === room._id ? "opacity-100" : "opacity-0"
                       )}
                     />
                     <div className="flex flex-col items-start min-w-0">

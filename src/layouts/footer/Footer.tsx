@@ -48,7 +48,7 @@ const Footer = () => {
     {
       icon: Shield,
       title: "An toàn & Bảo mật",
-      desc: "Thông tin được xác minh và bảo mật tuyệt đối",
+      desc: "Xác minh và bảo mật tuyệt đối",
     },
     {
       icon: Users,

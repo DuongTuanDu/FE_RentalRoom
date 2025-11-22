@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { IRoomListResponse, IRoom, CreateRoomRequest, IQuickCreateRoomRequest } from "@/types/room";
+import type { IRoomListResponse, IRoom, CreateRoomRequest, IQuickCreateRoomRequest, IMyRoomResponse } from "@/types/room";
 
 // Custom baseQuery for handling FormData
 const customBaseQuery = async (args: any) => {
@@ -17,7 +17,7 @@ const customBaseQuery = async (args: any) => {
 export const roomApi = createApi({
   reducerPath: "roomApi",
   baseQuery: customBaseQuery,
-  tagTypes: ["Room"],
+  tagTypes: ["Room", "MyRoom"],
   endpoints: (builder) => ({
     getRooms: builder.query<
       IRoomListResponse,
@@ -210,6 +210,15 @@ export const roomApi = createApi({
       }),
       invalidatesTags: ["Room"],
     }),
+
+    // Tenant
+    getMyRoom: builder.query<IMyRoomResponse, void>({
+      query: () => ({
+        url: "/rooms/my-room",
+        method: "GET",
+      }),
+      providesTags: ["MyRoom"],
+    }),
   }),
 });
 
@@ -222,4 +231,7 @@ export const {
   useRemoveRoomImagesMutation,
   useGetRoomByIdQuery,
   useQuickCreateMutation,
+
+  // Tenant
+  useGetMyRoomQuery
 } = roomApi;
