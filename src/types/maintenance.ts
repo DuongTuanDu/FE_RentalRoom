@@ -117,3 +117,105 @@ export interface IMaintenanceResponse {
 export interface IMaintenanceDetailResponse {
   data: IMaintenanceItem;
 }
+
+export interface IMaintenanceTenant {
+  _id: string;
+  buildingId: string;
+  roomId: string;
+  furnitureId: {
+    _id: string;
+    name: string;
+  };
+  reporterAccountId: string;
+  assigneeAccountId: {
+    _id: string;
+    email: string;
+    password: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+    role: "landlord" | "admin" | "resident";
+  };
+  title: string;
+  photos: {
+    url: string;
+    note: string;
+    _id: string;
+  }[];
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  affectedQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+  assigneeName: string;
+}
+
+export interface IMaintenanceTenantItem {
+  _id: string;
+  buildingId: {
+    id: string;
+    name: string;
+    address: string;
+  };
+  roomId: IRoom;
+  furnitureId: IFurniture;
+  reporterAccountId: IReporterAccount;
+  title: string;
+  description: string;
+  photos: {
+    url: string;
+    note: string;
+    _id: string;
+  }[];
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  affectedQuantity: number;
+  timeline: ITimeline[];
+  assigneeAccountId: {
+    _id: string;
+    email: string;
+    password: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+      phoneNumber: string;
+    };
+    role: "landlord" | "admin" | "resident";
+    isActivated: true;
+    accessToken: string;
+    refreshToken: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: 0;
+    deviceId: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface IMaintenanceCreateRequest {
+  roomId: string;
+  furnitureId: string;
+  title: string;
+  description: string;
+  photos?: {
+    url: string;
+    note?: string;
+  }[];
+  priority: "low" | "medium" | "high" | "urgent";
+  affectedQuantity: number;
+}
+
+export interface IMaintenanceTenantResponse {
+  data: IMaintenanceTenant[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface IMaintenanceTenantDetailsResponse {
+  data: IMaintenanceTenantItem;
+}

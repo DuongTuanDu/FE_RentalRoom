@@ -10,6 +10,8 @@ export default {
   profilePath: '/profile',
   postDetailUserPath: '/posts/:slug',
   contactRequestPath: '/contact-requests',
+  maintenancePath: '/maintenance',
+  myRoomPath: '/my-rooms',
   contractPath: '/contracts',
   roleAdmin: "admin",
   roleLandlord: "landlord",
