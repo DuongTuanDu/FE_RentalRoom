@@ -57,7 +57,7 @@ export interface IGenerateInvoiceRequest {
 }
 
 export interface IPayInvoiceRequest {
-  paymentMethod: string;
+  paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
   paidAt: string;
   note: string;
 }
@@ -145,4 +145,103 @@ export interface InvoiceDetailResponse {
   emailLastError: string;
   emailSentAt: string;
   sentAt: string;
+}
+
+export interface ITenantPayInvoiceRequest {
+  paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
+  note: string;
+}
+
+export interface InvoiceItem {
+  _id: string;
+  buildingId: {
+    _id: string;
+    name: string;
+    address: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+  };
+  contractId: string;
+  periodMonth: number;
+  periodYear: number;
+  invoiceNumber: string;
+  totalAmount: number;
+  issuedAt: string;
+  dueDate: string;
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  createdAt: string;
+  updatedAt: string;
+  paidAt?: string;
+}
+
+export interface ITenantInvoiceResponse {
+  items: InvoiceItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ITenantInvoiceDetailResponse {
+  _id: string;
+  landlordId: string;
+  tenantId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+    address: string;
+  };
+  roomId: {
+    _id: string;
+    roomNumber: string;
+  };
+  contractId: {
+    _id: string;
+    contract: {
+      no: string;
+      startDate: string;
+      endDate: string;
+    };
+  };
+  periodMonth: number;
+  periodYear: number;
+  invoiceNumber: string;
+  items: {
+    type: "rent" | "electric" | "water" | "service" | "other";
+    label: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }[];
+  subtotal: number;
+  discountAmount: number;
+  lateFee: number;
+  totalAmount: number;
+  paidAmount: number;
+  currency: string;
+  issuedAt: string;
+  dueDate: string;
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
+  emailStatus: "pending" | "sent" | "failed";
+  createdBy: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  reminders: {
+    channel: "email" | "sms" | "in_app";
+    sentAt: string;
+    status: "sent" | "failed";
+    note?: string;
+  }[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  emailLastError: string | null;
+  emailSentAt: string | null;
+  sentAt: string | null;
+  paidAt: string | null;
+  paymentNote?: string;
 }

@@ -16,6 +16,7 @@ const residentRoutes = (
     <Route path={config.contractPath} element={lazyLoad(() => import('@/pages/Contracts'))} />
     <Route path={config.myRoomPath} element={lazyLoad(() => import('@/pages/MyRoom'))} />
     <Route path={config.maintenancePath} element={lazyLoad(() => import('@/pages/Maintenance'))} />
+    <Route path={config.myInvoicePath} element={lazyLoad(() => import('@/pages/Invoice'))} />
   </>
 ) as ReactElement
 

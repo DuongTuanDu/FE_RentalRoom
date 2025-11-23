@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -19,51 +18,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreditCard, Loader2 } from "lucide-react";
-import { useGetInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
+import { useGetTenantInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 
-interface PayInvoiceDialogProps {
+interface TenantPayInvoiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string | null;
   onPay: (data: {
     paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
-    paidAt: string;
     note: string;
   }) => void;
   isLoading: boolean;
 }
 
-export const PayInvoiceDialog = ({
+export const TenantPayInvoiceDialog = ({
   open,
   onOpenChange,
   invoiceId,
   onPay,
   isLoading,
-}: PayInvoiceDialogProps) => {
+}: TenantPayInvoiceDialogProps) => {
   const formatPrice = useFormatPrice();
-  const { data: invoice } = useGetInvoiceDetailsQuery(invoiceId || "", {
+  const { data: invoice } = useGetTenantInvoiceDetailsQuery(invoiceId || "", {
     skip: !invoiceId || !open,
   });
 
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "bank_transfer" | "online_gateway" | null
   >("cash");
-  const [paidAt, setPaidAt] = useState("");
   const [note, setNote] = useState("");
-
-  // Set default paidAt to current date/time
-  useEffect(() => {
-    if (open) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      setPaidAt(`${year}-${month}-${day}T${hours}:${minutes}`);
-    }
-  }, [open]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -75,12 +59,8 @@ export const PayInvoiceDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!paidAt) {
-      return;
-    }
     onPay({
-      paymentMethod: paymentMethod as "cash" | "bank_transfer" | "online_gateway" | null,
-      paidAt: new Date(paidAt).toISOString(),
+      paymentMethod,
       note,
     });
   };
@@ -96,10 +76,10 @@ export const PayInvoiceDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Thanh toán hóa đơn
+            Báo đã thanh toán hóa đơn
           </DialogTitle>
           <DialogDescription>
-            Đánh dấu hóa đơn đã được thanh toán
+            Xác nhận bạn đã thanh toán hóa đơn này và cung cấp thông tin phương thức thanh toán
           </DialogDescription>
         </DialogHeader>
 
@@ -169,18 +149,6 @@ export const PayInvoiceDialog = ({
                 </Select>
               </div>
 
-              {/* Paid At */}
-              <div className="space-y-2">
-                <Label htmlFor="paidAt">Ngày giờ thanh toán *</Label>
-                <Input
-                  id="paidAt"
-                  type="datetime-local"
-                  value={paidAt}
-                  onChange={(e) => setPaidAt(e.target.value)}
-                  required
-                />
-              </div>
-
               {/* Note */}
               <div className="space-y-2">
                 <Label htmlFor="note">Ghi chú</Label>
@@ -209,7 +177,7 @@ export const PayInvoiceDialog = ({
                       Đang xử lý...
                     </>
                   ) : (
-                    "Xác nhận thanh toán"
+                    "Xác nhận đã thanh toán"
                   )}
                 </Button>
               </DialogFooter>
