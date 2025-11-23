@@ -148,7 +148,7 @@ const DashBoard = () => {
   const topLandlords = data.data.topLandlords;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-3">
+    <div className="min-h-screen px-3">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-4">

@@ -114,7 +114,7 @@ const PostCard = ({
       {/* Content */}
       <CardContent className="px-4 pb-4">
         {/* Tiêu đề */}
-        <h3 className="text-base font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+        <h3 className="text-base font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors truncate">
           {post.title}
         </h3>
 

@@ -136,9 +136,9 @@ const AboutUsPage = () => {
         </div>
 
         {/* Stats Section */}
-        {/* <div data-aos="fade-up">
+        <div data-aos="fade-up">
           <StatsSection />
-        </div> */}
+        </div>
 
         {/* Multi-Platform Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent to-blue-50/30">
