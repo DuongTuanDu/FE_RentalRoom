@@ -201,7 +201,7 @@ export const ContractDetailSheet = ({
                 <div className="space-y-2">
                   <div className="font-semibold">Nội dung điều khoản</div>
                   <div className="space-y-2 text-sm">
-                    {contractDetail.terms
+                    {[...contractDetail.terms]
                       .sort((a, b) => a.order - b.order)
                       .map((term, index) => (
                         <div key={index} className="p-3 border rounded-lg">
@@ -224,7 +224,7 @@ export const ContractDetailSheet = ({
                   <div className="space-y-2">
                     <div className="font-semibold">Nội dung quy định</div>
                     <div className="space-y-2 text-sm">
-                      {contractDetail.regulations
+                      {[...contractDetail.regulations]
                         .sort((a, b) => a.order - b.order)
                         .map((reg, index) => (
                           <div
