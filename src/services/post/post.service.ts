@@ -48,12 +48,14 @@ export const postApi = createApi({
         keyword?: string;
       }
     >({
-      query: ({ page, limit }) => {
+      query: ({ page, limit, keyword }) => {
         const params = new URLSearchParams({
           page: page?.toString() || "1",
           limit: limit?.toString() || "12",
-          keyword: "",
         });
+        if (keyword) {
+          params.append("keyword", keyword);
+        }
         return {
           url: `/posts?${params.toString()}`,
           method: "GET",
