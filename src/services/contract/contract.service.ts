@@ -186,6 +186,15 @@ export const contractApi = createApi({
         config: { responseType: "blob" },
       }),
     }),
+    createCloneContract: builder.mutation<IContractResponse, { id: string }>({
+      // Tạo hợp đồng mới (draft) từ hợp đồng có cũ
+      // Clone hợp đồng ở trạng thái completed hoặc voided sang một hợp đồng mới ở trạng thái draft để sửa lại thông tin và ký lại.
+      query: ({ id }) => ({
+        url: `/landlords/contracts/${id}/clone`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
 
     // Tenant
     getTenantContracts: builder.query<ITenantContractResponse, {
@@ -305,6 +314,7 @@ export const {
   useTerminateContractMutation,
   useDisableContractMutation,
   useDownloadContractMutation,
+  useCreateCloneContractMutation,
 
   // Tenant
   useGetTenantContractsQuery,

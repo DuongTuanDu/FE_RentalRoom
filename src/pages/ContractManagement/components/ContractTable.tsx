@@ -39,9 +39,11 @@ interface ContractTableProps {
   onTerminate: (contractId: string) => void;
   onDisable?: (contractId: string) => void;
   onDownload?: (contractId: string) => void;
+  onClone?: (contractId: string) => void;
   isSending: boolean;
   isConfirming: boolean;
   isDownloading: boolean;
+  isCloning?: boolean;
   sendConfirmPopoverOpen: Record<string, boolean>;
   onSendPopoverOpenChange: (contractId: string, open: boolean) => void;
 }
@@ -100,9 +102,11 @@ export const ContractTable = ({
   onTerminate,
   onDisable,
   onDownload,
+  onClone,
   isSending,
   isConfirming,
   isDownloading,
+  isCloning,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
 }: ContractTableProps) => {
@@ -203,9 +207,11 @@ export const ContractTable = ({
                           onTerminate={onTerminate}
                           onDisable={onDisable}
                           onDownload={onDownload}
+                          onClone={onClone}
                           isSending={isSending}
                           isConfirming={isConfirming}
                           isDownloading={isDownloading}
+                          isCloning={isCloning}
                           sendConfirmPopoverOpen={
                             sendConfirmPopoverOpen[contract._id] || false
                           }
