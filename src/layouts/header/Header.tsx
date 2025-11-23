@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   ScrollText,
+  Wrench,
 } from "lucide-react";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
@@ -170,6 +171,27 @@ const Header = () => {
                     >
                       <ScrollText className="mr-2 h-4 w-4" />
                       <span>Yêu cầu hợp đồng</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.myInvoicePath)}
+                      className="cursor-pointer"
+                    >
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      <span>Hóa đơn của tôi</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.maintenancePath)}
+                      className="cursor-pointer"
+                    >
+                      <Wrench className="mr-2 h-4 w-4" />
+                      <span>Yêu cầu bảo trì</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.myRoomPath)}
+                      className="cursor-pointer"
+                    >
+                      <Home className="mr-2 h-4 w-4" />
+                      <span>Phòng của tôi</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate("/settings")}

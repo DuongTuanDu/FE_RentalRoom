@@ -2,12 +2,12 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
 
 import type {
-    ICreateNotificationRequest,
-    ICreateNotificationResponse,
-    IUpdateNotificationResponse,
-    IDeleteNotificationResponse,
-    IGetMyNotificationsResponse,
-    IGetNotificationByIdResponse,IMarkAsReadResponse,INotification
+  ICreateNotificationRequest,
+  ICreateNotificationResponse,
+  IUpdateNotificationResponse,
+  IDeleteNotificationResponse,
+  IGetMyNotificationsResponse,
+  IGetNotificationByIdResponse, IMarkAsReadResponse, INotification
 } from "@/types/notification";
 
 export const notificationApi = createApi({

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import type { IUpdateTenantContractRequest, IPerson } from "@/types/contract";
 import { formatDateForInput } from "@/helpers/date";
 import { Plus, Trash2 } from "lucide-react";
+import { useFormatDate } from "@/hooks/useFormatDate";
 
 interface UpdateTenantContractDialogProps {
   open: boolean;
@@ -32,6 +33,8 @@ export const UpdateTenantContractDialog = ({
   contractId,
   onSuccess,
 }: UpdateTenantContractDialogProps) => {
+  const formatDate = useFormatDate();
+
   // Person B (Tenant) states
   const [personBName, setPersonBName] = useState("");
   const [personBDob, setPersonBDob] = useState("");
@@ -46,7 +49,9 @@ export const UpdateTenantContractDialog = ({
   const [roommates, setRoommates] = useState<IPerson[]>([]);
 
   // Bikes
-  const [bikes, setBikes] = useState<{ bikeNumber: string; color: string; brand: string }[]>([]);
+  const [bikes, setBikes] = useState<
+    { bikeNumber: string; color: string; brand: string }[]
+  >([]);
 
   const { data: contractDetail, isLoading: isLoadingDetail } =
     useGetTenantContractDetailsQuery(contractId || "", {
@@ -98,7 +103,11 @@ export const UpdateTenantContractDialog = ({
     setRoommates(roommates.filter((_, i) => i !== index));
   };
 
-  const handleUpdateRoommate = (index: number, field: keyof IPerson, value: string) => {
+  const handleUpdateRoommate = (
+    index: number,
+    field: keyof IPerson,
+    value: string
+  ) => {
     const updated = [...roommates];
     updated[index] = { ...updated[index], [field]: value };
     setRoommates(updated);
@@ -148,12 +157,8 @@ export const UpdateTenantContractDialog = ({
           phone: personBPhone,
           email: personBEmail,
         },
-        roommates: roommates.filter(
-          (r) => r.name && r.cccd && r.phone
-        ),
-        bikes: bikes.filter(
-          (b) => b.bikeNumber && b.brand && b.color
-        ),
+        roommates: roommates.filter((r) => r.name && r.cccd && r.phone),
+        bikes: bikes.filter((b) => b.bikeNumber && b.brand && b.color),
       };
 
       await updateContract({
@@ -200,7 +205,55 @@ export const UpdateTenantContractDialog = ({
               </div>
               <div className="space-y-1 text-sm">
                 <div className="font-semibold">BÊN CHO THUÊ NHÀ (BÊN A):</div>
-                <div>Đại diện (Ông/Bà): {contractDetail.A?.name || "—"}</div>
+                {/* <div>Đại diện (Ông/Bà): {contractDetail.A?.name || "—"}</div> */}
+                <div>
+                  Đại diện (Ông/Bà):{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.name || "—"}
+                  </span>
+                </div>
+                <div>
+                  Ngày sinh:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.dob
+                      ? formatDate(contractDetail.B.dob)
+                      : "—"}
+                  </span>
+                </div>
+                <div>
+                  CCCD:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.cccd || "—"}
+                  </span>{" "}
+                  Cấp ngày:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.cccdIssuedDate
+                      ? formatDate(contractDetail.B.cccdIssuedDate)
+                      : "—"}
+                  </span>
+                  , Nơi cấp:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.cccdIssuedPlace || "—"}
+                  </span>
+                </div>
+                <div>
+                  Hộ khẩu thường trú:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.permanentAddress || "—"}
+                  </span>
+                </div>
+                <div>
+                  Điện thoại:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.phone || "—"}
+                  </span>
+                </div>
+                <div>
+                  Email:{" "}
+                  <span className="font-medium">
+                    {contractDetail.A?.email || "—"}
+                  </span>
+                </div>
                 <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
                 <div>
                   Đại diện (Ông/Bà):{" "}
@@ -273,6 +326,64 @@ export const UpdateTenantContractDialog = ({
                 </div>
               </div>
             </div>
+
+            {/* Terms and Regulations */}
+            {(contractDetail.terms && contractDetail.terms.length > 0) ||
+            (contractDetail.regulations &&
+              contractDetail.regulations.length > 0) ? (
+              <div className="space-y-4">
+                {contractDetail.terms && contractDetail.terms.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Nội dung điều khoản</div>
+                    <div className="space-y-2 text-sm">
+                      {contractDetail.terms
+                        .sort((a, b) => a.order - b.order)
+                        .map((term, index) => (
+                          <div
+                            key={index}
+                            className="p-3 bg-slate-50 rounded-lg"
+                          >
+                            <div className="font-medium">{term.name}</div>
+                            <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
+                              <div
+                                dangerouslySetInnerHTML={{
+                                  __html: term.description,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {contractDetail.regulations &&
+                  contractDetail.regulations.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="font-semibold">Nội dung quy định</div>
+                      <div className="space-y-2 text-sm">
+                        {contractDetail.regulations
+                          .sort((a, b) => a.order - b.order)
+                          .map((reg, index) => (
+                            <div
+                              key={index}
+                              className="p-3 bg-slate-50 rounded-lg"
+                            >
+                              <div className="font-medium">{reg.title}</div>
+                              <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
+                                <div
+                                  dangerouslySetInnerHTML={{
+                                    __html: reg.description,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            ) : null}
 
             {/* Roommates Section */}
             <div className="space-y-4">
@@ -402,7 +513,11 @@ export const UpdateTenantContractDialog = ({
                         <Input
                           value={bike.bikeNumber}
                           onChange={(e) =>
-                            handleUpdateBike(index, "bikeNumber", e.target.value)
+                            handleUpdateBike(
+                              index,
+                              "bikeNumber",
+                              e.target.value
+                            )
                           }
                           placeholder="Nhập biển số"
                         />
@@ -455,4 +570,3 @@ export const UpdateTenantContractDialog = ({
     </Dialog>
   );
 };
-

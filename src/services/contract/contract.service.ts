@@ -15,8 +15,8 @@ import type {
 export const contractApi = createApi({
   reducerPath: "contractApi",
   baseQuery: async (args) => {
-    const { url, method, data, params } = args;
-    return baseQuery({ url, method, data, params });
+    const { url, method, data, params, config } = args as any;
+    return baseQuery({ url, method, data, params, config });
   },
   tagTypes: ["Contract", "TenantContract", "ContractRenewal"],
   endpoints: (builder) => ({
@@ -30,7 +30,9 @@ export const contractApi = createApi({
           | "sent_to_tenant"
           | "signed_by_tenant"
           | "signed_by_landlord"
-          | "completed";
+          | "completed"
+          | "voided"
+          | "terminated";
         search?: string;
       }
     >({
@@ -165,6 +167,34 @@ export const contractApi = createApi({
       }),
       invalidatesTags: ["Contract", "ContractRenewal"],
     }),
+    disableContract: builder.mutation<IContractResponse, { id: string, data: { reason: string } }>({
+      // Vô hiệu hóa hợp đồng
+      // Chỉ cho phép khi hợp đồng ở trạng thái completed, sent_to_tenant và chưa xác nhận người thuê vào ở
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/void`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    downloadContract: builder.mutation<Blob, { id: string }>({
+      // Tải file pdf hợp đồng
+      // Chỉ cho phép khi trạng thái hợp đồng là completed
+      query: ({ id }) => ({
+        url: `/landlords/contracts/${id}/download`,
+        method: "GET",
+        config: { responseType: "blob" },
+      }),
+    }),
+    createCloneContract: builder.mutation<IContractResponse, { id: string }>({
+      // Tạo hợp đồng mới (draft) từ hợp đồng có cũ
+      // Clone hợp đồng ở trạng thái completed hoặc voided sang một hợp đồng mới ở trạng thái draft để sửa lại thông tin và ký lại.
+      query: ({ id }) => ({
+        url: `/landlords/contracts/${id}/clone`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
 
     // Tenant
     getTenantContracts: builder.query<ITenantContractResponse, {
@@ -175,7 +205,9 @@ export const contractApi = createApi({
         | "sent_to_tenant"
         | "signed_by_tenant"
         | "signed_by_landlord"
-        | "completed";
+        | "completed"
+        | "voided"
+        | "terminated";
     }>({
       query: ({ page = 1, limit = 10, status  }) => {
         const params = new URLSearchParams({
@@ -254,7 +286,16 @@ export const contractApi = createApi({
         data,
       }),
       invalidatesTags: ["TenantContract"],
-    })
+    }),
+    downloadTenantContract: builder.mutation<Blob, { id: string }>({
+      // Tải file pdf hợp đồng
+      // Chỉ cho phép khi trạng thái hợp đồng là completed
+      query: ({ id }) => ({
+        url: `/contracts/${id}/download`,
+        method: "GET",
+        config: { responseType: "blob" },
+      }),
+    }),
   }),
 });
 
@@ -271,6 +312,9 @@ export const {
   useApproveExtensionMutation,
   useRejectExtensionMutation,
   useTerminateContractMutation,
+  useDisableContractMutation,
+  useDownloadContractMutation,
+  useCreateCloneContractMutation,
 
   // Tenant
   useGetTenantContractsQuery,
@@ -278,5 +322,6 @@ export const {
   useUpdateTenantContractMutation,
   useSignTenantMutation,
   useGetUpcomingExpireQuery,
-  useRequestExtendMutation
+  useRequestExtendMutation,
+  useDownloadTenantContractMutation
 } = contractApi;

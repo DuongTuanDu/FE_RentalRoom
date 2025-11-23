@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   useCreateBuildingMutation,
   useGetBuildingsQuery,
@@ -50,7 +50,6 @@ import type {
 } from "@/types/building";
 import { toast } from "sonner";
 import { toText } from "@/utils/errors";
-import { useSelector } from "react-redux";
 import Permission from "@/layouts/Permission";
 
 const BuildingManageLandlord = () => {

@@ -94,7 +94,7 @@ export const ModalRoomFurniture = ({
   useEffect(() => {
     if (isOpen) {
       if (editingRoomFurniture) {
-        setValue("roomId", editingRoomFurniture.roomId.id);
+        setValue("roomId", editingRoomFurniture.roomId._id);
         setValue("furnitureId", editingRoomFurniture.furnitureId._id);
         setValue("quantity", editingRoomFurniture.quantity);
         setValue("condition", editingRoomFurniture.condition);

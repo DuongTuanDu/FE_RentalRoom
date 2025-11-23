@@ -19,6 +19,7 @@ export interface IContract {
   };
   contract: IContractInfo;
   status: IContractStatus;
+  moveInConfirmedAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,7 +89,9 @@ export type IContractStatus =
   | "sent_to_tenant"
   | "signed_by_tenant"
   | "signed_by_landlord"
-  | "completed";
+  | "completed"
+  | "voided"
+  | "terminated";
 
 export interface IContractInfo {
   no: string;
@@ -103,12 +106,12 @@ export interface IContractInfo {
 export interface IUpdateContractRequest {
   A: IPerson;
   contract: IContractInfo;
-  termIds: {
+  terms: {
     name: string;
     description: string;
     order: number;
   }[];
-  regulationIds: {
+  regulations: {
     title: string;
     description: string;
     effectiveFrom: string;
@@ -195,6 +198,8 @@ export interface IContractDetailResponse {
   __v: number;
   landlordSignatureUrl: string;
   sentToTenantAt: string;
+  tenantSignatureUrl: string;
+  moveInConfirmedAt?: string | null;
   furnitures: {
     id: string;
     name: string;

@@ -1,7 +1,9 @@
 // types/room.ts
 
+import type { IPerson } from "./contract";
+
 export interface IRoom {
-  id: string;
+  _id: string;
   buildingId: {
     _id: string;
     name: string;
@@ -27,11 +29,59 @@ export interface IRoom {
   updatedAt: string;
 }
 
+export interface IMyRoom {
+  _id: string;
+  building: {
+    _id: string;
+    name: string;
+    address: string;
+  };
+  roomNumber: string;
+  images: string[];
+  area: number;
+  price: number;
+  currentContract: {
+    _id: string;
+    no: string;
+    price: number;
+    startDate: string;
+    endDate: string;
+    roommates: IPerson[];
+  };
+  tenants: {
+    _id: string;
+    username: string;
+    fullName: string;
+    phoneNumber: string;
+  }[];
+  contractRoommates:  {
+    name: string;
+    cccd: string;
+    phone: string;
+    dob: string;
+  }[];
+  eStart: number;
+  wStart: number;
+  currentCount: number;
+  maxTenants: number;
+  status: "available" | "rented" | "maintenance";
+}
+
 export interface IRoomListResponse {
   data: IRoom[];
   total: number;
   page: number;
   limit: number;
+}
+
+export interface IMyRoomResponse {
+  room: IMyRoom;
+  furnitures: {
+    _id: string;
+    name: string;
+    quantity: number;
+    condition: string;
+  }[];
 }
 
 export interface CreateRoomRequest {
@@ -110,6 +160,6 @@ export interface IVacantRoomResponse {
       description: string;
       type: "entry_exit" | "pet_policy" | "common_area" | "other";
       effectiveFrom: string;
-    }
+    };
   };
 }

@@ -67,7 +67,7 @@ const RoomFurnitureLandlord = () => {
       roomId: selectedRoomId || undefined,
     },
     {
-      skip: !selectedBuildingId && !selectedRoomId, // tránh gọi khi chưa có filter nào
+      skip: !selectedBuildingId && !selectedRoomId,
       refetchOnMountOrArgChange: true,
     }
   );
@@ -114,11 +114,7 @@ const RoomFurnitureLandlord = () => {
       setIsModalOpen(false);
       setEditingRoomFurniture(null);
     } catch (error: any) {
-      toast.error(
-        editingRoomFurniture
-          ? "Cập nhật nội thất phòng thất bại!"
-          : "Thêm nội thất phòng mới thất bại!"
-      );
+      toast.error(error?.message?.message || "Đã xảy ra lỗi không xác định.");
       console.error(error);
     }
   };
@@ -128,7 +124,7 @@ const RoomFurnitureLandlord = () => {
       await deleteRoomFurniture(roomFurniture._id).unwrap();
       toast.success("Xóa nội thất phòng thành công!");
     } catch (error: any) {
-      toast.error("Xóa nội thất phòng thất bại!");
+      toast.error(error?.message?.message || "Xóa nội thất phòng thất bại!");
       console.error(error);
     }
   };
@@ -195,7 +191,7 @@ const RoomFurnitureLandlord = () => {
             Danh sách nội thất phòng
           </CardTitle>
           <CardDescription>
-            {filteredRoomFurnitures.length} nội thất phòng
+            {filteredRoomFurnitures.length || 0} nội thất phòng
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -204,7 +200,7 @@ const RoomFurnitureLandlord = () => {
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <span className="ml-2 text-muted-foreground">Đang tải...</span>
             </div>
-          ) : filteredRoomFurnitures.length === 0 ? (
+          ) : !Array.isArray(filteredRoomFurnitures) ? (
             <div className="text-center py-8 text-muted-foreground">
               {selectedRoomId
                 ? "Không có nội thất nào trong phòng này"

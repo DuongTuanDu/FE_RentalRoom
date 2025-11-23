@@ -31,6 +31,8 @@ const landlordRoutes = (
     <Route path='staff-management' element={lazyLoad(() => import('@/pages/StaffManagementLandlord'))} />
     <Route path='staff-detail' element={lazyLoad(() => import('@/pages/StaffManagementLandlord/components/ModalStaffDetail'))} />
     <Route path='notifications' element={lazyLoad(() => import('@/pages/NotificationManageLandlord'))} />
+    <Route path='invoices' element={lazyLoad(() => import('@/pages/InvoiceManagement'))} />
+    <Route path='utilities' element={lazyLoad(() => import('@/pages/UtilityManagement'))} />
   </>
 ) as ReactElement
 

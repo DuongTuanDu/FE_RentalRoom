@@ -4,6 +4,8 @@ export interface IPackage {
   price: number;
   durationDays: number;
   roomLimit: number;
+  type: string;
+  isActive: boolean;
   description: string;
   createdBy: string;
   createdAt: string;

@@ -111,7 +111,6 @@ const Login = () => {
 
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">{t("email")}</Label>
               <div className="relative">

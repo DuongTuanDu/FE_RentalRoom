@@ -27,6 +27,8 @@ import { contractApi } from "@/services/contract/contract.service";
 import { staffApi } from "@/services/staff/staff.service";
 import { notificationApi } from "@/services/notification/notification.service";
 import { socketMiddleware } from "@/middleware/socket.middleware";
+import { analysisApi } from "@/services/analysis/analysis.service";
+import { invoiceApi } from "@/services/invoice/invoice.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -63,7 +65,9 @@ export const store = configureStore({
     [revenueApi.reducerPath]: revenueApi.reducer,
     [contractApi.reducerPath]: contractApi.reducer,
     [staffApi.reducerPath]: staffApi.reducer,
-      [notificationApi.reducerPath]: notificationApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
+    [analysisApi.reducerPath]: analysisApi.reducer,
+    [invoiceApi.reducerPath]: invoiceApi.reducer
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -95,7 +99,9 @@ export const store = configureStore({
       contractApi.middleware,
       staffApi.middleware,
       notificationApi.middleware,
-      socketMiddleware
+      socketMiddleware,
+      analysisApi.middleware,
+      invoiceApi.middleware
     ),
 });
 

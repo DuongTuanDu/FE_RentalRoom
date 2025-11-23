@@ -9,6 +9,9 @@ import {
   useRejectExtensionMutation,
   useTerminateContractMutation,
   useDeleteContractMutation,
+  useDisableContractMutation,
+  useDownloadContractMutation,
+  useCreateCloneContractMutation,
 } from "@/services/contract/contract.service";
 import { FileText } from "lucide-react";
 import _ from "lodash";
@@ -24,6 +27,7 @@ import { TerminateContractDialog } from "./components/TerminateContractDialog";
 import { SignContractDialog } from "./components/SignContractDialog";
 import { DeleteContractDialog } from "./components/DeleteContractDialog";
 import { ConfirmMoveInDialog } from "./components/ConfirmMoveInDialog";
+import { DisableContractDialog } from "./components/DisableContractDialog";
 import type { IContractStatus } from "@/types/contract";
 
 const ContractManagement = () => {
@@ -64,6 +68,9 @@ const ContractManagement = () => {
   >(null);
   const [isConfirmMoveInDialogOpen, setIsConfirmMoveInDialogOpen] = useState(false);
   const [selectedConfirmMoveInContractId, setSelectedConfirmMoveInContractId] = useState<string | null>(null);
+  const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
+  const [selectedDisableContractId, setSelectedDisableContractId] = useState<string | null>(null);
+  const [disableReason, setDisableReason] = useState("");
 
   const { data, error, isLoading } = useGetContractsQuery({
     page: currentPage,
@@ -101,6 +108,12 @@ const ContractManagement = () => {
     useTerminateContractMutation();
   const [deleteContract, { isLoading: isDeleting }] =
     useDeleteContractMutation();
+  const [disableContract, { isLoading: isDisabling }] =
+    useDisableContractMutation();
+  const [downloadContract, { isLoading: isDownloading }] =
+    useDownloadContractMutation();
+  const [createCloneContract, { isLoading: isCloning }] =
+    useCreateCloneContractMutation();
 
   // Reset pagination when filter/search changes
   useEffect(() => {
@@ -298,6 +311,67 @@ const ContractManagement = () => {
     }
   };
 
+  const handleOpenDisableDialog = (contractId: string) => {
+    setSelectedDisableContractId(contractId);
+    setDisableReason("");
+    setIsDisableDialogOpen(true);
+  };
+
+  const handleDisableContract = async () => {
+    if (!selectedDisableContractId || !disableReason.trim()) {
+      toast.error("Vui lòng nhập lý do vô hiệu hóa");
+      return;
+    }
+
+    try {
+      await disableContract({
+        id: selectedDisableContractId,
+        data: { reason: disableReason },
+      }).unwrap();
+      toast.success("Vô hiệu hóa hợp đồng thành công");
+      setIsDisableDialogOpen(false);
+      setSelectedDisableContractId(null);
+      setDisableReason("");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Có lỗi xảy ra khi vô hiệu hóa hợp đồng"
+      );
+    }
+  };
+
+  const handleDownloadContract = async (contractId: string) => {
+    try {
+      const blob = await downloadContract({ id: contractId }).unwrap();
+      
+      // Tạo URL từ blob và tải file
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `HopDong_${contractId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast.success("Tải hợp đồng PDF thành công");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Có lỗi xảy ra khi tải hợp đồng PDF"
+      );
+    }
+  };
+
+  const handleCloneContract = async (contractId: string) => {
+    try {
+      await createCloneContract({ id: contractId }).unwrap();
+      toast.success("Tạo hợp đồng mới từ hợp đồng cũ thành công");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Có lỗi xảy ra khi tạo hợp đồng mới"
+      );
+    }
+  };
+
 
   return (
     <div className="">
@@ -347,8 +421,13 @@ const ContractManagement = () => {
           onConfirmMoveIn={handleOpenConfirmMoveInDialog}
           onDelete={handleOpenDeleteDialog}
           onTerminate={handleOpenTerminateDialog}
+          onDisable={handleOpenDisableDialog}
+          onDownload={handleDownloadContract}
+          onClone={handleCloneContract}
           isSending={isSending}
           isConfirming={isConfirming}
+          isDownloading={isDownloading}
+          isCloning={isCloning}
           sendConfirmPopoverOpen={sendConfirmPopoverOpen}
           onSendPopoverOpenChange={(contractId, open) => {
             setSendConfirmPopoverOpen((prev) => ({
@@ -422,6 +501,7 @@ const ContractManagement = () => {
             setSignatureUrl("");
           }
         }}
+        contractId={selectedContractId}
         signatureUrl={signatureUrl}
         onSignatureUrlChange={setSignatureUrl}
         onSign={handleSignContract}
@@ -498,6 +578,21 @@ const ContractManagement = () => {
         }}
         onConfirm={handleDeleteContract}
         isLoading={isDeleting}
+      />
+
+      <DisableContractDialog
+        open={isDisableDialogOpen}
+        onOpenChange={(open) => {
+          setIsDisableDialogOpen(open);
+          if (!open) {
+            setSelectedDisableContractId(null);
+            setDisableReason("");
+          }
+        }}
+        reason={disableReason}
+        onReasonChange={setDisableReason}
+        onDisable={handleDisableContract}
+        isLoading={isDisabling}
       />
     </div>
   );

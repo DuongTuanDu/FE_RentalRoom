@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, Edit, Trash2, Eye, User, UserCheck } from "lucide-react";
-import _, { set } from "lodash";
+import { Search, Eye, User, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -192,7 +191,7 @@ const AccountManagement = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-auto-fit gap-4" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))` }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-3">
               <div className="flex items-center justify-between">

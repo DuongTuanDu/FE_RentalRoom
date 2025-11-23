@@ -76,9 +76,16 @@ export const RegulationDetailSheet = ({
               <h3 className="font-semibold">Mô tả chi tiết</h3>
             </div>
             <div className="p-4 bg-secondary/50 rounded-lg border">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {regulation.description}
-              </p>
+              {regulation.description ? (
+                <div
+                  className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
+                  dangerouslySetInnerHTML={{
+                    __html: regulation.description,
+                  }}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Chưa có mô tả</p>
+              )}
             </div>
           </div>
 
@@ -149,10 +156,12 @@ export const RegulationDetailSheet = ({
               <User className="h-4 w-4 text-muted-foreground" />
               <h3 className="font-semibold">Thông tin hệ thống</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-3 bg-secondary/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Người tạo</p>
-                <p className="text-sm font-mono">{regulation.createdBy}</p>
+                <p className="text-sm font-mono">
+                  {regulation.createdBy.userInfo.fullName}
+                </p>
               </div>
               <div className="p-3 bg-secondary/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Ngày tạo</p>
@@ -167,10 +176,6 @@ export const RegulationDetailSheet = ({
                 <p className="text-sm font-mono">
                   {formatDate(regulation.updatedAt)}
                 </p>
-              </div>
-              <div className="p-3 bg-secondary/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">ID quy định</p>
-                <p className="text-sm font-mono break-all">{regulation._id}</p>
               </div>
             </div>
           </div>

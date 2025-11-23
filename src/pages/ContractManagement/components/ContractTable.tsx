@@ -37,8 +37,13 @@ interface ContractTableProps {
   onConfirmMoveIn: (contractId: string) => void;
   onDelete: (contractId: string) => void;
   onTerminate: (contractId: string) => void;
+  onDisable?: (contractId: string) => void;
+  onDownload?: (contractId: string) => void;
+  onClone?: (contractId: string) => void;
   isSending: boolean;
   isConfirming: boolean;
+  isDownloading: boolean;
+  isCloning?: boolean;
   sendConfirmPopoverOpen: Record<string, boolean>;
   onSendPopoverOpenChange: (contractId: string, open: boolean) => void;
 }
@@ -62,8 +67,16 @@ const getStatusBadge = (status: IContractStatus) => {
       label: "Hoàn thành",
       className: "bg-green-100 text-green-800",
     },
+    voided: {
+      label: "Vô hiệu hóa",
+      className: "bg-red-100 text-red-800",
+    },
+    terminated: {
+      label: "Đã chấm dứt",
+      className: "bg-red-100 text-red-800",
+    },
   };
-  const config = statusConfig[status] || statusConfig.draft;
+  const config = statusConfig[status];
   return (
     <Badge className={config.className} variant="outline">
       {config.label}
@@ -87,8 +100,13 @@ export const ContractTable = ({
   onConfirmMoveIn,
   onDelete,
   onTerminate,
+  onDisable,
+  onDownload,
+  onClone,
   isSending,
   isConfirming,
+  isDownloading,
+  isCloning,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
 }: ContractTableProps) => {
@@ -179,6 +197,7 @@ export const ContractTable = ({
                         <ContractActionsMenu
                           contractId={contract._id}
                           status={contract.status}
+                          moveInConfirmedAt={contract.moveInConfirmedAt}
                           onViewDetail={onViewDetail}
                           onUpdate={onUpdate}
                           onSign={onSign}
@@ -186,8 +205,13 @@ export const ContractTable = ({
                           onConfirmMoveIn={onConfirmMoveIn}
                           onDelete={onDelete}
                           onTerminate={onTerminate}
+                          onDisable={onDisable}
+                          onDownload={onDownload}
+                          onClone={onClone}
                           isSending={isSending}
                           isConfirming={isConfirming}
+                          isDownloading={isDownloading}
+                          isCloning={isCloning}
                           sendConfirmPopoverOpen={
                             sendConfirmPopoverOpen[contract._id] || false
                           }
