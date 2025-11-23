@@ -11,6 +11,7 @@ import {
   useDeleteContractMutation,
   useDisableContractMutation,
   useDownloadContractMutation,
+  useCreateCloneContractMutation,
 } from "@/services/contract/contract.service";
 import { FileText } from "lucide-react";
 import _ from "lodash";
@@ -111,6 +112,8 @@ const ContractManagement = () => {
     useDisableContractMutation();
   const [downloadContract, { isLoading: isDownloading }] =
     useDownloadContractMutation();
+  const [createCloneContract, { isLoading: isCloning }] =
+    useCreateCloneContractMutation();
 
   // Reset pagination when filter/search changes
   useEffect(() => {
@@ -358,6 +361,17 @@ const ContractManagement = () => {
     }
   };
 
+  const handleCloneContract = async (contractId: string) => {
+    try {
+      await createCloneContract({ id: contractId }).unwrap();
+      toast.success("Tạo hợp đồng mới từ hợp đồng cũ thành công");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Có lỗi xảy ra khi tạo hợp đồng mới"
+      );
+    }
+  };
+
 
   return (
     <div className="">
@@ -409,9 +423,11 @@ const ContractManagement = () => {
           onTerminate={handleOpenTerminateDialog}
           onDisable={handleOpenDisableDialog}
           onDownload={handleDownloadContract}
+          onClone={handleCloneContract}
           isSending={isSending}
           isConfirming={isConfirming}
           isDownloading={isDownloading}
+          isCloning={isCloning}
           sendConfirmPopoverOpen={sendConfirmPopoverOpen}
           onSendPopoverOpenChange={(contractId, open) => {
             setSendConfirmPopoverOpen((prev) => ({

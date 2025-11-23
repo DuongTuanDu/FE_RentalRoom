@@ -1,4 +1,4 @@
-import { Eye, Send, CheckCircle, Edit, Trash2, Ban, XCircle, Download } from "lucide-react";
+import { Eye, Send, CheckCircle, Edit, Trash2, Ban, XCircle, Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -25,9 +25,11 @@ interface ContractActionsMenuProps {
   onTerminate: (contractId: string) => void;
   onDisable?: (contractId: string) => void;
   onDownload?: (contractId: string) => void;
+  onClone?: (contractId: string) => void;
   isSending: boolean;
   isConfirming: boolean;
   isDownloading: boolean;
+  isCloning?: boolean;
   sendConfirmPopoverOpen: boolean;
   onSendPopoverOpenChange: (open: boolean) => void;
   moveInConfirmedAt: string | null;
@@ -45,9 +47,11 @@ export const ContractActionsMenu = ({
   onTerminate,
   onDisable,
   onDownload,
+  onClone,
   isSending,
   isConfirming,
   isDownloading,
+  isCloning,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
   moveInConfirmedAt,
@@ -193,7 +197,7 @@ export const ContractActionsMenu = ({
         </TooltipProvider>
       )}
 
-      {status === "draft" && (
+      {/* {status === "draft" && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -211,7 +215,7 @@ export const ContractActionsMenu = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      )}
+      )} */}
 
       {((status === "completed" && moveInConfirmedAt)) && (
         <TooltipProvider>
@@ -272,6 +276,27 @@ export const ContractActionsMenu = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>Tải PDF hợp đồng</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {(status === "completed" || status === "voided") && onClone && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onClone(contractId)}
+                disabled={isCloning}
+              >
+                <Copy className="w-4 h-4 text-teal-600" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Tạo hợp đồng mới từ hợp đồng này</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

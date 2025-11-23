@@ -53,6 +53,8 @@ export const ContractFilters = ({
                   Đã ký bởi chủ trọ
                 </SelectItem>
                 <SelectItem value="completed">Hoàn thành</SelectItem>
+                <SelectItem value="voided">Vô hiệu hóa</SelectItem>
+                <SelectItem value="terminated">Đã chấm dứt</SelectItem>
               </SelectContent>
             </Select>
           </div>

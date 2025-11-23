@@ -173,6 +173,13 @@ const Header = () => {
                       <span>Yêu cầu hợp đồng</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      onClick={() => navigate(config.myInvoicePath)}
+                      className="cursor-pointer"
+                    >
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      <span>Hóa đơn của tôi</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() => navigate(config.maintenancePath)}
                       className="cursor-pointer"
                     >

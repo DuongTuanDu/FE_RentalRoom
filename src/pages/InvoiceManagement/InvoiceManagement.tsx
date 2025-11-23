@@ -10,6 +10,7 @@ import {
   User,
   Filter,
   X,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -38,11 +39,15 @@ import {
   useGetInvoicesQuery,
   usePayInvoiceMutation,
   useSendInvoiceMutation,
+  useCreateGenerateMonthlyInvoiceMutation,
+  useCreateGenerateInvoiceMutation,
 } from "@/services/invoice/invoice.service";
 import type { InvoiceItem } from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
 import { PayInvoiceDialog } from "./components/PayInvoiceDialog";
+import { GenerateMonthlyInvoiceDialog } from "./components/GenerateMonthlyInvoiceDialog";
+import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import _ from "lodash";
 
 const InvoiceManagement = () => {
@@ -69,6 +74,10 @@ const InvoiceManagement = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [isGenerateMonthlyDialogOpen, setIsGenerateMonthlyDialogOpen] =
+    useState(false);
+  const [isGenerateInvoiceDialogOpen, setIsGenerateInvoiceDialogOpen] =
+    useState(false);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -119,6 +128,10 @@ const InvoiceManagement = () => {
   // Mutations
   const [payInvoice, { isLoading: isPaying }] = usePayInvoiceMutation();
   const [sendInvoice, { isLoading: isSending }] = useSendInvoiceMutation();
+  const [generateMonthlyInvoice, { isLoading: isGeneratingMonthly }] =
+    useCreateGenerateMonthlyInvoiceMutation();
+  const [generateInvoice, { isLoading: isGeneratingInvoice }] =
+    useCreateGenerateInvoiceMutation();
 
   const totalItems = invoicesData?.total ?? 0;
   const totalPages = Math.ceil(totalItems / pageLimit);
@@ -167,7 +180,7 @@ const InvoiceManagement = () => {
   };
 
   const handlePayInvoice = async (data: {
-    paymentMethod: string;
+    paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
     paidAt: string;
     note: string;
   }) => {
@@ -195,6 +208,35 @@ const InvoiceManagement = () => {
     }
   };
 
+  const handleGenerateMonthlyInvoice = async (data: {
+    roomId: string;
+    periodMonth: number;
+    periodYear: number;
+    includeRent: boolean;
+  }) => {
+    try {
+      await generateMonthlyInvoice(data).unwrap();
+      toast.success("Tạo hóa đơn tháng thành công!");
+      setIsGenerateMonthlyDialogOpen(false);
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || error?.message?.message || "Tạo hóa đơn thất bại!"
+      );
+    }
+  };
+
+  const handleGenerateInvoice = async (data: any) => {
+    try {
+      await generateInvoice(data).unwrap();
+      toast.success("Tạo hóa đơn tùy chỉnh thành công!");
+      setIsGenerateInvoiceDialogOpen(false);
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || error?.message?.message || "Tạo hóa đơn thất bại!"
+      );
+    }
+  };
+
   // Generate month options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   const currentYear = new Date().getFullYear();
@@ -211,6 +253,21 @@ const InvoiceManagement = () => {
           <p className="text-muted-foreground">
             Quản lý và theo dõi các hóa đơn thuê phòng
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsGenerateMonthlyDialogOpen(true)}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Tạo hóa đơn tháng
+          </Button>
+          <Button
+            onClick={() => setIsGenerateInvoiceDialogOpen(true)}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Tạo hóa đơn tùy chỉnh
+          </Button>
         </div>
       </div>
 
@@ -544,6 +601,22 @@ const InvoiceManagement = () => {
         invoiceId={payingInvoiceId}
         onPay={handlePayInvoice}
         isLoading={isPaying}
+      />
+
+      {/* Generate Monthly Invoice Dialog */}
+      <GenerateMonthlyInvoiceDialog
+        open={isGenerateMonthlyDialogOpen}
+        onOpenChange={setIsGenerateMonthlyDialogOpen}
+        onSubmit={handleGenerateMonthlyInvoice}
+        isLoading={isGeneratingMonthly}
+      />
+
+      {/* Generate Invoice Dialog */}
+      <GenerateInvoiceDialog
+        open={isGenerateInvoiceDialogOpen}
+        onOpenChange={setIsGenerateInvoiceDialogOpen}
+        onSubmit={handleGenerateInvoice}
+        isLoading={isGeneratingInvoice}
       />
     </div>
   );

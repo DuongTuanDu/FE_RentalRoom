@@ -20,6 +20,7 @@ import {
   ScrollText,
   FileSignature,
   FileSpreadsheet,
+  BellElectric,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -133,6 +134,12 @@ const menuItems = [
         title: "Dịch vụ phòng",
         icon: Wrench,
         path: "/landlord/building-services",
+        staffAccess: true,
+      },
+      {
+        title: "Quản lý điện nước",
+        icon: BellElectric,
+        path: "/landlord/utilities",
         staffAccess: true,
       },
       {

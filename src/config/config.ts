@@ -11,6 +11,7 @@ export default {
   postDetailUserPath: '/posts/:slug',
   contactRequestPath: '/contact-requests',
   maintenancePath: '/maintenance',
+  myInvoicePath: '/my-invoices',
   myRoomPath: '/my-rooms',
   contractPath: '/contracts',
   roleAdmin: "admin",
