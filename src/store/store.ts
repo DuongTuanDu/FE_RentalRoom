@@ -25,6 +25,7 @@ import { roomAppointmentApi } from "@/services/room-appointment/room-appointment
 import { revenueApi } from "@/services/revenue/revenue.service";
 import { contractApi } from "@/services/contract/contract.service";
 import { staffApi } from "@/services/staff/staff.service";
+import { analysisApi } from "@/services/analysis/analysis.service";
 
 // Cấu hình persist cho auth reducer
 const persistConfig = {
@@ -60,7 +61,8 @@ export const store = configureStore({
     [roomAppointmentApi.reducerPath]: roomAppointmentApi.reducer,
     [revenueApi.reducerPath]: revenueApi.reducer,
     [contractApi.reducerPath]: contractApi.reducer,
-    [staffApi.reducerPath]: staffApi.reducer
+    [staffApi.reducerPath]: staffApi.reducer,
+    [analysisApi.reducerPath]: analysisApi.reducer,
   },
   middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
@@ -90,7 +92,8 @@ export const store = configureStore({
       roomAppointmentApi.middleware,
       revenueApi.middleware,
       contractApi.middleware,
-      staffApi.middleware
+      staffApi.middleware,
+      analysisApi.middleware
     ),
 });
 
