@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useEffect } from "react";
 
 interface TerminateContractDialogProps {
   open: boolean;
@@ -32,16 +33,24 @@ export const TerminateContractDialog = ({
   onTerminate,
   isLoading,
 }: TerminateContractDialogProps) => {
+  useEffect(() => {
+    if (open) {
+      const today = new Date().toISOString().split("T")[0];
+      onTerminatedAtChange(today);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Chấm dứt hợp đồng</DialogTitle>
           <DialogDescription>
-            Vui lòng nhập lý do và ngày chấm dứt hợp đồng này. Hành động này không thể
-            hoàn tác.
+            Vui lòng nhập lý do. Ngày chấm dứt được tự động đặt theo thời điểm
+            hiện tại.
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="terminate-reason">
@@ -56,6 +65,7 @@ export const TerminateContractDialog = ({
               required
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="terminated-at">
               Ngày chấm dứt <span className="text-red-500">*</span>
@@ -64,11 +74,12 @@ export const TerminateContractDialog = ({
               id="terminated-at"
               type="date"
               value={terminatedAt}
-              onChange={(e) => onTerminatedAtChange(e.target.value)}
-              required
+              readOnly
+              disabled
             />
           </div>
         </div>
+
         <DialogFooter>
           <Button
             variant="outline"
@@ -79,7 +90,7 @@ export const TerminateContractDialog = ({
           </Button>
           <Button
             onClick={onTerminate}
-            disabled={isLoading || !reason.trim() || !terminatedAt}
+            disabled={isLoading || !reason.trim()}
             variant="destructive"
           >
             {isLoading ? "Đang xử lý..." : "Chấm dứt hợp đồng"}
@@ -89,4 +100,3 @@ export const TerminateContractDialog = ({
     </Dialog>
   );
 };
-
