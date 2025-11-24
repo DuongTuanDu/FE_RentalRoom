@@ -113,6 +113,28 @@ export const ContractTable = ({
   const formatDate = useFormatDate();
   const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
 
+  const isContractInForce = (contract: IContract) => {
+    return (
+      contract.status === "completed" &&           
+      contract.moveInConfirmedAt !== null &&      
+      contract.moveInConfirmedAt !== undefined
+    );
+  };
+
+  const getContractBadge = (contract: IContract) => {
+    if (isContractInForce(contract)) {
+      return <Badge className="bg-emerald-100 text-emerald-800 font-semibold">
+        Đang có hiệu lực
+      </Badge>;
+    }
+    if (contract.status === "completed") {
+      return <Badge className="bg-green-100 text-green-800">
+        Hoàn thành (chưa vào ở)
+      </Badge>;
+    }
+    return getStatusBadge(contract.status);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -186,7 +208,7 @@ export const ContractTable = ({
                         {contract.roomId?.roomNumber || "—"}
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(contract.status)}
+                        {getContractBadge(contract)}
                       </TableCell>
                       <TableCell className="text-slate-600 text-sm">
                         {contract.createdAt

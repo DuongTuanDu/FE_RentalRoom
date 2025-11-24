@@ -336,7 +336,7 @@ export const UpdateTenantContractDialog = ({
                   <div className="space-y-2">
                     <div className="font-semibold">Nội dung điều khoản</div>
                     <div className="space-y-2 text-sm">
-                      {contractDetail.terms
+                      {[...contractDetail.terms]
                         .sort((a, b) => a.order - b.order)
                         .map((term, index) => (
                           <div
@@ -362,13 +362,10 @@ export const UpdateTenantContractDialog = ({
                     <div className="space-y-2">
                       <div className="font-semibold">Nội dung quy định</div>
                       <div className="space-y-2 text-sm">
-                        {contractDetail.regulations
+                        {[...contractDetail.regulations]
                           .sort((a, b) => a.order - b.order)
                           .map((reg, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-slate-50 rounded-lg"
-                            >
+                            <div key={index} className="p-3 border rounded-lg">
                               <div className="font-medium">{reg.title}</div>
                               <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
                                 <div

@@ -281,7 +281,7 @@ export const ContractActionsMenu = ({
         </TooltipProvider>
       )}
 
-      {(status === "completed" || status === "voided" || status === "terminated") && onClone && (
+      {(status === "voided" || status === "terminated") && onClone && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
