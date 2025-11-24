@@ -28,6 +28,7 @@ import { SignContractDialog } from "./components/SignContractDialog";
 import { DeleteContractDialog } from "./components/DeleteContractDialog";
 import { ConfirmMoveInDialog } from "./components/ConfirmMoveInDialog";
 import { DisableContractDialog } from "./components/DisableContractDialog";
+import { ContractActionsGuide } from "./components/ContractActionsGuide";
 import type { IContractStatus } from "@/types/contract";
 
 const ContractManagement = () => {
@@ -391,6 +392,8 @@ const ContractManagement = () => {
             </div>
           </div>
         </div>
+
+        <ContractActionsGuide />
 
         <ContractFilters
           searchQuery={searchQuery}

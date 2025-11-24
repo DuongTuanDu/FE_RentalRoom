@@ -38,6 +38,7 @@ import { ContractDetailSheet } from "./components/ContractDetailSheet";
 import { UpdateTenantContractDialog } from "./components/UpdateTenantContractDialog";
 import { SignTenantDialog } from "./components/SignTenantDialog";
 import { RequestExtendDialog } from "./components/RequestExtendDialog";
+import { TenantActionsGuide } from "./components/TenantActionsGuide";
 
 const Contract = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -201,6 +202,8 @@ const Contract = () => {
             </div>
           </div>
         </div>
+
+        <TenantActionsGuide />
 
         {/* Cảnh báo hợp đồng sắp hết hạn */}
         {upcomingExpireData && upcomingExpireData.items && upcomingExpireData.items.length > 0 && (

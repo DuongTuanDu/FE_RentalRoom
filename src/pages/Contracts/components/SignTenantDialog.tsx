@@ -92,7 +92,10 @@ export const SignTenantDialog = ({
         data: { signatureUrl },
       }).unwrap();
 
-      toast.success("Ký hợp đồng thành công");
+      toast.success("Ký hợp đồng thành công", {
+        description: "Hợp đồng đã được ký thành công. Vui lòng đợi chủ trọ xác nhận bạn vào ở trước khi chuyển đến phòng.",
+        duration: 6000,
+      });
       handleClose();
       onSuccess?.();
     } catch (error: any) {
