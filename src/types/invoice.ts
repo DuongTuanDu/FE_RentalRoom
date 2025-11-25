@@ -31,7 +31,7 @@ export interface InvoiceItem {
 }
 
 export interface IGenerateMonthlyInvoiceRequest {
-  roomId: string;
+  buildingId: string;
   periodMonth: number;
   periodYear: number;
   includeRent: boolean;

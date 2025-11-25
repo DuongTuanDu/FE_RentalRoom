@@ -71,9 +71,9 @@ export const invoiceApi = createApi({
     createGenerateMonthlyInvoice: builder.mutation<
       InvoiceResponse,
       IGenerateMonthlyInvoiceRequest
-    >({ // Tạo hóa đơn tháng cho 1 phòng
+    >({ // Tạo hóa đơn tháng hàng loạt cho các phòng đang được thuê
       query: (data) => ({
-        url: "/landlords/invoices/generate-monthly",
+        url: "/landlords/invoices/generate-monthly-bulk",
         method: "POST",
         data,
       }),
