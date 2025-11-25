@@ -12,8 +12,10 @@ import {
 import { useNotifications } from "@/hooks/useNotification";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 export default function NotificationDropdown() {
   const {
@@ -22,13 +24,16 @@ export default function NotificationDropdown() {
     unreadCount,
     isLoading,
     markAsRead,
-    deleteNotification,
     refetch,
   } = useNotifications();
 
   const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.auth);
+  const userId = user?.userInfo?._id;
 
-  const allNotifications = [...unreadNotifications, ...readNotifications].slice(0, 10);
+  const [showAll, setShowAll] = useState(false); 
+  const allNotifications = [...unreadNotifications, ...readNotifications];
+  const displayedNotifications = showAll ? allNotifications : allNotifications.slice(0, 5); 
 
   const handleMarkAllAsRead = async () => {
     for (const noti of unreadNotifications) {
@@ -74,12 +79,12 @@ export default function NotificationDropdown() {
         <DropdownMenuSeparator />
 
         <div className="max-h-96 overflow-y-auto">
-          {allNotifications.length === 0 ? (
+          {displayedNotifications.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
               Chưa có thông báo nào
             </div>
           ) : (
-            allNotifications.map((noti) => (
+            displayedNotifications.map((noti) => (
               <DropdownMenuItem
                 key={noti._id}
                 onClick={() => handleClickNotification(noti)}
@@ -96,7 +101,7 @@ export default function NotificationDropdown() {
                     })}
                   </p>
                 </div>
-                {!noti.readBy?.some((r: any) => r.residentId === noti._id) && (
+                {!noti.readBy?.some((r: any) => r.accountId === userId) && (
                   <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                 )}
               </DropdownMenuItem>
@@ -104,13 +109,18 @@ export default function NotificationDropdown() {
           )}
         </div>
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="justify-center font-medium"
-          onClick={() => navigate("/notifications")}
-        >
-          Xem tất cả thông báo
-        </DropdownMenuItem>
+       {allNotifications.length > 5 && !showAll && (
+            <DropdownMenuItem
+                className="justify-center font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+                onSelect={(e) => e.preventDefault()}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAll(true);
+                }}
+            >
+                Xem thêm thông báo
+            </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

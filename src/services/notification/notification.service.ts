@@ -7,7 +7,9 @@ import type {
   IUpdateNotificationResponse,
   IDeleteNotificationResponse,
   IGetMyNotificationsResponse,
-  IGetNotificationByIdResponse, IMarkAsReadResponse, INotification
+  IGetNotificationByIdResponse,
+  IMarkAsReadResponse,
+  INotification,
 } from "@/types/notification";
 
 export const notificationApi = createApi({
@@ -18,12 +20,15 @@ export const notificationApi = createApi({
     // POST /landlords/notifications - Tạo thông báo mới
     createNotification: builder.mutation<
       ICreateNotificationResponse,
-      ICreateNotificationRequest
+      FormData
     >({
-      query: (data) => ({
+      query: (formData) => ({
         url: "/landlords/notifications",
         method: "POST",
-        data,
+        data: formData,
+        headers: {
+          'Content-Type': undefined,
+        },
       }),
       invalidatesTags: ["Notifications"],
     }),
@@ -31,13 +36,17 @@ export const notificationApi = createApi({
     // PATCH /landlords/notifications/{id} - Cập nhật thông báo
     updateNotification: builder.mutation<
       IUpdateNotificationResponse,
-      { id: string; data: Partial<ICreateNotificationRequest> }
+      { id: string; data: FormData | Partial<ICreateNotificationRequest> }
     >({
-      query: ({ id, data }) => ({
-        url: `/landlords/notifications/${id}`,
-        method: "PATCH",
-        data,
-      }),
+      query: ({ id, data }) => {
+        const isFormData = data instanceof FormData;
+        return {
+          url: `/landlords/notifications/${id}`,
+          method: "PATCH",
+          data,
+          headers: isFormData ? { 'Content-Type': undefined } : {},
+        };
+      },
       invalidatesTags: (_result, _error, { id }) => [
         "Notifications",
         { type: "NotificationDetail", id },
@@ -59,13 +68,24 @@ export const notificationApi = createApi({
         url: `/landlords/notifications/${id}`,
         method: "GET",
       }),
-      providesTags: (_result, _error, id) => [{ type: "NotificationDetail", id }],
+      providesTags: (_result, _error, id) => [
+        { type: "NotificationDetail", id },
+      ],
     }),
 
-    // GET /landlords/notifications/me - Lấy danh sách thông báo của tôi
+    // GET /landlords/notifications/me - Lấy danh sách thông báo của tôi nhận được
     getMyNotifications: builder.query<IGetMyNotificationsResponse, void>({
       query: () => ({
         url: "/landlords/notifications/me",
+        method: "GET",
+      }),
+      providesTags: ["Notifications"],
+    }),
+    
+    // Lấy các thông báo mà tôi đã gửi 
+    getSentNotifications: builder.query<IGetMyNotificationsResponse, void>({
+      query: () => ({
+        url: "/landlords/notifications/my-sent",
         method: "GET",
       }),
       providesTags: ["Notifications"],
@@ -85,7 +105,9 @@ export const notificationApi = createApi({
             "getMyNotifications",
             undefined,
             (draft) => {
-              const notification = draft.data.find((n) => n._id === notificationId);
+              const notification = draft.data.find(
+                (n) => n._id === notificationId
+              );
               if (notification) {
                 if (!notification.readBy) {
                   notification.readBy = [];
@@ -104,16 +126,58 @@ export const notificationApi = createApi({
       },
       invalidatesTags: ["Notifications"],
     }),
+
+   getMyNotificationsResident: builder.query<IGetMyNotificationsResponse, void>({
+      query: () => ({
+        url: "/notifications/me",
+        method: "GET",
+      }),
+      providesTags: ["Notifications"],
+    }),
+
+    // POST /notifications/read - Đánh dấu đã đọc (Resident)
+    markNotificationAsReadResident: builder.mutation<IMarkAsReadResponse, string[]>({
+      query: (notificationIds) => ({
+        url: "/notifications/read",
+        method: "POST",
+        data: { notificationIds },
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    // GET /notifications/{id} - Lấy chi tiết thông báo (chung - Resident cũng dùng được)
+     getNotificationByIdResident: builder.query<IGetNotificationByIdResponse, string>({
+      query: (id) => ({
+        url: `/notifications/${id}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [
+        { type: "NotificationDetail", id },
+      ],
+    }),
+
+     getUnreadNotificationsResident: builder.query<{sucess: boolean;  unreadCount: number}, void>({
+      query: () => ({
+        url: "/notifications/unread-count",
+        method: "GET",
+      }),
+      providesTags: ["Notifications"],
+    }),
   }),
 });
 
 export const {
   useCreateNotificationMutation,
+  useGetMyNotificationsQuery,
+  useGetSentNotificationsQuery,
+  useMarkNotificationAsReadMutation,
   useUpdateNotificationMutation,
   useDeleteNotificationMutation,
   useGetNotificationByIdQuery,
-  useGetMyNotificationsQuery,
-  useMarkNotificationAsReadMutation,
   useLazyGetNotificationByIdQuery,
   useLazyGetMyNotificationsQuery,
+  useGetMyNotificationsResidentQuery,
+  useMarkNotificationAsReadResidentMutation,
+  useGetNotificationByIdResidentQuery,
+  useGetUnreadNotificationsResidentQuery,
 } = notificationApi;

@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   useGetMyNotificationsQuery,
+  useGetSentNotificationsQuery,
+  useGetNotificationByIdQuery,
   useDeleteNotificationMutation,
 } from "@/services/notification/notification.service";
 import type { INotification } from "@/types/notification";
@@ -53,7 +55,7 @@ const NotificationManagement = () => {
   const [pageLimit, setPageLimit] = useState(20);
   const [filterType, setFilterType] = useState("all");
   const [filterScope, setFilterScope] = useState("all");
-
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<INotification | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -61,7 +63,7 @@ const NotificationManagement = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingNotification, setViewingNotification] = useState<INotification | null>(null);
 
-  const { data, isLoading, error, refetch } = useGetMyNotificationsQuery();
+  const { data, isLoading, error, refetch } = useGetSentNotificationsQuery();
   const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
 
   const typeLabels: Record<string, string> = {
@@ -72,15 +74,6 @@ const NotificationManagement = () => {
     event: "Sự kiện",
   };
 
-  const scopeLabels: Record<string, string> = {
-    all: "Tất cả",
-    staff_buildings: "Tòa nhà quản lý",
-    building: "Theo tòa",
-    floor: "Theo tầng",
-    room: "Theo phòng",
-    resident: "Cá nhân",
-  };
-
   const filteredNotifications = useMemo(() => {
     if (!data?.data) return [];
     
@@ -89,10 +82,9 @@ const NotificationManagement = () => {
         notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         notification.content.toLowerCase().includes(searchQuery.toLowerCase());
       const matchType = filterType === "all" || notification.type === filterType;
-      const matchScope = filterScope === "all" || notification.scope === filterScope;
-      return matchSearch && matchType && matchScope && !notification.isDeleted;
+      return matchSearch && matchType && !notification.isDeleted;
     });
-  }, [data, searchQuery, filterType, filterScope]);
+  }, [data, searchQuery, filterType]);
 
   const totalPages = Math.ceil(filteredNotifications.length / pageLimit);
   const paginatedData = filteredNotifications.slice(
@@ -149,20 +141,6 @@ const NotificationManagement = () => {
     }
   };
 
-  const getScopeIcon = (scope: string) => {
-    switch (scope) {
-      case "all":
-        return <Users className="w-4 h-4" />;
-      case "building":
-      case "staff_buildings":
-        return <Building2 className="w-4 h-4" />;
-      case "floor":
-        return <Layers className="w-4 h-4" />;
-      default:
-        return <Bell className="w-4 h-4" />;
-    }
-  };
-
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('vi-VN', {
       hour: '2-digit',
@@ -172,7 +150,7 @@ const NotificationManagement = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto space-y-6">
+      <div className=" mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
@@ -212,19 +190,6 @@ const NotificationManagement = () => {
                   <SelectItem value="maintenance">Bảo trì</SelectItem>
                   <SelectItem value="reminder">Nhắc nhở</SelectItem>
                   <SelectItem value="event">Sự kiện</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterScope} onValueChange={setFilterScope}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Phạm vi" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả phạm vi</SelectItem>
-                  <SelectItem value="all">Toàn bộ</SelectItem>
-                  <SelectItem value="staff_buildings">Tòa quản lý</SelectItem>
-                  <SelectItem value="building">Theo tòa</SelectItem>
-                  <SelectItem value="floor">Theo tầng</SelectItem>
-                  <SelectItem value="room">Theo phòng</SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -274,7 +239,6 @@ const NotificationManagement = () => {
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tiêu đề</TableHead>
                         <TableHead className="font-semibold">Loại</TableHead>
-                        <TableHead className="font-semibold">Phạm vi</TableHead>
                         <TableHead className="font-semibold">Người tạo</TableHead>
                         <TableHead className="font-semibold">Ngày tạo</TableHead>
                         <TableHead className="text-center font-semibold">Thao tác</TableHead>
@@ -304,15 +268,9 @@ const NotificationManagement = () => {
                               {typeLabels[notification.type]}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {getScopeIcon(notification.scope)}
-                              <span className="text-sm">{scopeLabels[notification.scope]}</span>
-                            </div>
-                          </TableCell>
                           <TableCell className="text-slate-600">
                             <div>
-                              <div className="font-medium">{notification.createBy.userInfo.fullName}</div>
+                              <div className="font-medium">{notification?.createBy?.userInfo?.fullName}</div>
                               <div className="text-xs text-slate-500">
                                 {notification.createByRole === "landlord" ? "Chủ trọ" : "Nhân viên"}
                               </div>
@@ -425,7 +383,7 @@ const NotificationManagement = () => {
       />
 
   <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-    <DialogContent className="!max-w-3xl">
+    <DialogContent className="!max-w-4xl">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
           <Info className="h-5 w-5 text-blue-600" />
@@ -449,7 +407,7 @@ const NotificationManagement = () => {
                 </div>
                 <div className="text-sm text-gray-600">
                   <span className="flex items-center gap-1">
-                    Tạo bởi: <strong>{viewingNotification.createBy.userInfo.fullName}</strong>
+                    Tạo bởi: <strong>{viewingNotification?.createBy?.userInfo?.fullName}</strong>
                   </span>
                 </div>
               </div>
@@ -477,13 +435,6 @@ const NotificationManagement = () => {
                   <span className="text-gray-600">Loại thông báo</span>
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                     {typeLabels[viewingNotification.type]}
-                  </Badge>
-                </div>
-                
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Phạm vi gửi</span>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {scopeLabels[viewingNotification.scope]}
                   </Badge>
                 </div>
               </div>

@@ -1,69 +1,72 @@
 import { useMemo } from "react";
 import {
   useGetMyNotificationsQuery,
-  useMarkNotificationAsReadMutation,
+  useGetMyNotificationsResidentQuery,
+  useMarkNotificationAsReadResidentMutation,
   useDeleteNotificationMutation,
 } from "@/services/notification/notification.service";
-import { socketService } from "@/services/socket/socket.service";
+import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 
 export const useNotifications = () => {
-  const currentUserId = useSelector(
-    (state: RootState) => state.auth?.userInfo?._id
+  const currentUserId = useSelector((state: RootState) => state.auth?.userInfo?._id);
+  const currentRole = useSelector((state: RootState) => state.auth.role || state.auth.userInfo?.role);
+
+  const landlordQuery = useGetMyNotificationsQuery(
+    currentRole === "landlord" ? undefined : skipToken
   );
-  const currentRole = useSelector(
-    (state: RootState) => state.auth.role || state.auth.userInfo?.role
+
+  const residentQuery = useGetMyNotificationsResidentQuery(
+    currentRole === "resident" ? undefined : skipToken
   );
 
-  const {
-    data: response,
-    isLoading,
-    refetch,
-  } = useGetMyNotificationsQuery();
+  const queryResult = currentRole === "resident" ? residentQuery : landlordQuery;
+  const { data: response, isLoading, isFetching, refetch, error } = queryResult;
 
-  const [markAsRead, { isLoading: isMarkingAsRead }] = 
-    useMarkNotificationAsReadMutation();
-  
-  const [deleteNotification, { isLoading: isDeletingNotification }] = 
-    useDeleteNotificationMutation();
+  const [markAsReadResident] = useMarkNotificationAsReadResidentMutation();
 
-  const notifications = response?.data || [];
+  const notifications = response?.data?.filter(n => !n.isDeleted) || [];
 
   const unreadCount = useMemo(() => {
-    return notifications.filter(n => !n.isRead).length;
-  }, [notifications]);
+    return notifications.filter((n) => {
+      if (currentRole === "resident") {
+        return !n.isRead;
+      }
+      
+      return !n.readBy?.some((r: any) => r.accountId === currentUserId);
+    }).length;
+  }, [notifications, currentRole, currentUserId]);
 
-  const unreadNotifications = notifications.filter(n => !n.isRead);
-  const readNotifications = notifications.filter(n => n.isRead);
+  const unreadNotifications = notifications.filter((n) => {
+    if (currentRole === "resident") return !n.isRead;
+    return !n.readBy?.some((r: any) => r.accountId === currentUserId);
+  });
 
-  const isSocketConnected = socketService.isConnected();
+  const readNotifications = notifications.filter((n) => {
+    if (currentRole === "resident") return n.isRead;
+    return n.readBy?.some((r: any) => r.accountId === currentUserId);
+  });
 
   const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      await markAsRead(notificationId).unwrap();
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
-    }
-  };
-
-  const handleDelete = async (notificationId: string) => {
-    try {
-      await deleteNotification(notificationId).unwrap();
-    } catch (error) {
-      console.error("Failed to delete:", error);
+    if (currentRole === "resident") {
+      try {
+        await markAsReadResident([notificationId]).unwrap();
+      } catch (error) {
+        console.error("Mark as read failed:", error);
+      }
     }
   };
 
   const isNotificationRead = (notificationId: string) => {
-    const notification = notifications.find(n => n._id === notificationId);
-    if (!notification || !currentUserId) return false;
-    
-    return notification.readBy?.some(r => r.residentId === currentUserId) || false;
+    const noti = notifications.find(n => n._id === notificationId);
+    if (!noti) return true;
+
+    if (currentRole === "resident") return noti.isRead;
+    return noti.readBy?.some((r: any) => r.accountId === currentUserId) || false;
   };
 
   return {
-    // Data
     notifications,
     unreadNotifications,
     readNotifications,
@@ -71,32 +74,18 @@ export const useNotifications = () => {
     total: notifications.length,
     currentUserId,
     currentRole,
-
-    // States
-    isLoading,
-    isMarkingAsRead,
-    isDeletingNotification,
+    isLoading: isLoading || isFetching,
     hasUnread: unreadCount > 0,
     isEmpty: notifications.length === 0,
-    isSocketConnected,
+    error,
 
-    // Actions
     markAsRead: handleMarkAsRead,
-    deleteNotification: handleDelete,
     refetch,
-    
-    // Utilities
     isNotificationRead,
   };
 };
 
-// Hook riêng cho unread count (dùng cho navbar)
 export const useUnreadCount = () => {
-  const { unreadCount, isLoading, refetch } = useNotifications();
-
-  return {
-    unreadCount,
-    isLoading,
-    refetch,
-  };
+  const { unreadCount, isLoading } = useNotifications();
+  return { unreadCount, isLoading };
 };

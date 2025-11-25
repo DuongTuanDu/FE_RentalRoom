@@ -1,128 +1,142 @@
+// src/middleware/socket.middleware.ts
+
 import type { Middleware } from "@reduxjs/toolkit";
 import { socketService } from "@/services/socket/socket.service";
 import { notificationApi } from "@/services/notification/notification.service";
-import type { INotification } from "@/types/notification";
+import type { RootState } from "@/store/store";
 import { toast } from "sonner";
 
-export const socketMiddleware: Middleware = (storeAPI) => {
-  let isSocketInitialized = false;
+declare global {
+  interface Window {
+    __SOCKET_LISTENERS_ATTACHED__?: boolean;
+  }
+}
 
-  return (next) => (action: any) => { 
-    // console.log("Action received:", action.type);
-    // Khi user login thành công
-    if (action.type === "auth/setLogin" && !isSocketInitialized) {
-      const token = action.payload?.accessToken;
-        console.log("token", token);
-      if (token) {
-        console.log("🔌 Initializing socket connection...");
-        const socket = socketService.connect(token);
-        isSocketInitialized = true;
+const attachSocketListeners = (storeAPI: any) => {
+  if (window.__SOCKET_LISTENERS_ATTACHED__) return;
+  window.__SOCKET_LISTENERS_ATTACHED__ = true;
 
-        // ============ LẮNG NGHE EVENT: NEW NOTIFICATION ============
-        socket.on("new-notification", (notification: INotification) => {
-          console.log("📬 New notification:", notification);
+  const socket = socketService.getSocket();
+  if (!socket) return;
 
-          try {
-            // Tự động thêm vào cache
-            storeAPI.dispatch(
-              notificationApi.util.updateQueryData(
-                "getMyNotifications",
-                undefined,
-                (draft: any) => {
-                  if (draft?.data && Array.isArray(draft.data)) {
-                    draft.data.unshift(notification);
-                  }
-                }
-              ) as any 
-            );
+  // Nhận thông báo mới
+  socket.on("new_notification", (notification: any) => {
+    const state: RootState = storeAPI.getState();
+    const role = state.auth.role || state.auth.userInfo?.role;
 
-            // Hiển thị toast
-            toast.info(notification.title, {
-              description: notification.content,
-              duration: 5000,
-            });
-          } catch (error) {
-            console.error("Error updating notification cache:", error);
-          }
-        });
+    const endpointName =
+      role === "resident" ? "getMyNotificationsResident" : "getMyNotifications";
 
-        // ============ LẮNG NGHE EVENT: NOTIFICATION READ ============
-        socket.on(
-          "notification-read",
-          (data: { notificationId: string; userId: string }) => {
-            console.log("✓ Notification read:", data);
-            try {
-              storeAPI.dispatch(
-                notificationApi.util.invalidateTags(["Notifications"]) as any
-              );
-            } catch (error) {
-              console.error("Error invalidating tags:", error);
-            }
-          }
-        );
+    // Cập nhật cache RTK Query
+    storeAPI.dispatch(
+      notificationApi.util.updateQueryData(endpointName as any, undefined, (draft: any) => {
+        if (draft?.data) {
+          draft.data.unshift(notification);
+          draft.pagination.total += 1;
+        }
+      })
+    );
 
-        // ============ LẮNG NGHE EVENT: NOTIFICATION DELETED ============
-        socket.on("notification-deleted", (data: { notificationId: string }) => {
-          console.log("🗑️ Notification deleted:", data);
+    // Hiển thị toast đẹp
+    toast.info(notification.title || "Bạn có thông báo mới", {
+      description: notification.content,
+      duration: 8000,
+      action: {
+        label: "Xem ngay",
+        onClick: () => {
+          window.location.href = "/notifications";
+        },
+      },
+    });
+  });
 
-          try {
-            storeAPI.dispatch(
-              notificationApi.util.updateQueryData(
-                "getMyNotifications",
-                undefined,
-                (draft: any) => {
-                  if (draft?.data && Array.isArray(draft.data)) {
-                    draft.data = draft.data.filter(
-                      (n: INotification) => n._id !== data.notificationId
-                    );
-                  }
-                }
-              ) as any
-            );
-          } catch (error) {
-            console.error("Error removing notification from cache:", error);
-          }
-        });
+  // Tăng số thông báo chưa đọc 
+  socket.on("unread_count_increment", ({ increment = 1 }: { increment?: number }) => {
+    const state: RootState = storeAPI.getState();
+    const role = state.auth.role || state.auth.userInfo?.role;
+    const endpointName =
+      role === "resident" ? "getMyNotificationsResident" : "getMyNotifications";
 
-        // ============ SOCKET CONNECTION EVENTS ============
-        socket.on("connect", () => {
-          console.log("✅ Socket connected successfully, ID:", socket.id);
-          try {
-            storeAPI.dispatch(
-              notificationApi.util.invalidateTags(["Notifications"]) as any
-            );
-          } catch (error) {
-            console.error("Error invalidating tags on connect:", error);
-          }
-        });
+    storeAPI.dispatch(
+      notificationApi.util.updateQueryData(endpointName as any, undefined, (draft: any) => {
+        if (draft?.data && draft.data[0]) {
+          draft.data[0].isRead = false; // đánh dấu cái mới nhất là chưa đọc
+        }
+      })
+    );
+  });
 
-        socket.on("disconnect", (reason: string) => {
-          console.log("❌ Socket disconnected:", reason);
-          if (reason === "io server disconnect") {
-            toast.error("Phiên đăng nhập hết hạn", {
-              description: "Vui lòng đăng nhập lại",
-            });
-          }
-        });
+  // Thông báo bị sửa
+  socket.on("notification_updated", (payload: any) => {
+    const state: RootState = storeAPI.getState();
+    const role = state.auth.role || state.auth.userInfo?.role;
+    const endpointName =
+      role === "resident" ? "getMyNotificationsResident" : "getMyNotifications";
 
-        socket.on("connect_error", (error: Error) => {
-          console.error("❌ Socket connection error:", error.message);
-          toast.error("Mất kết nối real-time", {
-            description: "Đang thử kết nối lại...",
-          });
-        });
-      }
-    }
+    storeAPI.dispatch(
+      notificationApi.util.updateQueryData(endpointName as any, undefined, (draft: any) => {
+        const noti = draft?.data?.find((n: any) => n._id === payload.id || n.id === payload.id);
+        if (noti) {
+          Object.assign(noti, payload);
+        }
+      })
+    );
 
-    // ============ KHI USER LOGOUT ============
-    if (action.type === "auth/setLogout" || action.type === "persist/PURGE") {
-      if (isSocketInitialized) {
-        console.log("🔌 Disconnecting socket...");
-        socketService.disconnect();
-        isSocketInitialized = false;
-      }
-    }
+    toast.success("Một thông báo đã được cập nhật");
+  });
 
-    return next(action);
-  };
+  // Log trạng thái kết nối
+  socket.on("connect", () => {
+    console.log("Socket connected:", socket.id);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("Socket disconnected:", reason);
+    window.__SOCKET_LISTENERS_ATTACHED__ = false; // cho phép gắn lại khi reconnect
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket connect error:", err.message);
+    toast.error("Mất kết nối real-time", {
+      description: "Đang thử kết nối lại...",
+      duration: 5000,
+    });
+  });
+};
+
+const detachSocketListeners = () => {
+  const socket = socketService.getSocket();
+  if (!socket) return;
+
+  socket.off("new_notification");
+  socket.off("unread_count_increment");
+  socket.off("notification_updated");
+  socket.off("connect");
+  socket.off("disconnect");
+  socket.off("connect_error");
+
+  window.__SOCKET_LISTENERS_ATTACHED__ = false;
+  console.log("Socket listeners removed");
+};
+
+export const socketMiddleware: Middleware = (storeAPI) => (next) => (action: any) => {
+  const state: RootState = storeAPI.getState();
+  const token = state.auth.accessToken;
+
+  if (token && !socketService.isConnected()) {
+    socketService.connect(token);
+    attachSocketListeners(storeAPI);
+  }
+
+  if (action.type === "auth/setLogin" && action.payload?.accessToken) {
+    socketService.connect(action.payload.accessToken);
+    attachSocketListeners(storeAPI);
+  }
+
+  if (action.type === "auth/setLogout" ) {
+    detachSocketListeners();
+    socketService.disconnect();
+  }
+
+  return next(action);
 };

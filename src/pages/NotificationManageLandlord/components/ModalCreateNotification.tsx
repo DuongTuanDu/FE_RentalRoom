@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,38 +23,19 @@ import {
   AlertCircle, 
   Building2, 
   Info, 
-  Bold, 
-  Italic, 
-  Underline, 
-  List, 
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Image as ImageIcon,
+  ImageIcon,
   Paperclip,
   X,
   FileText,
-  Download
 } from "lucide-react";
 import { useGetBuildingsQuery } from "@/services/building/building.service";
 import {
   useCreateNotificationMutation,
   useUpdateNotificationMutation,
 } from "@/services/notification/notification.service";
-import type {
-  ICreateNotificationRequest,
-  INotification,
-} from "@/types/notification";
+import type { INotification } from "@/types/notification";
 import { toast } from "sonner";
 import { toText } from "@/utils/errors";
-
-interface ModalCreateNotificationProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  editingNotification?: INotification | null;
-  onSuccess?: () => void;
-}
 
 interface UploadedFile {
   id: string;
@@ -62,141 +44,86 @@ interface UploadedFile {
   type: 'image' | 'document';
 }
 
+type ScopeType = "all" | "buildings" | "floors" | "rooms" | "residents";
+
+interface FormData {
+  title: string;
+  content: string;
+  type: "general" | "bill" | "maintenance" | "reminder" | "event";
+  scope: ScopeType;
+  selectedBuildings: string[];
+}
+
 const ModalCreateNotification = ({
   open,
   onOpenChange,
-  editingNotification = null,
+  editingNotification,
   onSuccess,
-}: ModalCreateNotificationProps) => {
-  const [formData, setFormData] = useState<ICreateNotificationRequest>({
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingNotification?: INotification | null;
+  onSuccess?: () => void;
+}) => {
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     content: "",
     type: "general",
     scope: "all",
-    buildingIds: [],
+    selectedBuildings: [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const contentEditableRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: buildingsData } = useGetBuildingsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const [createNotification, { isLoading: isCreating }] =
-    useCreateNotificationMutation();
-  const [updateNotification, { isLoading: isUpdating }] =
-    useUpdateNotificationMutation();
-
+  const { data: buildingsData } = useGetBuildingsQuery({ page: 1, limit: 100 });
+  const [createNotification, { isLoading: isCreating }] = useCreateNotificationMutation();
+  const [updateNotification, { isLoading: isUpdating }] = useUpdateNotificationMutation();
   const isLoading = isCreating || isUpdating;
 
+  // Reset form khi mở modal
   useEffect(() => {
-    if (open) {
-      if (editingNotification) {
-        setFormData({
-          title: editingNotification.title,
-          content: editingNotification.content,
-          type: editingNotification.type,
-          scope: editingNotification.scope,
-          buildingId: editingNotification.buildingId,
-          floorId: editingNotification.floorId,
-          roomId: editingNotification.roomId,
-          residentId: editingNotification.residentId,
-          buildingIds: editingNotification.buildingIds || [],
-        });
-        setSelectedBuildings(editingNotification.buildingIds || []);
-         if (contentEditableRef.current) {
-            contentEditableRef.current.innerHTML = editingNotification.content || "";
-          }
-      } else {
-        setFormData({
-          title: "",
-          content: "",
-          type: "general",
-          scope: "all",
-          buildingIds: [],
-        });
-        setSelectedBuildings([]);
-        setUploadedFiles([]);
-        if (contentEditableRef.current) {
-          contentEditableRef.current.innerHTML = "";
-        }
-      }
-      setErrors({});
+    if (!open) return;
+
+    if (editingNotification) {
+      const scope = editingNotification.target.buildings?.length
+        ? "buildings" as ScopeType
+        : "all";
+
+      setFormData({
+        title: editingNotification.title || "",
+        content: editingNotification.content?.replace(/<[^>]*>/g, '') || "", // strip HTML nếu có
+        type: editingNotification.type || "general",
+        scope,
+        selectedBuildings: editingNotification.target.buildings || [],
+      });
+    } else {
+      setFormData({
+        title: "",
+        content: "",
+        type: "general",
+        scope: "all",
+        selectedBuildings: [],
+      });
+      setUploadedFiles([]);
     }
+    setErrors({});
   }, [open, editingNotification]);
-
-  const typeOptions = [
-    { value: "general", label: "Thông báo chung" },
-    { value: "bill", label: "Hóa đơn" },
-    { value: "maintenance", label: "Bảo trì" },
-    { value: "reminder", label: "Nhắc nhở" },
-    { value: "event", label: "Sự kiện" },
-  ];
-
-  const scopeOptions = [
-    {
-      value: "all",
-      label: "Tất cả cư dân",
-      description: "Gửi đến tất cả cư dân trong hệ thống",
-    },
-    {
-      value: "staff_buildings",
-      label: "Tòa nhà quản lý",
-      description: "Gửi đến các tòa nhà mà nhân viên quản lý",
-    },
-    {
-      value: "building",
-      label: "Theo tòa nhà",
-      description: "Chọn các tòa nhà cụ thể",
-    },
-    {
-      value: "floor",
-      label: "Theo tầng",
-      description: "Gửi đến một tầng cụ thể",
-    },
-    {
-      value: "room",
-      label: "Theo phòng",
-      description: "Gửi đến một phòng cụ thể",
-    },
-    {
-      value: "resident",
-      label: "Cá nhân",
-      description: "Gửi đến một cư dân cụ thể",
-    },
-  ];
-
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    contentEditableRef.current?.focus();
-  };
-
-  const handleContentChange = () => {
-    if (contentEditableRef.current) {
-      const content = contentEditableRef.current.innerHTML;
-      setFormData({ ...formData, content });
-      if (errors.content) setErrors({ ...errors, content: "" });
-    }
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    files.forEach((file) => {
+    files.forEach(file => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-          const newFile: UploadedFile = {
+        reader.onload = (ev) => {
+          setUploadedFiles(prev => [...prev, {
             id: Math.random().toString(36).substr(2, 9),
             file,
-            preview: e.target?.result as string,
+            preview: ev.target?.result as string,
             type: 'image'
-          };
-          setUploadedFiles(prev => [...prev, newFile]);
+          }]);
         };
         reader.readAsDataURL(file);
       }
@@ -206,14 +133,11 @@ const ModalCreateNotification = ({
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    files.forEach((file) => {
-      const newFile: UploadedFile = {
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        type: 'document'
-      };
-      setUploadedFiles(prev => [...prev, newFile]);
-    });
+    setUploadedFiles(prev => [...prev, ...files.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      type: 'document' as const
+    }))]);
     e.target.value = '';
   };
 
@@ -224,26 +148,15 @@ const ModalCreateNotification = ({
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = "Vui lòng nhập tiêu đề thông báo";
-    } else if (formData.title.length < 5) {
-      newErrors.title = "Tiêu đề phải có ít nhất 5 ký tự";
-    } else if (formData.title.length > 200) {
-      newErrors.title = "Tiêu đề không được vượt quá 200 ký tự";
-    }
+    if (!formData.title.trim()) newErrors.title = "Vui lòng nhập tiêu đề";
+    else if (formData.title.length < 5) newErrors.title = "Tiêu đề phải từ 5 ký tự";
+    else if (formData.title.length > 200) newErrors.title = "Tiêu đề quá dài";
 
-    const textContent = contentEditableRef.current?.innerText || "";
-    if (!textContent.trim()) {
-      newErrors.content = "Vui lòng nhập nội dung thông báo";
-    } else if (textContent.length < 10) {
-      newErrors.content = "Nội dung phải có ít nhất 10 ký tự";
-    }
+    if (!formData.content.trim()) newErrors.content = "Vui lòng nhập nội dung";
+    else if (formData.content.trim().length < 10) newErrors.content = "Nội dung phải từ 10 ký tự";
 
-    if (
-      (formData.scope === "building" || formData.scope === "staff_buildings") &&
-      selectedBuildings.length === 0
-    ) {
-      newErrors.buildings = "Vui lòng chọn ít nhất một tòa nhà";
+    if (formData.scope === "buildings" && formData.selectedBuildings.length === 0) {
+      newErrors.target = "Vui lòng chọn ít nhất một tòa nhà";
     }
 
     setErrors(newErrors);
@@ -253,72 +166,49 @@ const ModalCreateNotification = ({
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    const submitData: ICreateNotificationRequest = {
-      title: formData.title.trim(),
-      content: contentEditableRef.current?.innerHTML || "",
-      type: formData.type,
-      scope: formData.scope,
-    };
+    const target: any = {};
+    if (formData.scope === "buildings") {
+      target.buildings = formData.selectedBuildings;
+    }
 
-    if (formData.scope === "building" || formData.scope === "staff_buildings") {
-      submitData.buildingIds = selectedBuildings;
-    }
-    if (formData.scope === "floor") {
-      submitData.buildingId = formData.buildingId;
-      submitData.floorId = formData.floorId;
-    }
-    if (formData.scope === "room") {
-      submitData.buildingId = formData.buildingId;
-      submitData.floorId = formData.floorId;
-      submitData.roomId = formData.roomId;
-    }
-    if (formData.scope === "resident") {
-      submitData.residentId = formData.residentId;
-    }
+    const data = new FormData();
+    data.append("title", formData.title.trim());
+    data.append("content", formData.content.trim());
+    data.append("type", formData.type);
+    data.append("target", JSON.stringify(target));
+    uploadedFiles.forEach(f => data.append("images", f.file));
 
     try {
       if (editingNotification) {
-        await updateNotification({
-          id: editingNotification._id,
-          data: submitData,
-        }).unwrap();
-        toast.success("Thành công", {
-          description: "Thông báo đã được cập nhật thành công",
-        });
+        await updateNotification({ id: editingNotification._id, data: data as any }).unwrap();
+        toast.success("Thành công", { description: "Đã cập nhật thông báo" });
       } else {
-        await createNotification(submitData).unwrap();
-        toast.success("Thành công", {
-          description: "Thông báo đã được tạo và gửi đến cư dân",
-        });
+        await createNotification(data as any).unwrap();
+        toast.success("Thành công", { description: "Đã gửi thông báo đến cư dân" });
       }
+      onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
-      const message = toText(error, "Đã xảy ra lỗi không xác định.");
-      toast.error(
-        editingNotification ? "Cập nhật thông báo thất bại" : "Tạo thông báo thất bại",
-        { description: message }
-      );
-      console.error(error);
+      toast.error("Thất bại", { description: toText(error, "Có lỗi xảy ra") });
     }
   };
 
-  const handleBuildingToggle = (buildingId: string) => {
-    setSelectedBuildings((prev) => {
-      if (prev.includes(buildingId)) {
-        return prev.filter((id) => id !== buildingId);
-      }
-      return [...prev, buildingId];
-    });
-    if (errors.buildings) setErrors({ ...errors, buildings: "" });
+  const toggleBuilding = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedBuildings: prev.selectedBuildings.includes(id)
+        ? prev.selectedBuildings.filter(x => x !== id)
+        : [...prev.selectedBuildings, id]
+    }));
+    if (errors.target) setErrors(prev => ({ ...prev, target: "" }));
   };
 
-  const handleSelectAllBuildings = () => {
-    if (selectedBuildings.length === buildingsData?.data?.length) {
-      setSelectedBuildings([]);
-    } else {
-      setSelectedBuildings(buildingsData?.data?.map((b) => b._id) || []);
-    }
-    if (errors.buildings) setErrors({ ...errors, buildings: "" });
+  const selectAllBuildings = () => {
+    const all = buildingsData?.data?.map(b => b._id) || [];
+    setFormData(prev => ({
+      ...prev,
+      selectedBuildings: prev.selectedBuildings.length === all.length ? [] : all
+    }));
   };
 
   return (
@@ -330,326 +220,133 @@ const ModalCreateNotification = ({
           </DialogTitle>
           <DialogDescription>
             {editingNotification
-              ? "Cập nhật thông tin thông báo cho cư dân"
-              : "Điền thông tin để gửi thông báo đến cư dân"}
+              ? "Cập nhật nội dung thông báo"
+              : "Soạn thông báo để gửi đến cư dân"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Tiêu đề */}
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-base font-semibold">
-              Tiêu đề thông báo <span className="text-red-500">*</span>
-            </Label>
+            <Label className="font-semibold">Tiêu đề <span className="text-red-500">*</span></Label>
             <Input
-              id="title"
-              placeholder="VD: Thông báo bảo trì hệ thống điện"
+              placeholder="VD: Thông báo mất điện ngày 30/12"
               value={formData.title}
-              onChange={(e) => {
-                setFormData({ ...formData, title: e.target.value });
-                if (errors.title) setErrors({ ...errors, title: "" });
-              }}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               className={errors.title ? "border-red-500" : ""}
               disabled={isLoading}
             />
-            {errors.title && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                {errors.title}
-              </p>
-            )}
-            <p className="text-xs text-slate-500">{formData.title.length}/200 ký tự</p>
+            {errors.title && <p className="text-sm text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.title}</p>}
+            <p className="text-xs text-slate-500">{formData.title.length}/200</p>
           </div>
 
+          {/* Nội dung - Textarea bình thường */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold">
-              Nội dung thông báo <span className="text-red-500">*</span>
-            </Label>
-            
-            <div className="border border-slate-300 rounded-t-lg bg-slate-50 p-2 flex flex-wrap gap-1">
-              <button
-                type="button"
-                onClick={() => execCommand('bold')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Đậm (Ctrl+B)"
-                disabled={isLoading}
-              >
-                <Bold className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => execCommand('italic')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Nghiêng (Ctrl+I)"
-                disabled={isLoading}
-              >
-                <Italic className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => execCommand('underline')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Gạch chân (Ctrl+U)"
-                disabled={isLoading}
-              >
-                <Underline className="w-4 h-4" />
-              </button>
-              
-              <div className="w-px h-8 bg-slate-300 mx-1"></div>
-              
-              <button
-                type="button"
-                onClick={() => execCommand('insertUnorderedList')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Danh sách dấu đầu dòng"
-                disabled={isLoading}
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => execCommand('insertOrderedList')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Danh sách đánh số"
-                disabled={isLoading}
-              >
-                <ListOrdered className="w-4 h-4" />
-              </button>
-              
-              <div className="w-px h-8 bg-slate-300 mx-1"></div>
-              
-              <button
-                type="button"
-                onClick={() => execCommand('justifyLeft')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Căn trái"
-                disabled={isLoading}
-              >
-                <AlignLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => execCommand('justifyCenter')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Căn giữa"
-                disabled={isLoading}
-              >
-                <AlignCenter className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => execCommand('justifyRight')}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Căn phải"
-                disabled={isLoading}
-              >
-                <AlignRight className="w-4 h-4" />
-              </button>
-              
-              <div className="w-px h-8 bg-slate-300 mx-1"></div>
-              
-              <button
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Thêm ảnh"
-                disabled={isLoading}
-              >
-                <ImageIcon className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 hover:bg-slate-200 rounded transition-colors"
-                title="Đính kèm file"
-                disabled={isLoading}
-              >
-                <Paperclip className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div
-              ref={contentEditableRef}
-              contentEditable
-              onInput={handleContentChange}
-                dangerouslySetInnerHTML={{ __html: formData.content }} 
-              className={`min-h-[200px] p-4 border border-t-0 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.content ? "border-red-500" : "border-slate-300"
-              }`}
-              style={{ maxHeight: '400px', overflowY: 'auto' }}
+            <Label className="font-semibold">Nội dung <span className="text-red-500">*</span></Label>
+            <Textarea
+              placeholder="Nhập nội dung thông báo..."
+              className="min-h-48 resize-none"
+              value={formData.content}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              disabled={isLoading}
             />
-
-            {errors.content && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                {errors.content}
-              </p>
-            )}
-
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">File đính kèm ({uploadedFiles.length})</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {uploadedFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="relative border rounded-lg p-2 bg-slate-50 hover:bg-slate-100 transition-colors"
-                    >
-                      {file.type === 'image' ? (
-                        <div className="relative">
-                          <img
-                            src={file.preview}
-                            alt={file.file.name}
-                            className="w-full h-24 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeFile(file.id)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-8 h-8 text-blue-600 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{file.file.name}</p>
-                            <p className="text-xs text-slate-500">
-                              {(file.file.size / 1024).toFixed(1)} KB
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeFile(file.id)}
-                            className="flex-shrink-0 text-red-500 hover:text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      {file.type === 'image' && (
-                        <p className="text-xs text-slate-600 mt-1 truncate">{file.file.name}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {errors.content && <p className="text-sm text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.content}</p>}
           </div>
 
+          {/* Upload file */}
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" size="sm" onClick={() => imageInputRef.current?.click()} disabled={isLoading}>
+              <ImageIcon className="w-4 h-4 mr-2" /> Thêm ảnh
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+              <Paperclip className="w-4 h-4 mr-2" /> Đính kèm
+            </Button>
+          </div>
+          <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+          <input ref={fileInputRef} type="file" multiple onChange={handleFileUpload} className="hidden" />
+
+          {/* Preview files */}
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Đính kèm ({uploadedFiles.length})</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {uploadedFiles.map(file => (
+                  <div key={file.id} className="relative border rounded-lg p-3 bg-slate-50">
+                    {file.type === 'image' ? (
+                      <img src={file.preview} alt="" className="w-full h-24 object-cover rounded" />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-8 h-8 text-blue-600" />
+                        <span className="text-xs truncate">{file.file.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => removeFile(file.id)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Loại + Phạm vi */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type" className="text-base font-semibold">
-                Loại thông báo <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: any) => setFormData({ ...formData, type: value })}
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+            <div>
+              <Label className="font-semibold">Loại thông báo</Label>
+              <Select value={formData.type} onValueChange={(v) => setFormData(prev => ({ ...prev, type: v as any }))} disabled={isLoading}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {typeOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <span className="flex items-center gap-2">
-                        <span>{option.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="general">Thông báo chung</SelectItem>
+                  <SelectItem value="bill">Hóa đơn</SelectItem>
+                  <SelectItem value="maintenance">Bảo trì</SelectItem>
+                  <SelectItem value="reminder">Nhắc nhở</SelectItem>
+                  <SelectItem value="event">Sự kiện</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="scope" className="text-base font-semibold">
-                Phạm vi gửi <span className="text-red-500">*</span>
-              </Label>
+            <div>
+              <Label className="font-semibold">Phạm vi gửi</Label>
               <Select
                 value={formData.scope}
-                onValueChange={(value: any) => {
-                  setFormData({ ...formData, scope: value });
-                  setSelectedBuildings([]);
-                  if (errors.buildings) setErrors({ ...errors, buildings: "" });
-                }}
+                onValueChange={(v: ScopeType) => setFormData(prev => ({
+                  ...prev,
+                  scope: v,
+                  selectedBuildings: v === "buildings" ? prev.selectedBuildings : []
+                }))}
                 disabled={isLoading}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {scopeOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{option.label}</span>
-                        <span className="text-xs text-slate-500">{option.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">Tất cả cư dân</SelectItem>
+                  <SelectItem value="buildings">Theo tòa nhà</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {(formData.scope === "building" || formData.scope === "staff_buildings") && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">
-                  Chọn tòa nhà <span className="text-red-500">*</span>
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAllBuildings}
-                  disabled={isLoading}
-                >
-                  {selectedBuildings.length === buildingsData?.data?.length
-                    ? "Bỏ chọn tất cả"
-                    : "Chọn tất cả"}
+          {/* Chọn tòa nhà */}
+          {formData.scope === "buildings" && (
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex justify-between items-center">
+                <Label className="font-semibold">Chọn tòa nhà</Label>
+                <Button variant="outline" size="sm" onClick={selectAllBuildings} disabled={isLoading}>
+                  {formData.selectedBuildings.length === buildingsData?.data?.length ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                 </Button>
               </div>
 
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-blue-800">
-                  Thông báo sẽ được gửi đến tất cả cư dân trong các tòa nhà được chọn
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-lg bg-slate-50 max-h-[200px] overflow-y-auto">
-                {buildingsData?.data?.map((building) => (
-                  <div
-                    key={building._id}
-                    className="flex items-center space-x-2 p-2 hover:bg-white rounded transition-colors"
-                  >
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-3 border rounded bg-slate-50">
+                {buildingsData?.data?.map(building => (
+                  <div key={building._id} className="flex items-center gap-2">
                     <Checkbox
                       id={building._id}
-                      checked={selectedBuildings.includes(building._id)}
-                      onCheckedChange={() => handleBuildingToggle(building._id)}
-                      disabled={isLoading}
+                      checked={formData.selectedBuildings.includes(building._id)}
+                      onCheckedChange={() => toggleBuilding(building._id)}
                     />
-                    <label
-                      htmlFor={building._id}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
-                    >
+                    <label htmlFor={building._id} className="text-sm cursor-pointer flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-blue-600" />
                       {building.name}
                     </label>
@@ -657,64 +354,22 @@ const ModalCreateNotification = ({
                 ))}
               </div>
 
-              {errors.buildings && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.buildings}
-                </p>
-              )}
-
-              {selectedBuildings.length > 0 && (
+              {errors.target && <p className="text-sm text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.target}</p>}
+              {formData.selectedBuildings.length > 0 && (
                 <p className="text-sm text-slate-600">
-                  Đã chọn <span className="font-semibold">{selectedBuildings.length}</span> tòa nhà
+                  Đã chọn <strong>{formData.selectedBuildings.length}</strong> tòa nhà
                 </p>
               )}
-            </div>
-          )}
-
-          {formData.scope === "floor" && (
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                Chức năng gửi theo tầng sẽ được cập nhật sau. Vui lòng chọn phạm vi khác.
-              </p>
-            </div>
-          )}
-
-          {formData.scope === "room" && (
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                Chức năng gửi theo phòng sẽ được cập nhật sau. Vui lòng chọn phạm vi khác.
-              </p>
-            </div>
-          )}
-
-          {formData.scope === "resident" && (
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                Chức năng gửi đến cư dân cụ thể sẽ được cập nhật sau. Vui lòng chọn phạm vi khác.
-              </p>
             </div>
           )}
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Hủy
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                {editingNotification ? "Đang cập nhật..." : "Đang tạo..."}
-              </>
-            ) : editingNotification ? (
-              "Cập nhật thông báo"
-            ) : (
-              "Tạo thông báo"
-            )}
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Đang xử lý..." : editingNotification ? "Cập nhật" : "Gửi thông báo"}
           </Button>
         </DialogFooter>
       </DialogContent>
