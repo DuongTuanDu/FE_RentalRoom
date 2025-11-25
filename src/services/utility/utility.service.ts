@@ -1,69 +1,157 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
 import type {
-  InvoiceDetailResponse,
-  InvoiceResponse,
-} from "@/types/invoice";
+  ICreateUtilityBulkRequest,
+  IUpdateReadingRequest,
+  IUtilityDetailResponse,
+  IUtilityListResponse,
+  IUtilityReadingRequest,
+  IUtilityRoomListResponse,
+} from "@/types/utility";
 
-export const invoiceApi = createApi({
-  reducerPath: "invoiceApi",
+export const utilityApi = createApi({
+  reducerPath: "utilityApi",
   baseQuery: async (args) => {
     const { url, method, data, params } = args;
     return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["Invoice", "TenantInvoice"],
+  tagTypes: ["UtilityReading", "UtilityReadingRoom"],
   endpoints: (builder) => ({
-    getInvoices: builder.query<
-      InvoiceResponse,
+    getUtilityReadingsRoom: builder.query<
+      // Lấy danh sách phòng để nhập chỉ số điện nước theo kỳ
+      IUtilityRoomListResponse,
       {
-        status?: "draft" | "confirmed" | "billed";
         buildingId?: string;
-        roomId?: string;
-        tenantId?: string;
         periodMonth?: string;
         periodYear?: string;
+        p?: string;
         page?: number;
         limit?: number;
-        search?: string;
       }
     >({
       query: ({
-        status,
         buildingId,
-        roomId,
-        tenantId,
         periodMonth,
         periodYear,
+        p = "",
         page = 1,
         limit = 10,
-        search = "",
       }) => ({
-        url: "/landlords/invoices",
+        url: "/landlords/utility-readings/rooms",
         method: "GET",
         params: {
           page,
           limit,
-          search,
+          p,
+          ...(buildingId ? { buildingId } : {}),
+          ...(periodMonth ? { periodMonth } : {}),
+          ...(periodYear ? { periodYear } : {}),
+        },
+      }),
+      providesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
+    getUtilityReadings: builder.query<
+      // Lấy danh sách chỉ số điện nước
+      IUtilityListResponse,
+      {
+        buildingId?: string;
+        roomId?: string;
+        type?: "electricity" | "water";
+        status?: "draft" | "confirmed" | "billed";
+        periodMonth?: string;
+        periodYear?: string;
+        page?: number;
+        limit?: number;
+      }
+    >({
+      query: ({
+        buildingId,
+        roomId,
+        type,
+        status,
+        periodMonth,
+        periodYear,
+        page = 1,
+        limit = 10,
+      }) => ({
+        url: "/landlords/utility-readings",
+        method: "GET",
+        params: {
+          page,
+          limit,
           ...(buildingId ? { buildingId } : {}),
           ...(roomId ? { roomId } : {}),
-          ...(tenantId ? { tenantId } : {}),
+          ...(type ? { type } : {}),
           ...(status ? { status } : {}),
           ...(periodMonth ? { periodMonth } : {}),
           ...(periodYear ? { periodYear } : {}),
         },
       }),
-      providesTags: ["Invoice"],
+      providesTags: ["UtilityReading", "UtilityReadingRoom"],
     }),
-    getInvoiceDetails: builder.query<InvoiceDetailResponse, string>({
+    createUtilityReading: builder.mutation< // Tạo kỳ đọc chỉ số điện nước cho 1 phòng
+      IUtilityListResponse,
+      IUtilityReadingRequest
+    >({
+      query: (data) => ({
+        url: "/landlords/utility-readings",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
+    createUtilityReadingsBulk: builder.mutation< // Tạo hàng loạt chỉ số địện nước cho nhiều phòng
+      IUtilityListResponse,
+      ICreateUtilityBulkRequest
+    >({
+      query: (data) => ({
+        url: "/landlords/utility-readings/bulk",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
+    getUtilityReadingDetail: builder.query<IUtilityDetailResponse, string>({ // Xem chi tiết 1 kỳ chỉ số điện nước
       query: (id) => ({
-        url: `/landlords/invoices/${id}`,
+        url: `/landlords/utility-readings/${id}`,
         method: "GET",
       }),
-      providesTags: ["Invoice"],
-    })
+    }),
+    updateUtilityReading: builder.mutation< // Cập nhật chỉ số khi status là draft
+      IUtilityListResponse,
+      { id: string; data: IUpdateReadingRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/landlords/utility-readings/${id}`,
+        method: "PATCH",
+        data,
+      }),
+      invalidatesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
+    deleteUtilityReading: builder.mutation<IUtilityListResponse, string>({
+      query: (id) => ({
+        url: `/landlords/utility-readings/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
+    confirmUtilityReading: builder.mutation<IUtilityListResponse, string>({ // Xác nhận và khóa chỉ số
+      query: (id) => ({
+        url: `/landlords/utility-readings/${id}/confirm`,
+        method: "POST",
+      }),
+      invalidatesTags: ["UtilityReading", "UtilityReadingRoom"],
+    }),
   }),
 });
 
 export const {
-  useGetInvoicesQuery,
-} = invoiceApi;
+  useGetUtilityReadingsRoomQuery,
+  useGetUtilityReadingsQuery,
+  useGetUtilityReadingDetailQuery,
+  useCreateUtilityReadingMutation,
+  useCreateUtilityReadingsBulkMutation,
+  useUpdateUtilityReadingMutation,
+  useDeleteUtilityReadingMutation,
+  useConfirmUtilityReadingMutation,
+} = utilityApi;
