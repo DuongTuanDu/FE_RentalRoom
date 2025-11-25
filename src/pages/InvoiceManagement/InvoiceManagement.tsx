@@ -53,12 +53,16 @@ import {
   useCreateGenerateMonthlyInvoiceMutation,
   useCreateGenerateInvoiceMutation,
 } from "@/services/invoice/invoice.service";
-import type { InvoiceItem } from "@/types/invoice";
+import type {
+  InvoiceItem,
+  IGenerateMonthlyInvoiceRequest,
+} from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
 import { PayInvoiceDialog } from "./components/PayInvoiceDialog";
 import { GenerateMonthlyInvoiceDialog } from "./components/GenerateMonthlyInvoiceDialog";
 import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
+import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialog";
 import _ from "lodash";
 
 const InvoiceManagement = () => {
@@ -90,6 +94,11 @@ const InvoiceManagement = () => {
     useState(false);
   const [sendInvoicePopoverOpen, setSendInvoicePopoverOpen] = useState(false);
   const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<{
+    message: string;
+    errors: Array<{ roomNumber: string; message: string }>;
+  } | null>(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -220,18 +229,61 @@ const InvoiceManagement = () => {
     }
   };
 
-  const handleGenerateMonthlyInvoice = async (data: {
-    roomId: string;
-    periodMonth: number;
-    periodYear: number;
-    includeRent: boolean;
-  }) => {
+  const handleGenerateMonthlyInvoice = async (
+    data: IGenerateMonthlyInvoiceRequest
+  ) => {
     try {
-      await generateMonthlyInvoice(data).unwrap();
-      toast.success("Tạo hóa đơn tháng thành công!");
-      setIsGenerateMonthlyDialogOpen(false);
+      const response = await generateMonthlyInvoice(data).unwrap();
+
+      // Kiểm tra nếu có lỗi trong response (một số API trả về 200 nhưng có failCount > 0)
+      const responseData = response as any;
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "failCount" in responseData &&
+        Number(responseData.failCount) > 0
+      ) {
+        const errorData = responseData.message || [];
+        const errors = errorData.map((err: any) => ({
+          roomNumber: err.roomNumber || "N/A",
+          message: err.message || "Không xác định",
+        }));
+
+        setErrorDetails({
+          message: (responseData.message as string) || "Tạo hóa đơn có lỗi",
+          errors,
+        });
+        setIsErrorDialogOpen(true);
+        toast.error((responseData.message as string) || "Tạo hóa đơn có lỗi", {
+          duration: 5000,
+        });
+      } else {
+        toast.success("Tạo hóa đơn tháng thành công!");
+        setIsGenerateMonthlyDialogOpen(false);
+      }
     } catch (error: any) {
-      toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
+      // Xử lý lỗi từ API response
+      const errorResponse = error.message || error;
+      console.log("errorResponse", errorResponse);
+
+      // Nếu có cấu trúc data với danh sách lỗi chi tiết
+      if (errorResponse?.data && Array.isArray(errorResponse.data)) {
+        const errors = errorResponse.data.map((err: any) => ({
+          roomNumber: err.roomNumber || "N/A",
+          message: err.message || "Không xác định",
+        }));
+
+        setErrorDetails({
+          message: errorResponse.message || "Tạo hóa đơn thất bại",
+          errors,
+        });
+        setIsErrorDialogOpen(true);
+        toast.error(errorResponse.message || "Tạo hóa đơn thất bại", {
+          duration: 5000,
+        });
+      } else {
+        toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
+      }
     }
   };
 
@@ -715,6 +767,13 @@ const InvoiceManagement = () => {
         onOpenChange={setIsGenerateInvoiceDialogOpen}
         onSubmit={handleGenerateInvoice}
         isLoading={isGeneratingInvoice}
+      />
+
+      {/* Error Details Dialog */}
+      <InvoiceErrorDetailsDialog
+        open={isErrorDialogOpen}
+        onOpenChange={setIsErrorDialogOpen}
+        errorDetails={errorDetails}
       />
     </div>
   );
