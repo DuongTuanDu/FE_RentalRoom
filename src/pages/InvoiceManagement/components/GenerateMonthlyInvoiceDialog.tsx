@@ -18,14 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, FileText } from "lucide-react";
-import { RoomSelectCombobox } from "@/pages/RoomFurnitureLandlord/components/RoomSelectCombobox";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
 
 interface GenerateMonthlyInvoiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: {
-    roomId: string;
+    buildingId: string;
     periodMonth: number;
     periodYear: number;
     includeRent: boolean;
@@ -40,7 +39,6 @@ export const GenerateMonthlyInvoiceDialog = ({
   isLoading,
 }: GenerateMonthlyInvoiceDialogProps) => {
   const [buildingId, setBuildingId] = useState("");
-  const [roomId, setRoomId] = useState("");
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
   const [includeRent, setIncludeRent] = useState(true);
@@ -63,18 +61,17 @@ export const GenerateMonthlyInvoiceDialog = ({
   useEffect(() => {
     if (!open) {
       setBuildingId("");
-      setRoomId("");
       setIncludeRent(true);
     }
   }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roomId || !periodMonth || !periodYear) {
+    if (!buildingId || !periodMonth || !periodYear) {
       return;
     }
     onSubmit({
-      roomId,
+      buildingId,
       periodMonth: Number(periodMonth),
       periodYear: Number(periodYear),
       includeRent,
@@ -90,29 +87,19 @@ export const GenerateMonthlyInvoiceDialog = ({
             Tạo hóa đơn tháng
           </DialogTitle>
           <DialogDescription>
-            Tạo hóa đơn tự động cho một phòng trong tháng/năm được chọn
+            Tạo hóa đơn tự động hàng loạt cho tất cả các phòng đang được thuê trong tòa nhà đã chọn
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           {/* Building */}
           <div className="space-y-2">
-            <Label>Tòa nhà</Label>
+            <Label>
+              Tòa nhà <span className="text-red-500">*</span>
+            </Label>
             <BuildingSelectCombobox
               value={buildingId}
               onValueChange={setBuildingId}
-            />
-          </div>
-
-          {/* Room */}
-          <div className="space-y-2">
-            <Label>
-              Phòng <span className="text-red-500">*</span>
-            </Label>
-            <RoomSelectCombobox
-              value={roomId}
-              onValueChange={setRoomId}
-              buildingId={buildingId || undefined}
             />
           </div>
 
@@ -186,7 +173,7 @@ export const GenerateMonthlyInvoiceDialog = ({
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={isLoading || !roomId || !periodMonth || !periodYear}>
+            <Button type="submit" disabled={isLoading || !buildingId || !periodMonth || !periodYear}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

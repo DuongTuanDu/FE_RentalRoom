@@ -3,7 +3,7 @@ import {
   useGetContactsResidentQuery,
   useUpdateContactStatusResidentMutation,
 } from "@/services/contact-request/contact-request.service";
-import { FileText, Search, Eye} from "lucide-react";
+import { FileText, Search, Eye, X} from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -36,12 +36,10 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 const ContactRequest = () => {
@@ -50,10 +48,8 @@ const ContactRequest = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<IContact | null>(null);
-  const [actionType, setActionType] = useState<"accepted" | "rejected" | null>(null);
-  const [landlordNote, setLandlordNote] = useState("");
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [viewingContact, setViewingContact] = useState<IContact | null>(null);
 
@@ -91,33 +87,34 @@ const ContactRequest = () => {
     setIsDetailDialogOpen(true);
   };
 
-  const handleUpdateStatus = async () => {
-    if (!selectedContact || !actionType) return;
+  const handleOpenCancelDialog = (contact: IContact) => {
+    setSelectedContact(contact);
+    setIsCancelDialogOpen(true);
+  };
+
+  const handleCancelRequest = async () => {
+    if (!selectedContact) return;
 
     try {
       await updateContactStatus({
         id: selectedContact._id,
         data: {
-          action: actionType,
-          landlordNote: landlordNote,
+          action: "cancelled",
+          landlordNote: "",
         },
       }).unwrap();
 
-      setIsActionDialogOpen(false);
+      setIsCancelDialogOpen(false);
       setSelectedContact(null);
-      setActionType(null);
-      setLandlordNote("");
 
       toast.success("Thành công", {
-        description: `Yêu cầu đã được ${
-          actionType === "accepted" ? "chấp nhận" : "từ chối"
-        } thành công`,
+        description: "Yêu cầu đã được hủy thành công",
       });
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.data?.message ||
-          "Không thể cập nhật trạng thái. Vui lòng thử lại",
+          error?.message?.message ||
+          "Không thể hủy yêu cầu. Vui lòng thử lại",
       });
     }
   };
@@ -143,10 +140,7 @@ const ContactRequest = () => {
     
     let filtered = data.data;
     
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((contact) => contact.status === statusFilter);
-    }
-    
+    // API đã filter theo status rồi, chỉ cần filter theo search
     if (debouncedSearch) {
       const searchLower = debouncedSearch.toLowerCase();
       filtered = filtered.filter((contact) => {
@@ -171,7 +165,7 @@ const ContactRequest = () => {
     }
     
     return filtered;
-  }, [data?.data, debouncedSearch, statusFilter]);
+  }, [data?.data, debouncedSearch]);
 
   return (
     <div className="p-6">
@@ -220,8 +214,9 @@ const ContactRequest = () => {
                   <SelectContent>
                     <SelectItem value="all">Tất cả</SelectItem>
                     <SelectItem value="pending">Chờ duyệt</SelectItem>
-                    <SelectItem value="approved">Đã duyệt</SelectItem>
+                    <SelectItem value="accepted">Đã duyệt</SelectItem>
                     <SelectItem value="rejected">Đã từ chối</SelectItem>
+                    <SelectItem value="cancelled">Đã hủy</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -317,7 +312,7 @@ const ContactRequest = () => {
                             {contact.createdAt ? formatDate(contact.createdAt) : '—'}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center justify-center">
+                            <div className="flex items-center justify-center gap-2">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -335,6 +330,25 @@ const ContactRequest = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
+                              {contact.status === "pending" && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleOpenCancelDialog(contact)}
+                                      >
+                                        <X className="w-4 h-4 text-red-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Hủy yêu cầu</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -447,7 +461,7 @@ const ContactRequest = () => {
                     </div>
                     <div>
                       <Label className="text-slate-400">SĐT</Label>
-                          <p className="font-medium">{typeof viewingContact.landlordId === 'object' ? viewingContact.landlordId.userInfo.fullName : '—'}</p>
+                          <p className="font-medium">{typeof viewingContact.landlordId === 'object' ? viewingContact.landlordId.userInfo.phoneNumber : '—'}</p>
                     </div>
                 </div>
               </div>
@@ -516,11 +530,64 @@ const ContactRequest = () => {
             </div>
           )}
           <DialogFooter>
+            {viewingContact?.status === "pending" && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setIsDetailDialogOpen(false);
+                  handleOpenCancelDialog(viewingContact);
+                }}
+              >
+                Hủy yêu cầu
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setIsDetailDialogOpen(false)}
             >
               Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hủy yêu cầu hợp đồng</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-600">
+              Bạn có chắc chắn muốn hủy yêu cầu hợp đồng này? Hành động này không thể hoàn tác.
+            </p>
+            {selectedContact && (
+              <div className="mt-4 p-3 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-500">Thông tin yêu cầu:</p>
+                <p className="font-medium mt-1">
+                  {typeof selectedContact.buildingId === 'object' 
+                    ? selectedContact.buildingId.name 
+                    : '—'} - 
+                  {typeof selectedContact.roomId === 'object' 
+                    ? selectedContact.roomId.roomNumber 
+                    : '—'}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCancelDialogOpen(false)}
+              disabled={isUpdating}
+            >
+              Không
+            </Button>
+            <Button
+              onClick={handleCancelRequest}
+              disabled={isUpdating}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isUpdating ? "Đang xử lý..." : "Xác nhận hủy"}
             </Button>
           </DialogFooter>
         </DialogContent>

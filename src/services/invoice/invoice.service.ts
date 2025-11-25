@@ -9,6 +9,7 @@ import type {
   ITenantInvoiceResponse,
   ITenantInvoiceDetailResponse,
   ITenantPayInvoiceRequest,
+  IRoomCompletedContractResponse,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -70,9 +71,9 @@ export const invoiceApi = createApi({
     createGenerateMonthlyInvoice: builder.mutation<
       InvoiceResponse,
       IGenerateMonthlyInvoiceRequest
-    >({ // Tạo hóa đơn tháng cho 1 phòng
+    >({ // Tạo hóa đơn tháng hàng loạt cho các phòng đang được thuê
       query: (data) => ({
-        url: "/landlords/invoices/generate-monthly",
+        url: "/landlords/invoices/generate-monthly-bulk",
         method: "POST",
         data,
       }),
@@ -106,6 +107,22 @@ export const invoiceApi = createApi({
         method: "POST",
       }),
       invalidatesTags: ["Invoice"],
+    }),
+    getRoomsCompletedContract: builder.query<IRoomCompletedContractResponse, { // Danh sách phòng đang có hợp đồng complete trong kỳ để tạo hóa đơn
+      buildingId?: string;
+      page?: number;
+      limit?: number;
+    }>({
+      query: ({ buildingId, page = 1, limit = 10 }) => ({
+        url: "/landlords/invoices/rooms",
+        method: "GET",
+        params: {
+          page,
+          limit,
+          ...(buildingId ? { buildingId } : {}),
+        },
+      }),
+      providesTags: ["Invoice"],
     }),
 
     // Tenant
@@ -165,6 +182,7 @@ export const {
   useCreateGenerateInvoiceMutation,
   usePayInvoiceMutation,
   useSendInvoiceMutation,
+  useGetRoomsCompletedContractQuery,
 
   // Tenant
   useGetTenantInvoicesQuery,

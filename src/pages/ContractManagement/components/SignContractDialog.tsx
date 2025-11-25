@@ -291,10 +291,7 @@ export const SignContractDialog = ({
                       {[...contractDetail.terms]
                         .sort((a, b) => a.order - b.order)
                         .map((term, index) => (
-                          <div
-                            key={index}
-                            className="p-3 bg-slate-50 rounded-lg"
-                          >
+                          <div key={index} className="p-3 border rounded-lg">
                             <div className="font-medium">{term.name}</div>
                             <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
                               <div
