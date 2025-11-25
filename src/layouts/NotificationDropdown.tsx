@@ -30,6 +30,7 @@ export default function NotificationDropdown() {
 
   const user = useSelector((state: RootState) => state.auth);
   const userId = user?.userInfo?._id;
+  const userRole = user?.userInfo?.role;
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingNotification, setViewingNotification] = useState<INotification | null>(null);
@@ -65,8 +66,14 @@ export default function NotificationDropdown() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="relative hover:bg-white/10 ">
+            <Bell 
+              className={`h-5 w-5 ${
+                userRole === "resident" 
+                  ? "text-white"         
+                  : "text-foreground" 
+              }`}
+            />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
                 {unreadCount > 99 ? "99+" : unreadCount}
