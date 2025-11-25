@@ -25,6 +25,8 @@ import { roomAppointmentApi } from "@/services/room-appointment/room-appointment
 import { revenueApi } from "@/services/revenue/revenue.service";
 import { contractApi } from "@/services/contract/contract.service";
 import { staffApi } from "@/services/staff/staff.service";
+import { notificationApi } from "@/services/notification/notification.service";
+import { socketMiddleware } from "@/middleware/socket.middleware";
 import { analysisApi } from "@/services/analysis/analysis.service";
 import { invoiceApi } from "@/services/invoice/invoice.service";
 import { utilityApi } from "@/services/utility/utility.service";
@@ -64,6 +66,7 @@ export const store = configureStore({
     [revenueApi.reducerPath]: revenueApi.reducer,
     [contractApi.reducerPath]: contractApi.reducer,
     [staffApi.reducerPath]: staffApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
     [analysisApi.reducerPath]: analysisApi.reducer,
     [invoiceApi.reducerPath]: invoiceApi.reducer,
     [utilityApi.reducerPath]: utilityApi.reducer,
@@ -97,6 +100,8 @@ export const store = configureStore({
       revenueApi.middleware,
       contractApi.middleware,
       staffApi.middleware,
+      notificationApi.middleware,
+      socketMiddleware,
       analysisApi.middleware,
       invoiceApi.middleware,
       utilityApi.middleware
@@ -104,3 +109,5 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

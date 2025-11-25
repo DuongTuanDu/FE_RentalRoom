@@ -8,6 +8,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import AppSidebar from "./SiderLandlord";
+import NotificationDropdown from "./NotificationDropdown";
 
 // Main Layout Component
 export default function LayoutLandlord() {
@@ -34,6 +35,7 @@ export default function LayoutLandlord() {
             
             {/* Package Service Button */}
             <div className="flex items-center gap-2">
+              <NotificationDropdown />
               <Button
                 onClick={handlePackageServiceClick}
                 className="mr-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
