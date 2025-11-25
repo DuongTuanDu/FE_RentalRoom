@@ -44,6 +44,12 @@ import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { InvoiceItem } from "@/types/invoice";
 import { TenantInvoiceDetailSheet } from "./components/TenantInvoiceDetailSheet";
 import { TenantPayInvoiceDialog } from "./components/TenantPayInvoiceDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Invoice = () => {
   const formatDate = useFormatDate();
@@ -189,7 +195,9 @@ const Invoice = () => {
       setIsPayDialogOpen(false);
       setPayingInvoiceId(null);
     } catch (error: any) {
-      toast.error(error?.message?.message || "Báo đã thanh toán hóa đơn thất bại!");
+      toast.error(
+        error?.message?.message || "Báo đã thanh toán hóa đơn thất bại!"
+      );
     }
   };
 
@@ -564,18 +572,26 @@ const Invoice = () => {
                             </Button>
                             {invoice.status !== "paid" &&
                               invoice.status !== "cancelled" && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleOpenPayDialog(invoice._id)
-                                  }
-                                  disabled={isPaying}
-                                  className="gap-2"
-                                >
-                                  <CreditCard className="h-4 w-4" />
-                                  Thanh toán
-                                </Button>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() =>
+                                          handleOpenPayDialog(invoice._id)
+                                        }
+                                        disabled={isPaying}
+                                        className="gap-2"
+                                      >
+                                        <CreditCard className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Thanh toán</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                           </div>
                         </TableCell>
@@ -598,8 +614,8 @@ const Invoice = () => {
                   <span className="font-medium">
                     {Math.min(currentPage * pageLimit, totalItems)}
                   </span>{" "}
-                  trong tổng số <span className="font-medium">{totalItems}</span>{" "}
-                  bản ghi
+                  trong tổng số{" "}
+                  <span className="font-medium">{totalItems}</span> bản ghi
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -622,7 +638,9 @@ const Invoice = () => {
                       )
                     }
                     disabled={
-                      totalPages === 0 || currentPage >= totalPages || isFetching
+                      totalPages === 0 ||
+                      currentPage >= totalPages ||
+                      isFetching
                     }
                   >
                     Trang sau
