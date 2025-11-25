@@ -245,3 +245,36 @@ export interface ITenantInvoiceDetailResponse {
   paidAt: string | null;
   paymentNote?: string;
 }
+
+export interface IRoomCompletedContract {
+  contractId: string;
+  contractStatus: "completed";
+  contract: {
+    no: string;
+    startDate: string;
+    endDate: string;
+    price: number;
+  };
+  room: {
+    _id: string;
+    roomNumber: string;
+    status: "available" | "rented" | "maintenance";
+    floorId: string;
+  };
+  building: {
+    _id: string;
+    name: string;
+    address: string;
+  };
+  tenant: {
+    _id: string;
+    email: string;
+    fullName: string;
+    phoneNumber: string;
+  };
+}
+
+export interface IRoomCompletedContractResponse {
+  message: string;
+  data: IRoomCompletedContract[];
+}

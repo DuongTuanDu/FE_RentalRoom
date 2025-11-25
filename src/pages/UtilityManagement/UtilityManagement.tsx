@@ -692,7 +692,6 @@ const UtilityManagement = () => {
         open={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleConfirm}
-        utility={selectedUtility}
         isLoading={isConfirming}
       />
     </div>

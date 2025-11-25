@@ -9,6 +9,7 @@ import type {
   ITenantInvoiceResponse,
   ITenantInvoiceDetailResponse,
   ITenantPayInvoiceRequest,
+  IRoomCompletedContractResponse,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -107,6 +108,22 @@ export const invoiceApi = createApi({
       }),
       invalidatesTags: ["Invoice"],
     }),
+    getRoomsCompletedContract: builder.query<IRoomCompletedContractResponse, { // Danh sách phòng đang có hợp đồng complete trong kỳ để tạo hóa đơn
+      buildingId?: string;
+      page?: number;
+      limit?: number;
+    }>({
+      query: ({ buildingId, page = 1, limit = 10 }) => ({
+        url: "/landlords/invoices/rooms",
+        method: "GET",
+        params: {
+          page,
+          limit,
+          ...(buildingId ? { buildingId } : {}),
+        },
+      }),
+      providesTags: ["Invoice"],
+    }),
 
     // Tenant
     getTenantInvoices: builder.query<
@@ -165,6 +182,7 @@ export const {
   useCreateGenerateInvoiceMutation,
   usePayInvoiceMutation,
   useSendInvoiceMutation,
+  useGetRoomsCompletedContractQuery,
 
   // Tenant
   useGetTenantInvoicesQuery,

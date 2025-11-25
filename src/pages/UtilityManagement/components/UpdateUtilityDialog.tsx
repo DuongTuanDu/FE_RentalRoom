@@ -109,7 +109,7 @@ export const UpdateUtilityDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full !max-w-2xl">
+      <DialogContent className="w-full !max-w-lg">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa chỉ số điện nước</DialogTitle>
         </DialogHeader>
@@ -125,7 +125,7 @@ export const UpdateUtilityDialog = ({
                   setFormData((prev) => ({ ...prev, periodMonth: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Chọn tháng" />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,7 +147,7 @@ export const UpdateUtilityDialog = ({
                   setFormData((prev) => ({ ...prev, periodYear: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Chọn năm" />
                 </SelectTrigger>
                 <SelectContent>

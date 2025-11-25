@@ -9,13 +9,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import type { IUtilityItem } from "@/types/utility";
 
 interface ConfirmUtilityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  utility: IUtilityItem | null;
   isLoading: boolean;
 }
 
@@ -23,12 +21,8 @@ export const ConfirmUtilityDialog = ({
   open,
   onOpenChange,
   onConfirm,
-  utility,
   isLoading,
 }: ConfirmUtilityDialogProps) => {
-  const getTypeLabel = (type: string) => {
-    return type === "electricity" ? "Điện" : "Nước";
-  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -40,23 +34,6 @@ export const ConfirmUtilityDialog = ({
             khi xác nhận, bạn sẽ không thể chỉnh sửa chỉ số này nữa.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {utility && (
-          <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-            <p className="text-sm text-slate-500">Thông tin chỉ số:</p>
-            <p className="font-medium mt-1">
-              {utility.buildingId?.name || "—"} - Phòng{" "}
-              {utility.roomId?.roomNumber || "—"} -{" "}
-              {getTypeLabel(utility.type)} - {utility.periodMonth}/
-              {utility.periodYear}
-            </p>
-            <p className="text-sm text-slate-600 mt-2">
-              Thành tiền:{" "}
-              <span className="font-medium">
-                {utility.amount.toLocaleString()} đ
-              </span>
-            </p>
-          </div>
-        )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Hủy</AlertDialogCancel>
           <AlertDialogAction

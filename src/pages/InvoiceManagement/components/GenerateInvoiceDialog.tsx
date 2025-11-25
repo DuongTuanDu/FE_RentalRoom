@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,11 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, FileText, Plus, Trash2 } from "lucide-react";
-import { RoomSelectCombobox } from "@/pages/RoomFurnitureLandlord/components/RoomSelectCombobox";
+import { RoomCompletedContractSelectCombobox } from "./RoomCompletedContractSelectCombobox";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
-import { useGetContractsQuery } from "@/services/contract/contract.service";
-import type { IGenerateInvoiceRequest } from "@/types/invoice";
-import type { IContract } from "@/types/contract";
+import { useGetRoomsCompletedContractQuery } from "@/services/invoice/invoice.service";
+import type {
+  IGenerateInvoiceRequest,
+  IRoomCompletedContract,
+} from "@/types/invoice";
 
 interface InvoiceItem {
   type: "rent" | "electric" | "water" | "service" | "other";
@@ -62,38 +64,37 @@ export const GenerateInvoiceDialog = ({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
-  // Get contracts - always fetch, filter on client side
-  const { data: contractsData, isLoading: isLoadingContracts } = useGetContractsQuery(
-    {
-      page: 1,
-      limit: 100,
-      status: "completed",
-    }
-  );
-
-  // Filter contracts by roomId
-  const filteredContracts = useMemo(() => {
-    if (!contractsData?.items || !roomId) return [];
-    const filtered = contractsData.items.filter(
-      (c: IContract) => c.roomId?._id === roomId
+  // Get rooms with completed contracts
+  const { data: roomsData, isLoading: isLoadingRooms } =
+    useGetRoomsCompletedContractQuery(
+      {
+        buildingId: buildingId || undefined,
+        page: 1,
+        limit: 100,
+      },
+      {
+        skip: !buildingId, // Skip query if no buildingId
+      }
     );
-    console.log("Filtered contracts:", {
-      allContracts: contractsData.items.length,
-      roomId,
-      filtered: filtered.length,
-      contracts: filtered.map(c => ({ id: c._id, roomId: c.roomId?._id, contractNo: c.contract?.no }))
-    });
-    return filtered;
-  }, [contractsData?.items, roomId]);
 
-  // Reset contractId when roomId changes
+  // Find contractId and tenantId when roomId is selected
   useEffect(() => {
-    if (roomId) {
+    if (roomId && roomsData?.data) {
+      const roomContract = roomsData.data.find(
+        (item: IRoomCompletedContract) => item.room._id === roomId
+      );
+      if (roomContract) {
+        setContractId(roomContract.contractId);
+        setTenantId(roomContract.tenant._id);
+      } else {
+        setContractId("");
+        setTenantId("");
+      }
+    } else {
       setContractId("");
       setTenantId("");
     }
-  }, [roomId]);
-  
+  }, [roomId, roomsData?.data]);
 
   // Set default to current month/year and due date
   useEffect(() => {
@@ -101,7 +102,7 @@ export const GenerateInvoiceDialog = ({
       const now = new Date();
       setPeriodMonth(String(now.getMonth() + 1));
       setPeriodYear(String(now.getFullYear()));
-      
+
       // Set due date to end of current month
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       const year = lastDay.getFullYear();
@@ -122,16 +123,6 @@ export const GenerateInvoiceDialog = ({
       setItems([]);
     }
   }, [open]);
-
-  // Update tenantId when contract is selected
-  useEffect(() => {
-    if (contractId && contractsData?.items) {
-      const contract = contractsData.items.find((c: IContract) => c._id === contractId);
-      if (contract) {
-        setTenantId(contract.tenantId._id);
-      }
-    }
-  }, [contractId, contractsData]);
 
   const handleAddItem = () => {
     setItems([
@@ -159,13 +150,13 @@ export const GenerateInvoiceDialog = ({
   ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
-    
+
     // Auto-calculate amount if quantity or unitPrice changes
     if (field === "quantity" || field === "unitPrice") {
       newItems[index].amount =
         newItems[index].quantity * newItems[index].unitPrice;
     }
-    
+
     setItems(newItems);
   };
 
@@ -214,130 +205,134 @@ export const GenerateInvoiceDialog = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           {/* Building */}
-          <div className="space-y-2">
-            <Label>Tòa nhà</Label>
-            <BuildingSelectCombobox
-              value={buildingId}
-              onValueChange={setBuildingId}
-            />
+          <div className="space-y-2 grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label>Tòa nhà</Label>
+              <BuildingSelectCombobox
+                value={buildingId}
+                onValueChange={setBuildingId}
+              />
+            </div>
+
+            {/* Room */}
+            <div className="space-y-2 !mt-0">
+              <Label>
+                Phòng <span className="text-red-500">*</span>
+              </Label>
+              <RoomCompletedContractSelectCombobox
+                value={roomId}
+                onValueChange={setRoomId}
+                buildingId={buildingId || undefined}
+              />
+            </div>
           </div>
 
-          {/* Room */}
-          <div className="space-y-2">
-            <Label>
-              Phòng <span className="text-red-500">*</span>
-            </Label>
-            <RoomSelectCombobox
-              value={roomId}
-              onValueChange={setRoomId}
-              buildingId={buildingId || undefined}
-            />
-          </div>
-
-          {/* Contract */}
-          <div className="space-y-2">
-            <Label>
-              Hợp đồng <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={contractId}
-              onValueChange={setContractId}
-              required
-              disabled={!roomId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn hợp đồng" />
-              </SelectTrigger>
-              <SelectContent>
-                {isLoadingContracts ? (
-                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+          {/* Contract - Auto-filled, display only */}
+          {roomId && (
+            <div className="space-y-2">
+              <Label>Hợp đồng</Label>
+              <div className="px-3 py-2 border rounded-md bg-slate-50 dark:bg-slate-900">
+                {isLoadingRooms ? (
+                  <span className="text-sm text-muted-foreground">
                     Đang tải...
-                  </div>
-                ) : filteredContracts.length === 0 ? (
-                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                    {roomId ? "Không có hợp đồng nào cho phòng này" : "Vui lòng chọn phòng trước"}
-                  </div>
+                  </span>
+                ) : contractId && roomsData?.data ? (
+                  (() => {
+                    const roomContract = roomsData.data.find(
+                      (item: IRoomCompletedContract) =>
+                        item.contractId === contractId
+                    );
+                    return roomContract ? (
+                      <span className="text-sm">
+                        {roomContract.contract.no} -{" "}
+                        {roomContract.tenant.fullName ||
+                          roomContract.tenant.email}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Không tìm thấy hợp đồng
+                      </span>
+                    );
+                  })()
                 ) : (
-                  filteredContracts.map((contract: IContract) => (
-                    <SelectItem key={contract._id} value={contract._id}>
-                      {contract.contract?.no || "N/A"} - {contract.tenantId?.userInfo?.fullName || "N/A"}
-                    </SelectItem>
-                  ))
+                  <span className="text-sm text-muted-foreground">
+                    Chưa có hợp đồng
+                  </span>
                 )}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 grid grid-cols-2 gap-2">
+            {/* Period Month */}
+            <div className="space-y-2">
+              <Label>
+                Tháng <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={periodMonth}
+                onValueChange={setPeriodMonth}
+                required
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn tháng" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((month) => (
+                    <SelectItem key={month} value={String(month)}>
+                      Tháng {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Period Year */}
+            <div className="space-y-2 !mt-0">
+              <Label>
+                Năm <span className="text-red-500">*</span>
+              </Label>
+              <Select value={periodYear} onValueChange={setPeriodYear} required>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn năm" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((year) => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Period Month */}
-          <div className="space-y-2">
-            <Label>
-              Tháng <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={periodMonth}
-              onValueChange={setPeriodMonth}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn tháng" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((month) => (
-                  <SelectItem key={month} value={String(month)}>
-                    Tháng {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-2 grid grid-cols-2 gap-2">
+            {/* Invoice Number */}
+            <div className="space-y-2">
+              <Label>
+                Số hóa đơn <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                placeholder="VD: INV-2024-001"
+                required
+              />
+            </div>
 
-          {/* Period Year */}
-          <div className="space-y-2">
-            <Label>
-              Năm <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={periodYear}
-              onValueChange={setPeriodYear}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn năm" />
-              </SelectTrigger>
-              <SelectContent>
-                {yearOptions.map((year) => (
-                  <SelectItem key={year} value={String(year)}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Invoice Number */}
-          <div className="space-y-2">
-            <Label>
-              Số hóa đơn <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="VD: INV-2024-001"
-              required
-            />
-          </div>
-
-          {/* Due Date */}
-          <div className="space-y-2">
-            <Label>
-              Hạn thanh toán <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
+            {/* Due Date */}
+            <div className="space-y-2 !mt-0">
+              <Label>
+                Hạn thanh toán <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           {/* Items */}
@@ -364,7 +359,9 @@ export const GenerateInvoiceDialog = ({
                   className="p-4 border rounded-lg space-y-3 bg-slate-50 dark:bg-slate-900"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Khoản mục {index + 1}</span>
+                    <span className="text-sm font-medium">
+                      Khoản mục {index + 1}
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -477,17 +474,6 @@ export const GenerateInvoiceDialog = ({
                       />
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>ID chỉ số công tơ (tùy chọn)</Label>
-                    <Input
-                      value={item.utilityReadingId}
-                      onChange={(e) =>
-                        handleItemChange(index, "utilityReadingId", e.target.value)
-                      }
-                      placeholder="Nhập ID chỉ số công tơ nếu có"
-                    />
-                  </div>
                 </div>
               ))}
 
@@ -537,4 +523,3 @@ export const GenerateInvoiceDialog = ({
     </Dialog>
   );
 };
-

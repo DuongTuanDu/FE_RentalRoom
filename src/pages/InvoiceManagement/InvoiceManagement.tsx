@@ -11,6 +11,7 @@ import {
   Filter,
   X,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -33,7 +34,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useFormatDate } from "@/hooks/useFormatDate";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import {
   useGetInvoicesQuery,
@@ -51,7 +62,6 @@ import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import _ from "lodash";
 
 const InvoiceManagement = () => {
-  const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
 
   // Filters state
@@ -78,6 +88,8 @@ const InvoiceManagement = () => {
     useState(false);
   const [isGenerateInvoiceDialogOpen, setIsGenerateInvoiceDialogOpen] =
     useState(false);
+  const [sendInvoicePopoverOpen, setSendInvoicePopoverOpen] = useState(false);
+  const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -219,9 +231,7 @@ const InvoiceManagement = () => {
       toast.success("Tạo hóa đơn tháng thành công!");
       setIsGenerateMonthlyDialogOpen(false);
     } catch (error: any) {
-      toast.error(
-        error?.data?.message || error?.message?.message || "Tạo hóa đơn thất bại!"
-      );
+      toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
     }
   };
 
@@ -231,9 +241,7 @@ const InvoiceManagement = () => {
       toast.success("Tạo hóa đơn tùy chỉnh thành công!");
       setIsGenerateInvoiceDialogOpen(false);
     } catch (error: any) {
-      toast.error(
-        error?.data?.message || error?.message?.message || "Tạo hóa đơn thất bại!"
-      );
+      toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
     }
   };
 
@@ -262,9 +270,7 @@ const InvoiceManagement = () => {
             <Calendar className="h-4 w-4 mr-2" />
             Tạo hóa đơn tháng
           </Button>
-          <Button
-            onClick={() => setIsGenerateInvoiceDialogOpen(true)}
-          >
+          <Button onClick={() => setIsGenerateInvoiceDialogOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             Tạo hóa đơn tùy chỉnh
           </Button>
@@ -422,12 +428,8 @@ const InvoiceManagement = () => {
                   <TableHead>Phòng</TableHead>
                   <TableHead>Kỳ</TableHead>
                   <TableHead>Tổng tiền</TableHead>
-                  <TableHead>Ngày phát hành</TableHead>
-                  <TableHead>Hạn thanh toán</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead className="w-[180px] text-right">
-                    Hành động
-                  </TableHead>
+                  <TableHead className="text-center">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -489,42 +491,138 @@ const InvoiceManagement = () => {
                       <TableCell className="font-semibold">
                         {formatPrice(invoice.totalAmount)}
                       </TableCell>
-                      <TableCell>{formatDate(invoice.issuedAt)}</TableCell>
-                      <TableCell>{formatDate(invoice.dueDate)}</TableCell>
                       <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDetailSheet(invoice._id)}
-                            title="Xem chi tiết"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleOpenDetailSheet(invoice._id)
+                                  }
+                                >
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Xem chi tiết</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           {invoice.status !== "paid" &&
                             invoice.status !== "cancelled" && (
                               <>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    handleOpenPayDialog(invoice._id)
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() =>
+                                          handleOpenPayDialog(invoice._id)
+                                        }
+                                        disabled={isPaying}
+                                      >
+                                        <CreditCard className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Thanh toán</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <Popover
+                                  open={
+                                    sendInvoicePopoverOpen &&
+                                    sendingInvoiceId === invoice._id
                                   }
-                                  title="Thanh toán"
-                                  disabled={isPaying}
+                                  onOpenChange={(open) => {
+                                    setSendInvoicePopoverOpen(open);
+                                    if (open) {
+                                      setSendingInvoiceId(invoice._id);
+                                    } else {
+                                      setSendingInvoiceId(null);
+                                    }
+                                  }}
                                 >
-                                  <CreditCard className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleSendInvoice(invoice._id)}
-                                  title="Gửi email"
-                                  disabled={isSending}
-                                >
-                                  <Send className="h-4 w-4" />
-                                </Button>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            disabled={isSending}
+                                          >
+                                            <Send className="h-4 w-4" />
+                                          </Button>
+                                        </PopoverTrigger>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Gửi email</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <PopoverContent className="w-80" align="end">
+                                    <div className="space-y-4">
+                                      <div className="space-y-2">
+                                        <h4 className="font-medium text-sm">
+                                          Xác nhận gửi hóa đơn
+                                        </h4>
+                                        <p className="text-sm text-muted-foreground">
+                                          Bạn có chắc chắn muốn gửi hóa đơn{" "}
+                                          <span className="font-medium">
+                                            {invoice.invoiceNumber}
+                                          </span>{" "}
+                                          cho người thuê{" "}
+                                          <span className="font-medium">
+                                            {invoice.tenantId?.userInfo
+                                              ?.fullName || "N/A"}
+                                          </span>{" "}
+                                          qua email?
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => {
+                                            setSendInvoicePopoverOpen(false);
+                                            setSendingInvoiceId(null);
+                                          }}
+                                          disabled={isSending}
+                                        >
+                                          Hủy
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={async () => {
+                                            if (sendingInvoiceId) {
+                                              await handleSendInvoice(
+                                                sendingInvoiceId
+                                              );
+                                              setSendInvoicePopoverOpen(false);
+                                              setSendingInvoiceId(null);
+                                            }
+                                          }}
+                                          disabled={isSending}
+                                        >
+                                          {isSending ? (
+                                            <>
+                                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              Đang gửi...
+                                            </>
+                                          ) : (
+                                            "Xác nhận gửi"
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                               </>
                             )}
                         </div>
