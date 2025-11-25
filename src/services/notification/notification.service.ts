@@ -92,38 +92,12 @@ export const notificationApi = createApi({
     }),
 
     // POST /landlords/notifications/read - Đánh dấu thông báo đã đọc (chỉ tenant)
-    markNotificationAsRead: builder.mutation<IMarkAsReadResponse, string>({
-      query: (notificationId) => ({
+     markNotificationAsRead: builder.mutation<IMarkAsReadResponse, string[]>({
+      query: (notificationIds) => ({
         url: "/landlords/notifications/read",
         method: "POST",
-        data: { notificationId },
+        data: { notificationIds },
       }),
-      // Optimistic update
-      async onQueryStarted(notificationId, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          notificationApi.util.updateQueryData(
-            "getMyNotifications",
-            undefined,
-            (draft) => {
-              const notification = draft.data.find(
-                (n) => n._id === notificationId
-              );
-              if (notification) {
-                if (!notification.readBy) {
-                  notification.readBy = [];
-                }
-                // Thêm vào readBy (giả sử backend trả về đầy đủ)
-              }
-            }
-          )
-        );
-
-        try {
-          await queryFulfilled;
-        } catch {
-          patchResult.undo();
-        }
-      },
       invalidatesTags: ["Notifications"],
     }),
 

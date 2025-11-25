@@ -74,6 +74,9 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(setLogout());
+    setTimeout(() => {
+    window.location.reload();
+  }, 50);
   };
 
   const getInitials = (name: string) => {

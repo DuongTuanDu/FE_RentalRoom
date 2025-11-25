@@ -37,16 +37,26 @@ const attachSocketListeners = (storeAPI: any) => {
       })
     );
 
-    // Hiển thị toast đẹp
+    const getShortDescription = (content: string) => {
+    const plain = content.replace(/<[^>]*>/g, "").trim();
+    return plain.length > 80
+      ? plain.substring(0, 77) + "..."
+      : plain;
+  };
+
     toast.info(notification.title || "Bạn có thông báo mới", {
-      description: notification.content,
+      description: getShortDescription(notification.content),
       duration: 8000,
-      action: {
-        label: "Xem ngay",
-        onClick: () => {
-          window.location.href = "/notifications";
-        },
-      },
+      ...(state.auth.role !== "resident" 
+        ? {
+            action: {
+              label: "Xem ngay",
+              onClick: () => {
+                window.location.href = notification.link ;
+              },
+            },
+          }
+        : {}),
     });
   });
 

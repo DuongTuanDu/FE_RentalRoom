@@ -4,6 +4,7 @@ import {
   useGetMyNotificationsResidentQuery,
   useMarkNotificationAsReadResidentMutation,
   useDeleteNotificationMutation,
+  useMarkNotificationAsReadMutation,
 } from "@/services/notification/notification.service";
 import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useSelector } from "react-redux";
@@ -25,6 +26,7 @@ export const useNotifications = () => {
   const { data: response, isLoading, isFetching, refetch, error } = queryResult;
 
   const [markAsReadResident] = useMarkNotificationAsReadResidentMutation();
+  const [markAsReadLandlord] = useMarkNotificationAsReadMutation();
 
   const notifications = response?.data?.filter(n => !n.isDeleted) || [];
 
@@ -49,12 +51,15 @@ export const useNotifications = () => {
   });
 
   const handleMarkAsRead = async (notificationId: string) => {
-    if (currentRole === "resident") {
-      try {
+    if (!currentRole) return;
+    try {
+      if (currentRole === "resident") {
         await markAsReadResident([notificationId]).unwrap();
-      } catch (error) {
-        console.error("Mark as read failed:", error);
+      } else if (currentRole === "landlord") {
+        await markAsReadLandlord([notificationId]).unwrap();
       }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
     }
   };
 

@@ -36,7 +36,7 @@ export default function NotificationDropdown() {
 
   const allNotifications = useMemo(() => {
     const combined = [...unreadNotifications, ...readNotifications];
-    return combined.sort((a, b) => 
+    return combined.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [unreadNotifications, readNotifications]);
@@ -51,11 +51,12 @@ export default function NotificationDropdown() {
   };
 
   const handleOpenNotificationDetail = async (noti: INotification) => {
-    const isUnread = !noti.readBy?.some((r: any) => r.accountId === userId);
+    const isUnread = !noti.readBy?.some(
+      (r: any) => r.accountId === userId 
+    );
     if (isUnread) {
       await markAsRead(noti._id);
     }
-
     setViewingNotification(noti);
     setIsViewModalOpen(true);
   };
@@ -77,7 +78,7 @@ export default function NotificationDropdown() {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-96 p-0">
+        <DropdownMenuContent align="end" className="w-96 p-0" sideOffset={8}>
           <DropdownMenuLabel className="flex items-center justify-between px-4 py-3">
             <span className="text-lg font-semibold">Thông báo</span>
             {unreadCount > 0 && (
@@ -107,23 +108,17 @@ export default function NotificationDropdown() {
                 return (
                   <DropdownMenuItem
                     key={noti._id}
-                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                    onSelect={(e) => e.preventDefault()} 
+                    className="p-0 cursor-pointer select-none" 
+                    onSelect={(e) => e.preventDefault()}
                     onClick={() => handleOpenNotificationDetail(noti)}
                   >
-                    <div className="flex gap-3 w-full">
-                      {isUnread && (
-                        <div className="mt-1.5">
-                          <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                        </div>
-                      )}
-                      
-                      <div className="flex-1 space-y-1">
-                        <p className={`text-sm font-medium ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>
+                    <div className="flex gap-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors">
+                      <div className={`flex-1 min-w-0 space-y-1 ${!isUnread && "opacity-80"}`}>
+                        <p className="text-sm font-medium text-foreground truncate">
                           {noti.title}
                         </p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {noti.content.replace(/<[^>]*>/g, "").trim()}
+                        <p className="text-xs text-muted-foreground line-clamp-2 break-words">
+                          {noti.content}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(noti.createdAt), {
@@ -132,6 +127,11 @@ export default function NotificationDropdown() {
                           })}
                         </p>
                       </div>
+                       {isUnread && (
+                        <div className="mt-1.5 flex-shrink-0">
+                          <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+                        </div>
+                      )}
                     </div>
                   </DropdownMenuItem>
                 );
@@ -140,7 +140,7 @@ export default function NotificationDropdown() {
           </div>
 
           {allNotifications.length > 10 && (
-            <DropdownMenuItem className="justify-center py-3 font-medium text-blue-600 hover:bg-blue-50">
+            <DropdownMenuItem className="justify-center py-3 font-medium text-blue-600 hover:bg-blue-50 sticky bottom-0 bg-white border-t">
               Xem tất cả thông báo
             </DropdownMenuItem>
           )}
