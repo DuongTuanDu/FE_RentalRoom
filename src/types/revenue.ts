@@ -50,3 +50,15 @@ export interface IRevenueStatisticsResponse {
   expenditure: number;
   profit: number;
 }
+
+export interface IMonthlyComparisonResponse {
+  year: string;
+  data: {
+    month: number;
+    revenue: number;
+    expenditure: number;
+    profit: number;
+    profitChange: number;
+    profitChangePercent: string;
+  }[];
+}

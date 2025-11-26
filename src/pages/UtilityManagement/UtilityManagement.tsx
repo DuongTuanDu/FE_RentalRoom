@@ -410,7 +410,6 @@ const UtilityManagement = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50">
-                        <TableHead className="font-semibold">Tòa nhà</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
                         <TableHead className="font-semibold">Loại</TableHead>
                         <TableHead className="font-semibold">Kỳ</TableHead>
@@ -436,125 +435,244 @@ const UtilityManagement = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.items.map((item) => (
-                        <TableRow key={item._id} className="hover:bg-slate-50">
-                          <TableCell className="text-slate-600">
-                            {item.buildingId?.name || "—"}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            Phòng {item.roomId?.roomNumber || "—"}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {getTypeIcon(item.type)}
-                              <span>{getTypeLabel(item.type)}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {item.periodMonth}/{item.periodYear}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {item.previousIndex.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-slate-600 font-medium">
-                            {item.currentIndex.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {item.consumption.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {item.unitPrice.toLocaleString()} đ
-                          </TableCell>
-                          <TableCell className="text-slate-600 font-medium">
-                            {item.amount.toLocaleString()} đ
-                          </TableCell>
-                          <TableCell>{getStatusBadge(item.status)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8"
-                                      onClick={() =>
-                                        handleOpenDetailSheet(item)
-                                      }
-                                    >
-                                      <Eye className="w-4 h-4 text-blue-600" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Xem chi tiết</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                              {item.status === "draft" && (
-                                <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() =>
-                                            handleOpenEditDialog(item)
-                                          }
-                                        >
-                                          <Edit className="w-4 h-4 text-green-600" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Chỉnh sửa</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() =>
-                                            handleOpenConfirmDialog(item)
-                                          }
-                                        >
-                                          <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Xác nhận</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() =>
-                                            handleOpenDeleteDialog(item)
-                                          }
-                                        >
-                                          <Trash2 className="w-4 h-4 text-red-600" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Xóa</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {data.items.flatMap((item) => {
+                        const rows = [];
+                        // Thêm dòng cho điện
+                        rows.push(
+                          <TableRow key={`${item._id}-electricity`} className="hover:bg-slate-50">
+                            <TableCell className="text-slate-600">
+                              Phòng {item.roomId?.roomNumber || "—"}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getTypeIcon("electricity")}
+                                <span>{getTypeLabel("electricity")}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.periodMonth}/{item.periodYear}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.ePreviousIndex.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600 font-medium">
+                              {item.eCurrentIndex.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.eConsumption.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.eUnitPrice.toLocaleString()} đ
+                            </TableCell>
+                            <TableCell className="text-slate-600 font-medium">
+                              {item.eAmount.toLocaleString()} đ
+                            </TableCell>
+                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-2">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() =>
+                                          handleOpenDetailSheet(item)
+                                        }
+                                      >
+                                        <Eye className="w-4 h-4 text-blue-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Xem chi tiết</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                {item.status === "draft" && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenEditDialog(item)
+                                            }
+                                          >
+                                            <Edit className="w-4 h-4 text-green-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Chỉnh sửa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenConfirmDialog(item)
+                                            }
+                                          >
+                                            <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Xác nhận</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenDeleteDialog(item)
+                                            }
+                                          >
+                                            <Trash2 className="w-4 h-4 text-red-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Xóa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                        // Thêm dòng cho nước
+                        rows.push(
+                          <TableRow key={`${item._id}-water`} className="hover:bg-slate-50">
+                            <TableCell className="text-slate-600">
+                              Phòng {item.roomId?.roomNumber || "—"}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getTypeIcon("water")}
+                                <span>{getTypeLabel("water")}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.periodMonth}/{item.periodYear}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.wPreviousIndex.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600 font-medium">
+                              {item.wCurrentIndex.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.wConsumption.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {item.wUnitPrice.toLocaleString()} đ
+                            </TableCell>
+                            <TableCell className="text-slate-600 font-medium">
+                              {item.wAmount.toLocaleString()} đ
+                            </TableCell>
+                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-2">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() =>
+                                          handleOpenDetailSheet(item)
+                                        }
+                                      >
+                                        <Eye className="w-4 h-4 text-blue-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Xem chi tiết</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                {item.status === "draft" && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenEditDialog(item)
+                                            }
+                                          >
+                                            <Edit className="w-4 h-4 text-green-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Chỉnh sửa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenConfirmDialog(item)
+                                            }
+                                          >
+                                            <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Xác nhận</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleOpenDeleteDialog(item)
+                                            }
+                                          >
+                                            <Trash2 className="w-4 h-4 text-red-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Xóa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                        return rows;
+                      })}
                     </TableBody>
                   </Table>
                 </div>

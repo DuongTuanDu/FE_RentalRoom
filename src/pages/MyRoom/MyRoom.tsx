@@ -27,6 +27,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { CreateMaintenanceModal } from "@/pages/Maintenance/components/CreateMaintenanceModal";
+import { RoommateList } from "./components/RoommateList";
 
 const MyRoom = () => {
   const { data, isLoading, error } = useGetMyRoomQuery();
@@ -385,40 +386,13 @@ const MyRoom = () => {
               </Card>
             )}
 
-            {/* Tenants */}
-            {room?.tenants && room.tenants.length > 0 && (
-              <Card className="border-0 shadow-xl pt-0">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <div className="p-2 bg-primary/20 rounded-lg">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    Danh sách người thuê
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {room.tenants.map((tenant: IMyRoom["tenants"][0]) => (
-                      <div
-                        key={tenant._id}
-                        className="group flex items-center gap-4 p-5 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 border-0"
-                      >
-                        <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full group-hover:scale-110 transition-transform">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold truncate">
-                            {tenant.fullName}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {tenant.phoneNumber}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Roommates */}
+            {room?._id && (
+              <RoommateList
+                roomId={room._id}
+                maxTenants={room.maxTenants}
+                currentCount={room.currentCount}
+              />
             )}
 
             {/* Furnitures */}

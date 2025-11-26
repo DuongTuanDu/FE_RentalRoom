@@ -26,10 +26,6 @@ export const DeleteUtilityDialog = ({
   utility,
   isLoading,
 }: DeleteUtilityDialogProps) => {
-  const getTypeLabel = (type: string) => {
-    return type === "electricity" ? "Điện" : "Nước";
-  };
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -45,9 +41,11 @@ export const DeleteUtilityDialog = ({
             <p className="text-sm text-slate-500">Thông tin chỉ số:</p>
             <p className="font-medium mt-1">
               {utility.buildingId?.name || "—"} - Phòng{" "}
-              {utility.roomId?.roomNumber || "—"} -{" "}
-              {getTypeLabel(utility.type)} - {utility.periodMonth}/
+              {utility.roomId?.roomNumber || "—"} - {utility.periodMonth}/
               {utility.periodYear}
+            </p>
+            <p className="text-sm text-slate-500 mt-2">
+              Bao gồm cả chỉ số điện và nước cho kỳ này
             </p>
           </div>
         )}

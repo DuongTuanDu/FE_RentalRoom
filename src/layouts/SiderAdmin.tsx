@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  Building2,
   Users,
   ClipboardList,
   DollarSign,
@@ -9,14 +8,9 @@ import {
   Settings,
   Wrench,
   UserCheck,
-  Calendar,
   Bell,
   BarChart3,
   Package,
-  Layers,
-  Home,
-  ListChecks,
-  BedDouble,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";

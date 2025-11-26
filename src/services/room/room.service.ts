@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
 import type { IRoomListResponse, IRoom, CreateRoomRequest, IQuickCreateRoomRequest, IMyRoomResponse } from "@/types/room";
+import type { IRoommateDetail, IRoommateRequest, IRoommateResponse, ISearchRoommateResponse } from "@/types/roommate";
 
 // Custom baseQuery for handling FormData
 const customBaseQuery = async (args: any) => {
@@ -17,7 +18,7 @@ const customBaseQuery = async (args: any) => {
 export const roomApi = createApi({
   reducerPath: "roomApi",
   baseQuery: customBaseQuery,
-  tagTypes: ["Room", "MyRoom"],
+  tagTypes: ["Room", "MyRoom", "Roommate"],
   endpoints: (builder) => ({
     getRooms: builder.query<
       IRoomListResponse,
@@ -219,6 +220,42 @@ export const roomApi = createApi({
       }),
       providesTags: ["MyRoom"],
     }),
+    getRoommateSearch: builder.query<ISearchRoommateResponse, { q: string }>({ // Tìm kiếm người dùng để thêm vào phòng
+      query: ({ q }) => ({
+        url: "/roommates/search",
+        method: "GET",
+        params: { q },
+      }),
+    }),
+    getRoommatesByRoomId: builder.query<IRoommateResponse, string>({ // Lấy danh sách người ở cùng của phòng theo roomId
+      query: (roomId) => ({
+        url: `/roommates/${roomId}`,
+        method: "GET",
+      }),
+      providesTags: ["Roommate"],
+    }),
+    getRoommateDetail: builder.query<IRoommateDetail, string>({ // Lấy thông tin chi tiết của 1 người ở cùng
+      query: (userId) => ({
+        url: `/roommates/${userId}/detail`,
+        method: "GET",
+      }),
+    }),
+    addRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({ // Thêm 1 hoặc nhiều người ở cùng vào phòng
+      query: (data) => ({
+        url: "/roommates/add",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Roommate"],
+    }),
+    removeRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({ // Xóa 1 hoặc nhiều người ở cùng khỏi phòng
+      query: (data) => ({
+        url: "/roommates/remove",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Roommate"],
+    }),
   }),
 });
 
@@ -233,5 +270,10 @@ export const {
   useQuickCreateMutation,
 
   // Tenant
-  useGetMyRoomQuery
+  useGetMyRoomQuery,
+  useGetRoommateSearchQuery,
+  useGetRoommatesByRoomIdQuery,
+  useGetRoommateDetailQuery,
+  useAddRoommateMutation,
+  useRemoveRoommateMutation
 } = roomApi;

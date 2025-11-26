@@ -7,6 +7,8 @@ import {
   TrendingUp,
   TrendingDown,
   Eye,
+  BarChart3,
+  List,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +43,7 @@ import { BuildingSelectCombobox } from "../FloorManageLandlord/components/Buildi
 import { ModalRevenue } from "./components/ModalRevenue";
 import { DeleteRevenuePopover } from "./components/DeleteRevenuePopover";
 import { RevenueDetailSheet } from "./components/RevenueDetailSheet";
+import MonthlyComparisonChart from "./components/MonthlyComparisonChart";
 import {
   useGetRevenuesQuery,
   useCreateRevenueMutation,
@@ -48,10 +51,12 @@ import {
   useDeleteRevenueMutation,
   useGetRevenueByStatsQuery,
   useLazyGetExportExcelRevenueQuery,
+  useMonthlyComparisonQuery,
 } from "@/services/revenue/revenue.service";
 import type { IRevenue, IRevenueRequest } from "@/types/revenue";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import type { ChartConfig } from "@/components/ui/chart";
 
 const RevenueManagement = () => {
   const formatPrice = useFormatPrice();
@@ -78,6 +83,7 @@ const RevenueManagement = () => {
   const now = useMemo(() => new Date(), []);
   const [statsYear, setStatsYear] = useState<number>(now.getFullYear());
   const [statsMonth, setStatsMonth] = useState<number>(now.getMonth() + 1);
+  const [tableView, setTableView] = useState<"list" | "comparison">("list");
 
   const {
     data: revenuesData,
@@ -104,12 +110,104 @@ const RevenueManagement = () => {
     { skip: false }
   );
 
+  const { data: comparisonData, isLoading: isComparisonLoading } =
+    useMonthlyComparisonQuery(
+      {
+        buildingId: selectedBuildingId || undefined,
+        year: statsYear,
+      },
+      { skip: false }
+    );
+
   const [triggerExportExcel, { isLoading: isExporting }] =
     useLazyGetExportExcelRevenueQuery();
 
   const [createRevenue, { isLoading: isCreating }] = useCreateRevenueMutation();
   const [updateRevenue, { isLoading: isUpdating }] = useUpdateRevenueMutation();
   const [deleteRevenue, { isLoading: isDeleting }] = useDeleteRevenueMutation();
+
+  // Chuẩn hóa dữ liệu so sánh 12 tháng
+  const comparisonChartData = useMemo<
+    Array<{
+      month: number;
+      revenue: number;
+      expenditure: number;
+      profit: number;
+      revenueChange: number;
+      expenditureChange: number;
+      profitChange: number;
+    }>
+  >(() => {
+    if (!comparisonData || !comparisonData.data || comparisonData.data.length === 0) {
+      return [];
+    }
+
+    // Sắp xếp dữ liệu theo tháng để đảm bảo thứ tự đúng
+    const sortedData = [...comparisonData.data].sort((a, b) => {
+      return a.month - b.month;
+    });
+
+    // Chuyển đổi và tính toán % thay đổi
+    return sortedData.map((item, index) => {
+      const month: number = item.month;
+      const revenue: number = item.revenue || 0;
+      const expenditure: number = item.expenditure || 0;
+      const profit: number = item.profit || 0;
+      // Parse profitChangePercent từ string sang number
+      const profitChangePercent: number = item.profitChangePercent
+        ? parseFloat(item.profitChangePercent) || 0
+        : 0;
+
+      // Tính toán % thay đổi cho revenue và expenditure so với tháng trước
+      let revenueChange: number = 0;
+      let expenditureChange: number = 0;
+
+      if (index > 0) {
+        const prevItem = sortedData[index - 1];
+        const prevRevenue = prevItem.revenue || 0;
+        const prevExpenditure = prevItem.expenditure || 0;
+
+        if (prevRevenue > 0) {
+          revenueChange = ((revenue - prevRevenue) / prevRevenue) * 100;
+        } else if (revenue > 0) {
+          revenueChange = 100; // Tăng từ 0
+        }
+
+        if (prevExpenditure > 0) {
+          expenditureChange =
+            ((expenditure - prevExpenditure) / prevExpenditure) * 100;
+        } else if (expenditure > 0) {
+          expenditureChange = 100; // Tăng từ 0
+        }
+      }
+
+      return {
+        month,
+        revenue,
+        expenditure,
+        profit,
+        revenueChange,
+        expenditureChange,
+        profitChange: profitChangePercent,
+      };
+    });
+  }, [comparisonData]);
+
+  // Chart config
+  const comparisonChartConfig = {
+    revenue: {
+      label: "Thu",
+      color: "#22c55e", // Green
+    },
+    expenditure: {
+      label: "Chi",
+      color: "#ef4444", // Red
+    },
+    profit: {
+      label: "Lợi nhuận",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig;
 
   const totalItems = revenuesData?.total ?? 0;
   const totalPages = Math.ceil(totalItems / pageLimit);
@@ -389,165 +487,210 @@ const RevenueManagement = () => {
 
       {/* Table */}
       <Card>
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle className="text-lg">Danh sách thu chi</CardTitle>
-          <div className="flex items-center gap-2">
-            <Select
-              value={String(pageLimit)}
-              onValueChange={(v) => setPageLimit(Number(v))}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 / trang</SelectItem>
-                <SelectItem value="20">20 / trang</SelectItem>
-                <SelectItem value="50">50 / trang</SelectItem>
-                <SelectItem value="100">100 / trang</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Dữ liệu thu chi</CardTitle>
+              <CardDescription>
+                {tableView === "list"
+                  ? "Danh sách các khoản thu chi"
+                  : "So sánh thu chi 12 tháng"}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Toggle View Buttons */}
+              <div className="inline-flex items-center rounded-lg border bg-muted p-1">
+                <Button
+                  variant={tableView === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setTableView("list")}
+                  className="gap-2"
+                >
+                  <List className="h-4 w-4" />
+                  Danh sách
+                </Button>
+                <Button
+                  variant={tableView === "comparison" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setTableView("comparison")}
+                  className="gap-2"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  So sánh
+                </Button>
+              </div>
+              {tableView === "list" && (
+                <Select
+                  value={String(pageLimit)}
+                  onValueChange={(v) => setPageLimit(Number(v))}
+                >
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 / trang</SelectItem>
+                    <SelectItem value="20">20 / trang</SelectItem>
+                    <SelectItem value="50">50 / trang</SelectItem>
+                    <SelectItem value="100">100 / trang</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40px]">#</TableHead>
-                  <TableHead>Tòa nhà</TableHead>
-                  <TableHead>Tiêu đề</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Số tiền</TableHead>
-                  <TableHead>Ngày ghi nhận</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead className="w-[140px] text-right">
-                    Hành động
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isRevenuesLoading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : !revenuesData || revenuesData.data.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      Không có dữ liệu thu chi
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  revenuesData.data.map((revenue, idx) => (
-                    <TableRow key={revenue._id}>
-                      <TableCell>
-                        {(currentPage - 1) * pageLimit + idx + 1}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {revenue.buildingId?.name || "N/A"}
-                      </TableCell>
-                      <TableCell>{revenue.title}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            revenue.type === "revenue"
-                              ? "default"
-                              : "destructive"
-                          }
-                        >
-                          {revenue.type === "revenue" ? "Thu" : "Chi"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {formatPrice(revenue.amount)}
-                      </TableCell>
-                      <TableCell>{formatDate(revenue.recordedAt)}</TableCell>
-                      <TableCell>{formatDate(revenue.createdAt)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDetailSheet(revenue._id)}
-                            title="Xem chi tiết"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleOpenEditModal(revenue)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleOpenDeleteDialog(revenue)}
-                            disabled={isDeleting}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+          {tableView === "list" ? (
+            <>
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[40px]">#</TableHead>
+                      <TableHead>Tòa nhà</TableHead>
+                      <TableHead>Tiêu đề</TableHead>
+                      <TableHead>Loại</TableHead>
+                      <TableHead>Số tiền</TableHead>
+                      <TableHead>Ngày ghi nhận</TableHead>
+                      <TableHead>Ngày tạo</TableHead>
+                      <TableHead className="w-[140px] text-right">
+                        Hành động
+                      </TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between pt-4">
-            <p className="text-sm text-muted-foreground">
-              Hiển thị{" "}
-              <span className="font-medium">
-                {totalItems === 0 ? 0 : (currentPage - 1) * pageLimit + 1}
-              </span>{" "}
-              đến{" "}
-              <span className="font-medium">
-                {Math.min(currentPage * pageLimit, totalItems)}
-              </span>{" "}
-              trong tổng số <span className="font-medium">{totalItems}</span>{" "}
-              bản ghi
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1 || isRevenuesFetching}
-              >
-                Trang trước
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                Trang {totalPages ? currentPage : 0} / {totalPages}
+                  </TableHeader>
+                  <TableBody>
+                    {isRevenuesLoading ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          Đang tải...
+                        </TableCell>
+                      </TableRow>
+                    ) : !revenuesData || revenuesData.data.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          Không có dữ liệu thu chi
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      revenuesData.data.map((revenue, idx) => (
+                        <TableRow key={revenue._id}>
+                          <TableCell>
+                            {(currentPage - 1) * pageLimit + idx + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {revenue.buildingId?.name || "N/A"}
+                          </TableCell>
+                          <TableCell>{revenue.title}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                revenue.type === "revenue"
+                                  ? "default"
+                                  : "destructive"
+                              }
+                            >
+                              {revenue.type === "revenue" ? "Thu" : "Chi"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            {formatPrice(revenue.amount)}
+                          </TableCell>
+                          <TableCell>{formatDate(revenue.recordedAt)}</TableCell>
+                          <TableCell>{formatDate(revenue.createdAt)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenDetailSheet(revenue._id)}
+                                title="Xem chi tiết"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleOpenEditModal(revenue)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleOpenDeleteDialog(revenue)}
+                                disabled={isDeleting}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentPage((p) =>
-                    totalPages ? Math.min(totalPages, p + 1) : p
-                  )
-                }
-                disabled={
-                  totalPages === 0 ||
-                  currentPage >= totalPages ||
-                  isRevenuesFetching
-                }
-              >
-                Trang sau
-              </Button>
-            </div>
-          </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Hiển thị{" "}
+                  <span className="font-medium">
+                    {totalItems === 0 ? 0 : (currentPage - 1) * pageLimit + 1}
+                  </span>{" "}
+                  đến{" "}
+                  <span className="font-medium">
+                    {Math.min(currentPage * pageLimit, totalItems)}
+                  </span>{" "}
+                  trong tổng số <span className="font-medium">{totalItems}</span>{" "}
+                  bản ghi
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage <= 1 || isRevenuesFetching}
+                  >
+                    Trang trước
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    Trang {totalPages ? currentPage : 0} / {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((p) =>
+                        totalPages ? Math.min(totalPages, p + 1) : p
+                      )
+                    }
+                    disabled={
+                      totalPages === 0 ||
+                      currentPage >= totalPages ||
+                      isRevenuesFetching
+                    }
+                  >
+                    Trang sau
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <MonthlyComparisonChart
+              comparisonData={comparisonData}
+              comparisonChartData={comparisonChartData}
+              comparisonChartConfig={comparisonChartConfig}
+              isComparisonLoading={isComparisonLoading}
+              formatPrice={formatPrice}
+              comparisonYear={statsYear}
+            />
+          )}
         </CardContent>
       </Card>
 
