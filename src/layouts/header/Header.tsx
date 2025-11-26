@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import NotificationDropdown from "../NotificationDropdown";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -73,6 +74,9 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(setLogout());
+    setTimeout(() => {
+    window.location.reload();
+  }, 50);
   };
 
   const getInitials = (name: string) => {
@@ -131,6 +135,7 @@ const Header = () => {
             <div className="hidden md:block">
               <LanguageSelector isScrolled={isScrolled} />
             </div>
+            <NotificationDropdown />
 
             {isAuthenticated ? (
               <div className="hidden md:flex">

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const ServiceManageLandlord = () => {
   const formatPrice = useFormatPrice();
@@ -32,9 +33,12 @@ const ServiceManageLandlord = () => {
 
   const { data, isLoading } = useGetPackageServicesQuery();
   const { data: mySubscriptions } = useGetMySubscriptionsQuery() ;
+  const activeSubscription = mySubscriptions?.find(sub => sub.status === "active");
+  const upcomingSubscription = mySubscriptions?.find(sub => sub.status === "upcoming");
+  const hasActiveOrUpcoming = !!activeSubscription || !!upcomingSubscription;
   const [buySubscription, { isLoading: isBuying }] = useBuySubscriptionMutation();
   const [useTrialSubscription, { isLoading: isStartingTrial }] = useStartTrialSubscriptionMutation();
-  
+  const [isRiskConfirmOpen, setIsRiskConfirmOpen] = useState(false);
 
   const [hasUsedTrial, setHasUsedTrial] = useState(false); 
   const [hasPaid, setHasPaid] = useState(false);
@@ -82,7 +86,12 @@ const ServiceManageLandlord = () => {
 
 
   const handleConfirmPayment = async () => {
-    if (!selectedPackage) return;
+    if (!selectedPackage) return; 
+
+    if (hasActiveOrUpcoming) {
+      setIsRiskConfirmOpen(true);
+      return;
+    }
 
     try {
       const response = await buySubscription({ packageId: selectedPackage._id }).unwrap();
@@ -458,6 +467,90 @@ const ServiceManageLandlord = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+    <Dialog open={isRiskConfirmOpen} onOpenChange={setIsRiskConfirmOpen}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+            <AlertCircle className="h-7 w-7 text-orange-500" />
+            Không thể mua gói mới
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Bạn hiện đang có gói dịch vụ đang hoạt động hoặc đã được gia hạn .
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 py-4">
+          {activeSubscription && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-amber-600" />
+                <span className="font-semibold">Gói đang hoạt động</span>
+              </div>
+              <div className="ml-7 space-y-1 text-sm">
+                <p><strong>{activeSubscription.packageId.name}</strong></p>
+                  <p className="text-amber-700">
+                    Bắt đầu: {new Date(activeSubscription.startDate).toLocaleDateString("vi-VN")}
+                  </p>
+                <p className="text-amber-700">
+                  Hết hạn: {new Date(activeSubscription.endDate).toLocaleDateString("vi-VN")}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {upcomingSubscription && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold">Gói đã gia hạn</span>
+              </div>
+              <div className="ml-7 space-y-1 text-sm">
+                <p><strong>{upcomingSubscription.packageId.name}</strong></p>
+                <p className="text-blue-700">
+                  Bắt đầu: {new Date(upcomingSubscription.startDate).toLocaleDateString("vi-VN")}
+                </p>
+                <p className="text-blue-700">
+                  Hết hạn: {new Date(upcomingSubscription.endDate).toLocaleDateString("vi-VN")}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-semibold mb-1">Yêu cầu:</p>
+                <p>
+                  Để mua gói dịch vụ mới, bạn cần <strong>hủy gói hiện tại</strong> hoặc <strong>hủy gia hạn tự động</strong> trước.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="!gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setIsRiskConfirmOpen(false)}
+            className="w-full sm:w-auto"
+          >
+            Đóng
+          </Button>
+
+        <Button
+            asChild
+            className="gap-2"
+          >
+            <Link to="/landlord/history-subscription">
+              <Package className="h-4 w-4" />
+              Xem lịch sử gói dịch vụ
+            </Link>
+          </Button>            
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 };

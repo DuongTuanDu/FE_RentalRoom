@@ -1,6 +1,10 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { GetUserInfoResponse } from "@/types/profile";
+import type {
+  GetUserInfoResponse,
+  UpdateBankInfoRequest,
+  UpdateBankInfoResponse,
+} from "@/types/profile";
 import { setUserInfo } from "../auth/auth.slice";
 
 const API_URL = import.meta.env.VITE_APP_API_SHIP_URL;
@@ -73,7 +77,44 @@ export const profileApi = createApi({
         };
       },
     }),
+
+    updateBankInfo: builder.mutation<
+      UpdateBankInfoResponse,
+      UpdateBankInfoRequest
+    >({
+      query: (body) => ({
+        url: "/landlords/bank-info",
+        method: "PATCH",
+        data: body,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
+
+    uploadBankQr: builder.mutation<
+      UpdateBankInfoResponse,  
+      FormData                
+    >({
+      query: (formData) => ({
+        url: "/landlords/bank-info/qr-upload",
+        method: "POST",
+        data: formData,
+        config: {
+          headers: {
+            Token: TOKEN,
+          },
+        },
+      }),
+      invalidatesTags: ["Profile"],
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation, useGetProvincesQuery, useGetDistrictsQuery, useGetWardsQuery } = profileApi;
+export const {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+  useGetProvincesQuery,
+  useGetDistrictsQuery,
+  useGetWardsQuery,
+  useUpdateBankInfoMutation,   
+  useUploadBankQrMutation,
+} = profileApi;
