@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
@@ -13,498 +14,454 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   User,
   Mail,
   Phone,
   Calendar,
   MapPin,
+  Shield,
   Save,
-  Trash2,
-  Plus,
   Edit,
   X,
   Check,
-  Camera,
-  CheckCircle2,
+  Upload,
+  QrCode,
+  Building,
+  CreditCard,
+  UserCheck,
 } from "lucide-react";
 import {
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useUpdateBankInfoMutation,
+  useUploadBankQrMutation,
+  useGetProvincesQuery,
+  useGetDistrictsQuery,
+  useGetWardsQuery,
 } from "@/services/profile/profile.service";
-import type { UserAddress, UserInfo } from "@/types/profile";
 import { toast } from "sonner";
-import { AddAddressModal } from "../Profile/components/AddAddressModal";
+import { result } from "lodash";
 
-const ProfileLandlord = () => {
-  const { data } = useGetProfileQuery();
+const   ProfileLandlord = () => {
+  const { data, refetch } = useGetProfileQuery();
   const userInfo = data?.user;
-  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
+  const [updateBankInfo, { isLoading: isUpdatingBank }] = useUpdateBankInfoMutation();
+  const [uploadBankQr, { isLoading: isUploading }] = useUploadBankQrMutation();
 
-  // State for addresses
-  const [addresses, setAddresses] = useState<UserAddress[]>([]);
-  const [originalAddresses, setOriginalAddresses] = useState<UserAddress[]>([]); // THÊM STATE NÀY
-  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
-    null
-  );
-  const [isEditingFullName, setIsEditingFullName] = useState(false);
-  const [tempFullName, setTempFullName] = useState("");
+  // Form states
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
 
-  // State for form data
-  const [formData, setFormData] = useState<UserInfo>({
-    _id: "",
-    fullName: "",
-    phoneNumber: "",
-    dob: "",
-    gender: "",
-  });
+  // Address states
+  const [addressDetail, setAddressDetail] = useState("");
+  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
+  const [ward, setWard] = useState("");
 
-  const [originalData, setOriginalData] = useState<UserInfo>({
-    _id: "",
-    fullName: "",
-    phoneNumber: "",
-    dob: "",
-    gender: "",
-  });
+  // Bank states
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [qrUrl, setQrUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize data when userInfo is loaded
+  // Original data để so sánh thay đổi
+  const [originalData, setOriginalData] = useState<any>({});
+
+  // Address dropdown data
+  const { data: provincesData } = useGetProvincesQuery();
+  const { data: districtsData } = useGetDistrictsQuery(province, { skip: !province });
+  const { data: wardsData } = useGetWardsQuery(district, { skip: !district });
+
+  // Edit name
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+
+  // QR Upload Modal
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+  // Load data
   useEffect(() => {
-    if (userInfo) {
-      const initialData: UserInfo = {
-        _id: userInfo.userInfo._id || "",
-        fullName: userInfo.userInfo.fullName || "",
-        phoneNumber: userInfo.userInfo.phoneNumber || "",
-        dob: userInfo.userInfo.dob || "",
-        gender: userInfo.userInfo.gender || "",
-      };
-      setFormData(initialData);
-      setOriginalData(initialData);
+    if (userInfo?.userInfo) {
+      const info = userInfo.userInfo;
+      setFullName(info.fullName || "");
+      setPhoneNumber(info.phoneNumber || "");
+      setDob(info.dob?.split("T")[0] || "");
+      setGender(info.gender || "");
 
-      // Initialize addresses
-      if (userInfo.userInfo.address && userInfo.userInfo.address.length > 0) {
-        const addressesWithId = userInfo.userInfo.address.map(
-          (addr: any, index: number) => ({
-            ...addr,
-            id: addr._id || `${index}-${Date.now()}`,
-          })
-        );
-        setAddresses(addressesWithId);
-        setOriginalAddresses([...addressesWithId]); // LƯU ĐỊA CHỈ GỐC
-        setSelectedAddressId(addressesWithId[0].id);
+      // Address (string)
+      if (info.address && typeof info.address === "string") {
+        setAddressDetail(info.address);
       }
+
+      // Bank info
+      if (info.bankInfo) {
+        setBankName(info.bankInfo.bankName || "");
+        setAccountNumber(info.bankInfo.accountNumber || "");
+        setAccountName(info.bankInfo.accountName || "");
+        setQrUrl(info.bankInfo.qrImageUrl  || "");
+      }
+
+      // Save original
+      setOriginalData({
+        fullName: info.fullName,
+        phoneNumber: info.phoneNumber,
+        dob: info.dob,
+        gender: info.gender,
+        address: info.address,
+        bankInfo: info.bankInfo,
+      });
     }
   }, [userInfo]);
 
-  const getInitials = (name: string) => {
-    if (!name) return "??";
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const handleChange = (field: keyof UserInfo, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const hasChanges = () => {
-    // Kiểm tra thay đổi trong formData
-    const hasFormChanges = Object.keys(formData).some(
-      (key) =>
-        formData[key as keyof UserInfo] !== originalData[key as keyof UserInfo]
+    return (
+      fullName !== originalData.fullName ||
+      phoneNumber !== originalData.phoneNumber ||
+      dob !== (originalData.dob?.split("T")[0] || "") ||
+      gender !== originalData.gender ||
+      addressDetail !== (originalData.address || "") ||
+      bankName !== (originalData.bankInfo?.bankName || "") ||
+      accountNumber !== (originalData.bankInfo?.accountNumber || "") ||
+      accountName !== (originalData.bankInfo?.accountName || "")
+      // qrUrl có thể thay đổi khi upload
     );
-
-    // Kiểm tra thay đổi trong addresses
-    const hasAddressChanges =
-      JSON.stringify(addresses) !== JSON.stringify(originalAddresses);
-
-    return hasFormChanges || hasAddressChanges;
   };
 
-  const handleSaveChanges = async () => {
+  const handleSave = async () => {
     try {
-      const payload = {
-        ...formData,
-        address: addresses.map((addr) => ({
-          address: addr.address,
-          provinceName: addr.provinceName,
-          districtName: addr.districtName,
-          wardName: addr.wardName,
-        })),
+      const payload: any = {
+        fullName,
+        phoneNumber,
+        dob: dob || null,
+        gender,
+        address: addressDetail,
       };
 
-      const response = await updateProfile(payload).unwrap();
-      if (response.user) {
-        // Cập nhật originalData và originalAddresses sau khi lưu thành công
-        setOriginalData(formData);
-        setOriginalAddresses([...addresses]);
+      await updateProfile(payload).unwrap();
 
-        toast.success("Cập nhật thông tin thành công!", {
-          description: "Thông tin cá nhân của bạn đã được cập nhật.",
-        });
+      if (
+        bankName !== (originalData.bankInfo?.bankName || "") ||
+        accountNumber !== (originalData.bankInfo?.accountNumber || "") ||
+        accountName !== (originalData.bankInfo?.accountName || "")
+      ) {
+        await updateBankInfo({
+          bankName,
+          accountNumber,
+          accountName,
+          qrImageUrl: qrUrl,
+        }).unwrap();
       }
-    } catch (error) {
-      console.log("error", error);
+
+      setOriginalData({
+        fullName,
+        phoneNumber,
+        dob,
+        gender,
+        address: addressDetail,
+        bankInfo: { bankName, accountNumber, accountName, qrImageUrl: qrUrl },
+      });
+
+      toast.success("Cập nhật thông tin thành công!");
+      refetch();
+    } catch (err) {
+      toast.error("Cập nhật thất bại, vui lòng thử lại");
     }
   };
 
-  const handleAddAddress = (
-    newAddress: Omit<UserAddress, "_id"> & { _id?: string }
-  ) => {
-    const addressWithId: UserAddress = {
-      ...newAddress,
-      _id: newAddress._id || Date.now().toString(),
-    };
-    setAddresses((prev) => [...prev, addressWithId]);
-    setSelectedAddressId(addressWithId._id || "");
-  };
+  const handleUploadQr = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleEditAddress = (address: UserAddress) => {
-    setEditingAddress(address);
-    setShowAddModal(true);
-  };
+    const formData = new FormData();
+    formData.append("qrImage", file);
 
-  const handleUpdateAddress = (updatedAddress: UserAddress) => {
-    setAddresses((prev) =>
-      prev.map((addr) =>
-        addr._id === updatedAddress._id ? updatedAddress : addr
-      )
-    );
-  };
-
-  const handleDeleteAddress = (addressId: string) => {
-    if (window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-      setAddresses((prev) => prev.filter((addr) => addr._id !== addressId));
-      if (selectedAddressId === addressId && addresses.length > 1) {
-        const remainingAddresses = addresses.filter(
-          (addr) => addr._id !== addressId
-        );
-        setSelectedAddressId(remainingAddresses[0]?._id || "");
-      } else if (addresses.length === 1) {
-        setSelectedAddressId("");
-      }
+    try {
+      const result = await uploadBankQr(formData).unwrap();
+      console.log("Response từ backend:", result);
+      setQrUrl(result.bankInfo.qrImageUrl || "");
+      toast.success(result.message || "Upload QR thành công");
+      setIsQrModalOpen(false);
+    } catch (err) {
+      console.error("Lỗi upload QR:", err);
+      toast.error("Upload QR thất bại, vui lòng thử lại");
     }
   };
 
-  const renderField = (
-    field: keyof UserInfo,
-    label: string,
-    icon: React.ReactNode,
-    placeholder: string,
-    type: string = "text"
-  ) => {
-    const value = formData[field] as string;
-
-    return (
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 text-gray-400">{icon}</div>
-        <div className="flex-1">
-          <p className="text-sm text-gray-500 mb-1">{label}</p>
-          <Input
-            type={type}
-            value={value}
-            onChange={(e) => handleChange(field, e.target.value)}
-            placeholder={placeholder}
-            className="max-w-sm"
-          />
-        </div>
-      </div>
-    );
-  };
+  const fullAddress = [
+    addressDetail,
+    wardsData?.data?.find((w: any) => w.WardCode === ward)?.WardName,
+    districtsData?.data?.find((d: any) => d.DistrictID === Number(district))?.DistrictName,
+    provincesData?.data?.find((p: any) => p.ProvinceID === Number(province))?.ProvinceName,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   if (!userInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8 flex items-center justify-center">
-        <div className="text-gray-600">Đang tải thông tin...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
+        <div className="text-gray-600">Đang tải...</div>
       </div>
     );
   }
 
-  const selectedAddress = addresses.find(
-    (addr) => addr._id === selectedAddressId
-  );
-
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="p-6">
-        <Card className="border-none shadow-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <Card className="shadow-xl border-0 bg-white/90 backdrop-blur">
+          <CardContent className="p-8">
+            <div className="flex flex-col md:flex-row items-start gap-8">
+              <Avatar className="h-28 w-28 border-4 border-blue-100">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-3xl font-bold text-white">
+                  {fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "??"}
+                </AvatarFallback>
+              </Avatar>
 
-          <CardContent className="py-6 relative z-10">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <div className="relative group">
-                <div className="w-28 h-28 rounded-full p-1 shadow-2xl">
-                  <Avatar className="w-full h-full border-4 border-white">
-                    <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                      {getInitials(formData.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-
-                {/* Camera Icon Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <Camera className="w-8 h-8 text-white" />
-                </div>
-              </div>
-
-              {/* User Info */}
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                  {!isEditingFullName ? (
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  {!isEditingName ? (
                     <>
-                      <h1 className="text-3xl font-bold">
-                        {formData.fullName || "Chưa cập nhật"}
-                      </h1>
-                      <button
+                      <h1 className="text-3xl font-bold">{fullName || "Chưa đặt tên"}</h1>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => {
-                          setTempFullName(formData.fullName);
-                          setIsEditingFullName(true);
+                          setTempName(fullName);
+                          setIsEditingName(true);
                         }}
-                        className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Chỉnh sửa tên"
                       >
-                        <Edit className="w-4 h-4 hover:text-gray-600" />
-                      </button>
+                        <Edit className="w-4 h-4" />
+                      </Button>
                     </>
                   ) : (
-                    <div className="flex items-center gap-2 flex-1">
+                    <div className="flex items-center gap-2">
                       <Input
-                        value={tempFullName}
-                        onChange={(e) => setTempFullName(e.target.value)}
-                        className="max-w-sm text-2xl font-bold h-10"
-                        placeholder="Nhập họ và tên"
+                        value={tempName}
+                        onChange={(e) => setTempName(e.target.value)}
+                        className="text-3xl font-bold h-12 max-w-md"
                         autoFocus
                       />
-                      <Button
-                        size="icon"
-                        className="bg-green-600 hover:bg-green-700 h-8 w-8"
-                        onClick={() => {
-                          handleChange("fullName", tempFullName);
-                          setIsEditingFullName(false);
-                        }}
-                      >
-                        <Check className="w-4 h-4" />
+                      <Button size="icon" onClick={() => { setFullName(tempName); setIsEditingName(false); }}>
+                        <Check className="w-5 h-5 text-green-600" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
-                        onClick={() => {
-                          setTempFullName(formData.fullName);
-                          setIsEditingFullName(false);
-                        }}
-                      >
-                        <X className="w-4 h-4" />
+                      <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
+                        <X className="w-5 h-5" />
                       </Button>
                     </div>
                   )}
-                  <div className="flex items-center justify-center gap-2">
-                    <Badge className="bg-green-500/90 text-white hover:bg-green-500 border-none">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      {userInfo.isActivated ? "Đã kích hoạt" : "Chưa kích hoạt"}
-                    </Badge>
-                  </div>
+                  <Badge className="ml-4" variant={userInfo.isActivated ? "default" : "secondary"}>
+                    <Shield className="w-3 h-3 mr-1" />
+                    {userInfo.isActivated ? "Đã kích hoạt" : "Chưa kích hoạt"}
+                  </Badge>
                 </div>
-
-                <div className="space-y-2 text-blue-50">
-                  <div className="flex items-center justify-center md:justify-start gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span>{userInfo.email}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    <span className="capitalize">{userInfo.role}</span>
-                  </div>
+                <div className="flex flex-wrap gap-4 text-gray-600">
+                  <div className="flex items-center gap-2"><Mail className="w-4 h-4" /> {userInfo.email}</div>
+                  <div className="flex items-center gap-2"><User className="w-4 h-4" /> {userInfo.role}</div>
                 </div>
               </div>
 
-              {/* Action Button */}
               {hasChanges() && (
                 <Button
-                  onClick={handleSaveChanges}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 text-white shadow-md"
+                  size="lg"
+                  onClick={handleSave}
+                  disabled={isUpdatingProfile || isUpdatingBank}
+                  className="shadow-lg"
                 >
-                  {isLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Đang lưu...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      Lưu thay đổi
-                    </>
-                  )}
+                  <Save className="w-5 h-5 mr-2" />
+                  Lưu thay đổi
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <Separator className="my-6" />
-
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
+          {/* Thông tin cá nhân */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
-                Thông Tin Cá Nhân
+                Thông tin cá nhân
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {renderField(
-                "phoneNumber",
-                "Số điện thoại",
-                <Phone className="w-5 h-5" />,
-                "Nhập số điện thoại"
-              )}
-              {renderField(
-                "dob",
-                "Ngày sinh",
-                <Calendar className="w-5 h-5" />,
-                "Chọn ngày sinh",
-                "date"
-              )}
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 text-gray-400">
-                  <User className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500 mb-1">Giới tính</p>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => handleChange("gender", value)}
-                  >
-                    <SelectTrigger className="max-w-sm">
-                      <SelectValue placeholder="Chọn giới tính" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Nam</SelectItem>
-                      <SelectItem value="female">Nữ</SelectItem>
-                      <SelectItem value="other">Khác</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <CardContent className="space-y-5">
+              <div>
+                <Label>Số điện thoại</Label>
+                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label>Ngày sinh</Label>
+                <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              </div>
+              <div>
+                <Label>Giới tính</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger><SelectValue placeholder="Chọn giới tính" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Nam</SelectItem>
+                    <SelectItem value="female">Nữ</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
-                  Địa Chỉ
-                </CardTitle>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setEditingAddress(null);
-                    setShowAddModal(true);
-                  }}
-                  variant={"outline"}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Thêm mới
-                </Button>
-              </div>
+          {/* Địa chỉ */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-green-600" />
+                Địa chỉ nhận tiền / ở
+              </CardTitle>
             </CardHeader>
-
             <CardContent className="space-y-4">
-              {addresses.length > 0 ? (
-                <>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      Chọn địa chỉ hiển thị
-                    </p>
-                    <Select
-                      value={selectedAddressId}
-                      onValueChange={setSelectedAddressId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn địa chỉ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {addresses.map((addr) => (
-                          <SelectItem key={addr._id} value={addr._id || ""}>
-                            {addr.address}, {addr.wardName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedAddress && (
-                    <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {selectedAddress.address}
-                            </p>
-                            <p className="text-gray-600">
-                              {selectedAddress.wardName},{" "}
-                              {selectedAddress.districtName}
-                            </p>
-                            <p className="text-gray-600">
-                              {selectedAddress.provinceName}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 mt-4 pt-4 border-t">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditAddress(selectedAddress)}
-                          className="flex-1"
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Sửa
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleDeleteAddress(selectedAddress._id || "")
-                          }
-                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Xóa
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="mb-2">Chưa có địa chỉ nào</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>Tỉnh/Thành</Label>
+                  <Select value={province} onValueChange={(v) => { setProvince(v); setDistrict(""); setWard(""); }}>
+                    <SelectTrigger><SelectValue placeholder="Chọn tỉnh" /></SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {provincesData?.data?.map((p: any) => (
+                        <SelectItem key={p.ProvinceID} value={String(p.ProvinceID)}>
+                          {p.ProvinceName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Quận/Huyện</Label>
+                  <Select value={district} onValueChange={(v) => { setDistrict(v); setWard(""); }} disabled={!province}>
+                    <SelectTrigger><SelectValue placeholder="Quận/huyện" /></SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {districtsData?.data?.map((d: any) => (
+                        <SelectItem key={d.DistrictID} value={String(d.DistrictID)}>
+                          {d.DistrictName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Phường/Xã</Label>
+                  <Select value={ward} onValueChange={setWard} disabled={!district}>
+                    <SelectTrigger><SelectValue placeholder="Phường/xã" /></SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {wardsData?.data?.map((w: any) => (
+                        <SelectItem key={w.WardCode} value={w.WardCode}>
+                          {w.WardName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Số nhà, đường...</Label>
+                <Input
+                  value={addressDetail}
+                  onChange={(e) => setAddressDetail(e.target.value)}
+                  placeholder="Ví dụ: 123 Nguyễn Văn Cừ"
+                />
+              </div>
+              {fullAddress && (
+                <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-800 border border-blue-200">
+                  <strong>Địa chỉ đầy đủ:</strong> {fullAddress}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Ngân hàng & QR */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Building className="w-5 h-5 text-purple-600" />
+                  Thông tin nhận tiền chuyển khoản
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-5">
+                  <div>
+                    <Label className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Ngân hàng</Label>
+                    <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="VD: Vietcombank CN Tân Bình" />
+                  </div>
+                  <div>
+                    <Label>Số tài khoản</Label>
+                    <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="0123456789" />
+                  </div>
+                  <div>
+                    <Label className="flex items-center gap-2"><UserCheck className="w-4 h-4" /> Chủ tài khoản</Label>
+                    <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="NGUYEN VAN A" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 bg-gray-50">
+                  {qrUrl ? (
+                    <div className="text-center">
+                      <img src={qrUrl} alt="QR Code" className="w-48 h-48 rounded-lg shadow-lg mx-auto" />
+                      <Button
+                        className="mt-4"
+                        variant="outline"
+                        onClick={() => setIsQrModalOpen(true)}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Thay QR mới
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      <QrCode className="w-20 h-20 mx-auto mb-4 text-gray-300" />
+                      <p className="mb-4">Chưa có mã QR</p>
+                      <Button onClick={() => setIsQrModalOpen(true)}>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Tải lên mã QR
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      <AddAddressModal
-        open={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setEditingAddress(null);
-        }}
-        onSave={editingAddress ? handleUpdateAddress : handleAddAddress}
-        editAddress={editingAddress}
-      />
+      {/* Modal Upload QR */}
+      <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tải lên mã QR chuyển khoản</DialogTitle>
+          </DialogHeader>
+          <div className="py-8">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleUploadQr}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {isUploading && <p className="mt-4 text-center text-blue-600">Đang tải lên...</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsQrModalOpen(false)}>Hủy</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
