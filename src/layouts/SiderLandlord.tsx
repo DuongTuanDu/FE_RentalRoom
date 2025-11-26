@@ -12,7 +12,6 @@ import {
   UserCheck,
   Calendar,
   Bell,
-  BarChart3,
   Layers,
   ListChecks,
   BedDouble,
@@ -116,13 +115,7 @@ const menuItems = [
         icon: ClipboardList,
         path: "/landlord/revenues",
         staffAccess: true,
-      },
-      {
-        title: "Báo cáo doanh thu",
-        icon: BarChart3,
-        path: "/landlord/revenue-reports",
-        staffAccess: true,
-      },
+      }
     ],
   },
   {

@@ -35,6 +35,7 @@ export const UpdateUtilityDialog = ({
   onSuccess,
 }: UpdateUtilityDialogProps) => {
   const [formData, setFormData] = useState({
+    type: "electricity" as "electricity" | "water",
     periodMonth: "",
     periodYear: "",
     currentIndex: "",
@@ -56,15 +57,38 @@ export const UpdateUtilityDialog = ({
       const readingDate = utility.readingDate
         ? new Date(utility.readingDate).toISOString().split("T")[0]
         : "";
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         periodMonth: utility.periodMonth.toString(),
         periodYear: utility.periodYear.toString(),
-        currentIndex: utility.currentIndex.toString(),
-        unitPrice: utility.unitPrice.toString(),
+        currentIndex: utility.eCurrentIndex.toString(),
+        unitPrice: utility.eUnitPrice.toString(),
         readingDate,
-      });
+      }));
     }
   }, [utility, open]);
+
+  // Update form data when type changes
+  useEffect(() => {
+    if (utility && open) {
+      const readingDate = utility.readingDate
+        ? new Date(utility.readingDate).toISOString().split("T")[0]
+        : "";
+      if (formData.type === "electricity") {
+        setFormData((prev) => ({
+          ...prev,
+          currentIndex: utility.eCurrentIndex.toString(),
+          unitPrice: utility.eUnitPrice.toString(),
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          currentIndex: utility.wCurrentIndex.toString(),
+          unitPrice: utility.wUnitPrice.toString(),
+        }));
+      }
+    }
+  }, [formData.type, utility, open]);
 
   const handleUpdate = async () => {
     if (!utility) return;
@@ -114,6 +138,25 @@ export const UpdateUtilityDialog = ({
           <DialogTitle>Chỉnh sửa chỉ số điện nước</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>
+              Loại <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, type: value as "electricity" | "water" }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="electricity">Điện</SelectItem>
+                <SelectItem value="water">Nước</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
@@ -162,7 +205,7 @@ export const UpdateUtilityDialog = ({
           </div>
           <div className="space-y-2">
             <Label>
-              Chỉ số hiện tại <span className="text-red-500">*</span>
+              Chỉ số hiện tại ({formData.type === "electricity" ? "Điện" : "Nước"}) <span className="text-red-500">*</span>
             </Label>
             <Input
               type="number"
@@ -173,12 +216,12 @@ export const UpdateUtilityDialog = ({
                   currentIndex: e.target.value,
                 }))
               }
-              placeholder="Nhập chỉ số hiện tại"
+              placeholder={`Nhập chỉ số hiện tại ${formData.type === "electricity" ? "điện" : "nước"}`}
             />
           </div>
           <div className="space-y-2">
             <Label>
-              Đơn giá <span className="text-red-500">*</span>
+              Đơn giá ({formData.type === "electricity" ? "Điện" : "Nước"}) <span className="text-red-500">*</span>
             </Label>
             <Input
               type="number"
@@ -189,7 +232,7 @@ export const UpdateUtilityDialog = ({
                   unitPrice: e.target.value,
                 }))
               }
-              placeholder="Nhập đơn giá"
+              placeholder={`Nhập đơn giá ${formData.type === "electricity" ? "điện" : "nước"}`}
             />
           </div>
           <div className="space-y-2">

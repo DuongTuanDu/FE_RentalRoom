@@ -54,17 +54,6 @@ export const DetailUtilitySheet = ({
     );
   };
 
-  const getTypeIcon = (type: string) => {
-    return type === "electricity" ? (
-      <Zap className="w-5 h-5 text-yellow-500" />
-    ) : (
-      <Droplets className="w-5 h-5 text-blue-500" />
-    );
-  };
-
-  const getTypeLabel = (type: string) => {
-    return type === "electricity" ? "Điện" : "Nước";
-  };
 
   if (!utilityId) return null;
 
@@ -113,8 +102,8 @@ export const DetailUtilitySheet = ({
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            {getTypeIcon(utility.type)}
-            Chi tiết chỉ số {getTypeLabel(utility.type)}
+            <Zap className="h-5 w-5" />
+            Chi tiết chỉ số điện nước
           </SheetTitle>
           <SheetDescription>
             Thông tin chi tiết về chỉ số điện nước
@@ -138,68 +127,124 @@ export const DetailUtilitySheet = ({
                 </p>
               </div>
               <div>
-                <Label className="text-slate-400 text-sm">Loại</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  {getTypeIcon(utility.type)}
-                  <p className="font-medium">{getTypeLabel(utility.type)}</p>
-                </div>
-              </div>
-              <div>
                 <Label className="text-slate-400 text-sm">Kỳ</Label>
                 <p className="font-medium mt-1">
                   {utility.periodMonth}/{utility.periodYear}
                 </p>
               </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Trạng thái</Label>
+                <div className="mt-1">{getStatusBadge(utility.status)}</div>
+              </div>
             </div>
           </div>
 
-          {/* Reading Info */}
+          {/* Electricity Reading Info */}
           <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold text-lg">Thông tin chỉ số</h3>
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-500" />
+              Thông tin chỉ số điện
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
                 <p className="font-medium mt-1">
-                  {utility.previousIndex != null
-                    ? utility.previousIndex.toLocaleString()
+                  {utility.ePreviousIndex != null
+                    ? utility.ePreviousIndex.toLocaleString()
                     : "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
                 <p className="font-medium mt-1 text-lg">
-                  {utility.currentIndex != null
-                    ? utility.currentIndex.toLocaleString()
+                  {utility.eCurrentIndex != null
+                    ? utility.eCurrentIndex.toLocaleString()
                     : "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
                 <p className="font-medium mt-1">
-                  {utility.consumption != null
-                    ? utility.consumption.toLocaleString()
+                  {utility.eConsumption != null
+                    ? utility.eConsumption.toLocaleString()
                     : "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-400 text-sm">Đơn giá</Label>
                 <p className="font-medium mt-1">
-                  {utility.unitPrice != null
-                    ? `${utility.unitPrice.toLocaleString()} đ`
+                  {utility.eUnitPrice != null
+                    ? `${utility.eUnitPrice.toLocaleString()} đ`
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Thành tiền</Label>
+                <p className="font-bold text-lg mt-1 text-blue-600">
+                  {utility.eAmount != null
+                    ? `${utility.eAmount.toLocaleString()} đ`
                     : "—"}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Amount */}
+          {/* Water Reading Info */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Droplets className="w-5 h-5 text-blue-500" />
+              Thông tin chỉ số nước
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
+                <p className="font-medium mt-1">
+                  {utility.wPreviousIndex != null
+                    ? utility.wPreviousIndex.toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
+                <p className="font-medium mt-1 text-lg">
+                  {utility.wCurrentIndex != null
+                    ? utility.wCurrentIndex.toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
+                <p className="font-medium mt-1">
+                  {utility.wConsumption != null
+                    ? utility.wConsumption.toLocaleString()
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Đơn giá</Label>
+                <p className="font-medium mt-1">
+                  {utility.wUnitPrice != null
+                    ? `${utility.wUnitPrice.toLocaleString()} đ`
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-400 text-sm">Thành tiền</Label>
+                <p className="font-bold text-lg mt-1 text-blue-600">
+                  {utility.wAmount != null
+                    ? `${utility.wAmount.toLocaleString()} đ`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Amount */}
           <div className="space-y-4 pt-4 border-t">
             <div>
-              <Label className="text-slate-400 text-sm">Thành tiền</Label>
+              <Label className="text-slate-400 text-sm">Tổng thành tiền</Label>
               <p className="font-bold text-xl mt-1 text-blue-600">
-                {utility.amount != null
-                  ? `${utility.amount.toLocaleString()} đ`
-                  : "—"}
+                {((utility.eAmount || 0) + (utility.wAmount || 0)).toLocaleString()} đ
               </p>
             </div>
           </div>
@@ -207,10 +252,6 @@ export const DetailUtilitySheet = ({
           {/* Status and Dates */}
           <div className="space-y-4 pt-4 border-t">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-slate-400 text-sm">Trạng thái</Label>
-                <div className="mt-1">{getStatusBadge(utility.status)}</div>
-              </div>
               <div>
                 <Label className="text-slate-400 text-sm">Ngày đọc chỉ số</Label>
                 <p className="font-medium mt-1">

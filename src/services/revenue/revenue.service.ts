@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
 import type {
+  IMonthlyComparisonResponse,
   IRevenue,
   IRevenueRequest,
   IRevenueResponse,
@@ -101,6 +102,19 @@ export const revenueApi = createApi({
         params: { buildingId, startDate, endDate },
         responseType: "blob",
       }),
+    }),
+    monthlyComparison: builder.query< // So sánh thu chi 12 tháng (có % lên xuống)
+    IMonthlyComparisonResponse,
+      {
+        buildingId?: string;
+        year?: number;
+      }
+    >({
+      query: ({ buildingId, year }) => ({
+        url: `/landlords/revenue-expenditure/monthly-comparison`,
+        method: "GET",
+        params: { buildingId, year },
+      }),
     })
   }),
 });
@@ -113,4 +127,5 @@ export const {
   useGetRevenueDetailsQuery,
   useGetRevenueByStatsQuery,
   useLazyGetExportExcelRevenueQuery,
+  useMonthlyComparisonQuery,
 } = revenueApi;
