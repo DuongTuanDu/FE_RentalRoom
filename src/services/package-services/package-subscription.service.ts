@@ -94,7 +94,7 @@ export const packageSubscriptionApi = createApi({
     cancelSubscription: builder.mutation<ICancelSubscriptionResponse, void>({
       query: () => ({
         url: `/subscriptions/cancel`,
-        method: "POST",
+        method: "PATCH",
       }),
       invalidatesTags: ["PackageSubscription"],
     }),

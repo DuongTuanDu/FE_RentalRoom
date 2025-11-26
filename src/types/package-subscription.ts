@@ -21,6 +21,9 @@ export interface ISubscription {
   isRenewal: boolean;
   paymentMethod: string;
   paymentId: string;
+  renewedFrom: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ISubscriptionResponse {
@@ -54,7 +57,12 @@ export interface startTrialSubscriptionResponse {
 
 export interface IRenewSubscriptionResponse {
   success: boolean;
-  message: string;
+  data: {
+    paymentUrl: string;
+    subscriptionId: string;
+    startDate: string;
+    endDate: string;
+  },
 }
 
 export interface ICurrentSubscriptionResponse {

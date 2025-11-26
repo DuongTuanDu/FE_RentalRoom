@@ -5,7 +5,7 @@ const SOCKET_URL = "http://localhost:9999";
 class SocketService {
   private socket: Socket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 3;
 
   // Khởi tạo kết nối Socket.IO với JWT token
   connect(token: string): Socket {
