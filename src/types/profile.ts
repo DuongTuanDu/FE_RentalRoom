@@ -16,6 +16,12 @@ export interface UserInfo {
   dob: string;
   gender: "male" | "female" | "other" | "";
   address?: UserAddress[];
+  bankInfo?:{
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    qrImageUrl: string;
+  }
 }
 
 export interface User {
@@ -31,4 +37,16 @@ export interface User {
 export interface GetUserInfoResponse {
   message: string;
   user: User;
+}
+
+export interface UpdateBankInfoRequest {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  qrImageUrl: string;
+}
+
+export interface UpdateBankInfoResponse {
+  message: string;
+  bankInfo: UpdateBankInfoRequest;
 }
