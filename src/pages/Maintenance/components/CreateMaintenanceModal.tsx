@@ -21,7 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Wrench, Upload, X } from "lucide-react";
+import { Wrench, Upload, X, ChevronsUpDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -38,7 +39,7 @@ import type { IMaintenanceCreateRequest } from "@/types/maintenance";
 
 const maintenanceSchema = z.object({
   roomId: z.string().min(1, "Vui lòng chọn phòng"),
-  furnitureId: z.string().min(1, "Vui lòng chọn đồ đạc"),
+  furnitureId: z.string().min(1, "Vui lòng nhập hoặc chọn đồ đạc"),
   title: z.string().min(1, "Vui lòng nhập tiêu đề"),
   description: z.string().min(1, "Vui lòng nhập mô tả"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
@@ -62,6 +63,8 @@ export const CreateMaintenanceModal = ({
   const { data: roomData } = useGetMyRoomQuery();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [furnitureComboboxOpen, setFurnitureComboboxOpen] = useState(false);
+  const [furnitureInputValue, setFurnitureInputValue] = useState("");
 
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceSchema),
@@ -124,6 +127,8 @@ export const CreateMaintenanceModal = ({
       toast.success("Tạo yêu cầu bảo trì thành công");
       form.reset();
       setSelectedFiles([]);
+      setFurnitureInputValue("");
+      setFurnitureComboboxOpen(false);
       onOpenChange(false);
     } catch (error: any) {
       toast.error(error?.message?.message || "Tạo yêu cầu bảo trì thất bại");
@@ -137,6 +142,8 @@ export const CreateMaintenanceModal = ({
     if (!isLoading && !uploadingImages) {
       form.reset();
       setSelectedFiles([]);
+      setFurnitureInputValue("");
+      setFurnitureComboboxOpen(false);
       onOpenChange(false);
     }
   };
@@ -189,29 +196,122 @@ export const CreateMaintenanceModal = ({
             <FormField
               control={form.control}
               name="furnitureId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Đồ đạc *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+              render={({ field }) => {
+                const selectedFurniture = furnitures.find(
+                  (f) => f._id === field.value
+                );
+                
+                // Hiển thị tên furniture nếu đã chọn, hoặc giá trị tự do
+                const displayValue = selectedFurniture
+                  ? `${selectedFurniture.name} (${selectedFurniture.condition})`
+                  : field.value || "";
+
+                // Lọc danh sách furniture theo input
+                const filteredFurnitures = furnitures.filter((f) =>
+                  f.name.toLowerCase().includes(furnitureInputValue.toLowerCase())
+                );
+
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Đồ đạc *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn đồ đạc cần bảo trì" />
-                      </SelectTrigger>
+                      <div className="relative">
+                        <Input
+                          placeholder="Nhập hoặc chọn đồ đạc cần bảo trì"
+                          value={displayValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFurnitureInputValue(value);
+                            field.onChange(value);
+                            // Kiểm tra xem có khớp với furniture nào không
+                            const matchedFurniture = furnitures.find(
+                              (f) =>
+                                f.name.toLowerCase() === value.toLowerCase() ||
+                                `${f.name} (${f.condition})`.toLowerCase() === value.toLowerCase()
+                            );
+                            if (matchedFurniture) {
+                              field.onChange(matchedFurniture._id);
+                            } else {
+                              // Cho phép nhập tự do
+                              field.onChange(value);
+                            }
+                          }}
+                          onFocus={() => {
+                            setFurnitureComboboxOpen(true);
+                            setFurnitureInputValue(displayValue);
+                          }}
+                          onBlur={() => {
+                            // Đóng dropdown khi blur, nhưng delay để cho phép click vào item
+                            setTimeout(() => {
+                              // Kiểm tra xem element mới focus có phải là item trong dropdown không
+                              const activeElement = document.activeElement;
+                              if (!activeElement?.closest('.furniture-dropdown')) {
+                                setFurnitureComboboxOpen(false);
+                                setFurnitureInputValue("");
+                              }
+                            }, 200);
+                          }}
+                        />
+                        <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
+                        
+                        {/* Dropdown list */}
+                        {furnitureComboboxOpen && (
+                          <div className="furniture-dropdown absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-[300px] overflow-auto">
+                            {filteredFurnitures.length > 0 ? (
+                              <div className="p-1">
+                                {filteredFurnitures.map((furniture) => (
+                                  <div
+                                    key={furniture._id}
+                                    className={cn(
+                                      "flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                      field.value === furniture._id && "bg-accent text-accent-foreground"
+                                    )}
+                                    onMouseDown={(e) => {
+                                      e.preventDefault(); // Ngăn input blur
+                                      field.onChange(furniture._id);
+                                      setFurnitureInputValue("");
+                                      setFurnitureComboboxOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "h-4 w-4",
+                                        field.value === furniture._id
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {furniture.name} ({furniture.condition})
+                                  </div>
+                                ))}
+                              </div>
+                            ) : furnitureInputValue ? (
+                              <div className="p-1">
+                                <div
+                                  className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault(); // Ngăn input blur
+                                    field.onChange(furnitureInputValue);
+                                    setFurnitureComboboxOpen(false);
+                                  }}
+                                >
+                                  <Check className="h-4 w-4 opacity-0" />
+                                  Sử dụng "{furnitureInputValue}" (nhập tự do)
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 text-sm text-muted-foreground text-center">
+                                Nhập tên đồ đạc hoặc chọn từ danh sách
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <SelectContent>
-                      {furnitures.map((furniture) => (
-                        <SelectItem key={furniture._id} value={furniture._id}>
-                          {furniture.name} ({furniture.condition})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Title */}

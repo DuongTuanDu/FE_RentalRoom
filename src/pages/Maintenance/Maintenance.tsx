@@ -41,10 +41,6 @@ const Maintenance = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit] = useState(9);
-  const [allMaintenances, setAllMaintenances] = useState<IMaintenanceTenant[]>(
-    []
-  );
-  const [totalItems, setTotalItems] = useState(0);
 
   const { data, isLoading, error, isFetching } = useGetTenantMaintenancesQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -52,31 +48,13 @@ const Maintenance = () => {
     page: currentPage,
     limit: pageLimit,
   });
-
-  // Append new data to existing list
-  useEffect(() => {
-    if (data?.data) {
-      if (currentPage === 1) {
-        // Reset when filters change
-        setAllMaintenances(data.data);
-        setTotalItems(data.total);
-      } else {
-        // Append new data
-        setAllMaintenances((prev) => {
-          const existingIds = new Set(prev.map((m) => m._id));
-          const newMaintenances = data.data.filter(
-            (m) => !existingIds.has(m._id)
-          );
-          return [...prev, ...newMaintenances];
-        });
-      }
-    }
-  }, [data, currentPage]);
-
+  console.log("data", data);
+  const allMaintenances = data?.data || [];
+  const totalItems = data?.total || 0;
+  
   // Reset to page 1 and clear list when filters change
   useEffect(() => {
     setCurrentPage(1);
-    setAllMaintenances([]);
   }, [statusFilter, priorityFilter, searchQuery]);
 
   const getStatusBadge = (status: string) => {

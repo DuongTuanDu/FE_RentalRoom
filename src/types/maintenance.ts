@@ -96,7 +96,6 @@ export interface ITimeline {
 
 export interface IMaintenanceRequest {
   status: "open" | "in_progress" | "resolved" | "rejected";
-  //   assigneeAccountId: string;
   scheduledAt: string;
   estimatedCost: number;
   actualCost: number;
