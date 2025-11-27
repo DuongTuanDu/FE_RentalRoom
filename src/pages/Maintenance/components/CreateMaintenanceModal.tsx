@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCreateMaintenanceMutation } from "@/services/maintenance/maintenance.service";
 import { useGetMyRoomQuery } from "@/services/room/room.service";
-import { uploadFile } from "@/helpers/cloudinary";
 import {
   Dialog,
   DialogContent,
@@ -35,16 +34,44 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import type { IMaintenanceCreateRequest } from "@/types/maintenance";
 
-const maintenanceSchema = z.object({
-  roomId: z.string().min(1, "Vui lòng chọn phòng"),
-  furnitureId: z.string().min(1, "Vui lòng nhập hoặc chọn đồ đạc"),
-  title: z.string().min(1, "Vui lòng nhập tiêu đề"),
-  description: z.string().min(1, "Vui lòng nhập mô tả"),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  affectedQuantity: z.number().min(1, "Số lượng phải lớn hơn 0"),
-});
+const maintenanceSchema = z
+  .object({
+    roomId: z.string().min(1, "Vui lòng chọn phòng"),
+    category: z.enum([
+      "furniture",
+      "electrical",
+      "plumbing",
+      "air_conditioning",
+      "door_lock",
+      "wall_ceiling",
+      "flooring",
+      "windows",
+      "appliances",
+      "internet_wifi",
+      "pest_control",
+      "cleaning",
+      "safety",
+      "other",
+    ]),
+    furnitureId: z.string().optional(),
+    title: z.string().min(1, "Vui lòng nhập tiêu đề"),
+    description: z.string().min(1, "Vui lòng nhập mô tả"),
+    affectedQuantity: z.number().min(1, "Số lượng phải lớn hơn 0"),
+  })
+  .refine(
+    (data) => {
+      // furnitureId chỉ bắt buộc khi category = "furniture"
+      if (data.category === "furniture") {
+        return data.furnitureId && data.furnitureId.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Vui lòng nhập hoặc chọn đồ đạc",
+      path: ["furnitureId"],
+    }
+  );
 
 type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 
@@ -70,13 +97,16 @@ export const CreateMaintenanceModal = ({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: {
       roomId: "",
+      category: "other",
       furnitureId: "",
       title: "",
       description: "",
-      priority: "medium",
       affectedQuantity: 1,
     },
   });
+
+  // Watch category để ẩn/hiện furnitureId field
+  const category = form.watch("category");
 
   // Set default roomId when room data is available
   useEffect(() => {
@@ -89,10 +119,19 @@ export const CreateMaintenanceModal = ({
   useEffect(() => {
     if (defaultFurnitureId && open) {
       form.setValue("furnitureId", defaultFurnitureId);
+      form.setValue("category", "furniture"); // Set category to furniture if defaultFurnitureId is provided
     } else if (open && !defaultFurnitureId) {
       form.setValue("furnitureId", "");
     }
   }, [defaultFurnitureId, open, form]);
+
+  // Clear furnitureId when category changes away from furniture
+  useEffect(() => {
+    if (category !== "furniture" && form.getValues("furnitureId")) {
+      form.setValue("furnitureId", "");
+      form.clearErrors("furnitureId");
+    }
+  }, [category, form]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -107,23 +146,26 @@ export const CreateMaintenanceModal = ({
     try {
       setUploadingImages(true);
 
-      // Upload images to Cloudinary
-      const photos = await Promise.all(
-        selectedFiles.map(async (file) => {
-          const result = await uploadFile({ file, type: "customer" });
-          return {
-            url: result.secure_url,
-            note: "",
-          };
-        })
-      );
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("roomId", values.roomId);
+      formData.append("category", values.category);
+      
+      // Chỉ gửi furnitureId khi category = "furniture"
+      if (values.category === "furniture" && values.furnitureId) {
+        formData.append("furnitureId", values.furnitureId);
+      }
+      
+      formData.append("title", values.title);
+      formData.append("description", values.description);
+      formData.append("affectedQuantity", values.affectedQuantity.toString());
+      
+      // Append images if any
+      selectedFiles.forEach((file) => {
+        formData.append("images", file);
+      });
 
-      const payload: IMaintenanceCreateRequest = {
-        ...values,
-        photos: photos.length > 0 ? photos : undefined,
-      };
-
-      await createMaintenance(payload).unwrap();
+      await createMaintenance(formData as any).unwrap();
       toast.success("Tạo yêu cầu bảo trì thành công");
       form.reset();
       setSelectedFiles([]);
@@ -192,28 +234,67 @@ export const CreateMaintenanceModal = ({
               )}
             />
 
-            {/* Furniture */}
+            {/* Category */}
             <FormField
               control={form.control}
-              name="furnitureId"
-              render={({ field }) => {
-                const selectedFurniture = furnitures.find(
-                  (f) => f._id === field.value
-                );
-                
-                // Hiển thị tên furniture nếu đã chọn, hoặc giá trị tự do
-                const displayValue = selectedFurniture
-                  ? `${selectedFurniture.name} (${selectedFurniture.condition})`
-                  : field.value || "";
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Danh mục *</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn danh mục" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="furniture">Đồ nội thất</SelectItem>
+                      <SelectItem value="electrical">Điện, ổ cắm, đèn</SelectItem>
+                      <SelectItem value="plumbing">Nước, vòi, bồn rửa, toilet</SelectItem>
+                      <SelectItem value="air_conditioning">Điều hòa</SelectItem>
+                      <SelectItem value="door_lock">Khóa cửa, chìa khóa</SelectItem>
+                      <SelectItem value="wall_ceiling">Tường, trần nhà, sơn, nứt</SelectItem>
+                      <SelectItem value="flooring">Sàn gỗ, gạch</SelectItem>
+                      <SelectItem value="windows">Cửa sổ, kính</SelectItem>
+                      <SelectItem value="appliances">Tủ lạnh, máy giặt, lò vi sóng...</SelectItem>
+                      <SelectItem value="internet_wifi">Mạng internet</SelectItem>
+                      <SelectItem value="pest_control">Diệt côn trùng</SelectItem>
+                      <SelectItem value="cleaning">Vệ sinh</SelectItem>
+                      <SelectItem value="safety">Bình chữa cháy, báo khói</SelectItem>
+                      <SelectItem value="other">Khác</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                // Lọc danh sách furniture theo input
-                const filteredFurnitures = furnitures.filter((f) =>
-                  f.name.toLowerCase().includes(furnitureInputValue.toLowerCase())
-                );
+            {/* Furniture - Chỉ hiển thị khi category = "furniture" */}
+            {category === "furniture" && (
+              <FormField
+                control={form.control}
+                name="furnitureId"
+                render={({ field }) => {
+                  const selectedFurniture = furnitures.find(
+                    (f) => f._id === field.value
+                  );
+                  
+                  // Hiển thị tên furniture nếu đã chọn, hoặc giá trị tự do
+                  const displayValue = selectedFurniture
+                    ? `${selectedFurniture.name} (${selectedFurniture.condition})`
+                    : field.value || "";
 
-                return (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Đồ đạc *</FormLabel>
+                  // Lọc danh sách furniture theo input
+                  const filteredFurnitures = furnitures.filter((f) =>
+                    f.name.toLowerCase().includes(furnitureInputValue.toLowerCase())
+                  );
+
+                  return (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Đồ đạc *</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -308,11 +389,12 @@ export const CreateMaintenanceModal = ({
                         )}
                       </div>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
 
             {/* Title */}
             <FormField
@@ -348,56 +430,27 @@ export const CreateMaintenanceModal = ({
               )}
             />
 
-            {/* Priority and Quantity */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Độ ưu tiên *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Thấp</SelectItem>
-                        <SelectItem value="medium">Trung bình</SelectItem>
-                        <SelectItem value="high">Cao</SelectItem>
-                        <SelectItem value="urgent">Khẩn cấp</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="affectedQuantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Số lượng *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 1)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Quantity */}
+            <FormField
+              control={form.control}
+              name="affectedQuantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số lượng *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 1)
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Images Upload */}
             <div className="space-y-2">

@@ -138,7 +138,7 @@ const Contract = () => {
     const statusConfig = {
       draft: { label: "Bản nháp", className: "bg-gray-100 text-gray-800" },
       sent_to_tenant: {
-        label: "Đã gửi",
+        label: "Chờ ký",
         className: "bg-blue-100 text-blue-800",
       },
       signed_by_tenant: {

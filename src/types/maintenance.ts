@@ -1,46 +1,50 @@
 import type { IFurniture } from "./furniture";
 
-export interface IMaintenanceItem {
+export interface IMaintenanceDetailItem {
   _id: string;
   buildingId: {
     id: string;
     name: string;
-    address: string;
   };
-  roomId: IRoom;
+  roomId: {
+    _id: string;
+    roomNumber: string;
+    currentTenantIds: string[]
+  };
   furnitureId: IFurniture;
+  category: ICategory;
   reporterAccountId: IReporterAccount;
   title: string;
   description: string;
   photos: {
     url: string;
-    note: string;
     _id: string;
   }[];
-  priority: "low" | "medium" | "high" | "urgent";
   status: "open" | "in_progress" | "resolved" | "rejected";
   affectedQuantity: number;
   timeline: ITimeline[];
-  scheduledAt: string;
-  estimatedCost: number;
-  actualCost: number;
-  assigneeAccountId: {
-    _id: string;
-    email: string;
-    password: string;
-    userInfo: string;
-    role: "landlord" | "admin" | "resident";
-    isActivated: true;
-    accessToken: string;
-    refreshToken: string;
-    createdAt: string;
-    updatedAt: string;
-    __v: 0;
-    deviceId: string;
-  };
+  repairCost: number;
+  image: string[] // ảnh landlord gửi
   createdAt: string;
-  updatedAt: string;
-  __v: number;
+}
+
+export interface IMaintenanceItem {
+  _id: string;
+  title: string;
+  category: ICategory;
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  assignee: {
+    name: string;
+    phone: number;
+  };
+  roomNumber: string;
+  reportedBy: string;
+  photoCount: number;
+  proofImageCount: number;
+  repairCost: number;
+  mustPay: boolean;
+  affectedQuantity: number;
+  createdAt: string;
 }
 
 export interface IRoom {
@@ -96,10 +100,9 @@ export interface ITimeline {
 
 export interface IMaintenanceRequest {
   status: "open" | "in_progress" | "resolved" | "rejected";
-  scheduledAt: string;
-  estimatedCost: number;
-  actualCost: number;
+  repairCost: number;
   note: string;
+  images: File[];
 }
 
 export interface ICommentMaintenanceRequest {
@@ -107,14 +110,19 @@ export interface ICommentMaintenanceRequest {
 }
 
 export interface IMaintenanceResponse {
+  success: boolean;
   data: IMaintenanceItem[];
   total: number;
-  page: number;
-  limit: number;
+  pagination: {
+    page: number;
+    limit: number;
+    pages: number;
+    hasNext: boolean;
+  };
 }
 
 export interface IMaintenanceDetailResponse {
-  data: IMaintenanceItem;
+  data: IMaintenanceDetailItem;
 }
 
 export interface IMaintenanceTenant {
@@ -160,6 +168,7 @@ export interface IMaintenanceTenantItem {
   };
   roomId: IRoom;
   furnitureId: IFurniture;
+  category: ICategory;
   reporterAccountId: IReporterAccount;
   title: string;
   description: string;
@@ -195,24 +204,73 @@ export interface IMaintenanceTenantItem {
   __v: number;
 }
 
+export const CATEGORY = [
+  "furniture", // đồ nội thất
+  "electrical", // điện, ổ cắm, đèn
+  "plumbing", // nước, vòi, bồn rửa, toilet
+  "air_conditioning", // điều hòa
+  "door_lock", // khóa cửa, chìa khóa
+  "wall_ceiling", // tường, trần nhà, sơn, nứt
+  "flooring", // sàn gỗ, gạch
+  "windows", // cửa sổ, kính
+  "appliances", // tủ lạnh, máy giặt, lò vi sóng...
+  "internet_wifi", // mạng internet
+  "pest_control", // diệt côn trùng
+  "cleaning", // vệ sinh
+  "safety", // bình chữa cháy, báo khói
+  "other", // khác
+] as const;
+
+export type ICategory = (typeof CATEGORY)[number];
+
 export interface IMaintenanceCreateRequest {
   roomId: string;
-  furnitureId: string;
+  category: ICategory;
+  furnitureId?: string; // Chỉ bắt buộc khi category = "furniture"
   title: string;
   description: string;
-  photos?: {
-    url: string;
-    note?: string;
-  }[];
-  priority: "low" | "medium" | "high" | "urgent";
   affectedQuantity: number;
+  images?: File;
+}
+
+export interface IMaintenanceRequestItem {
+  _id: string;
+  title: string;
+  category: ICategory;
+  status: "open" | "in_progress" | "resolved" | "rejected";
+  itemName: string | null;
+  roomNumber: string;
+  reportedBy: {
+    name: string;
+    isMe: boolean;
+  };
+  assignee: string | null;
+  photoCount: number;
+  hasPhoto: boolean;
+  affectedQuantity: number;
+  scheduledAt: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface IMaintenanceTenantResponse {
-  data: IMaintenanceTenant[];
-  total: number;
+  success: boolean;
+  summary: {
+    totalRequests: number;
+    activeRooms: number;
+  };
+  rooms: {
+    id: string;
+    roomNumber: string;
+  }[];
+  requests: IMaintenanceRequestItem[];
   page: number;
   limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export interface IMaintenanceTenantDetailsResponse {

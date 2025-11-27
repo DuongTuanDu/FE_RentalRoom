@@ -101,7 +101,7 @@ export const ModalBuildingService = ({
             >
               <option value="perRoom">Theo phòng</option>
               <option value="perPerson">Theo người</option>
-              <option value="included">Bao gồm</option>
+              <option value="included">Bao gồm (đã tính trong tiền phòng)</option>
             </select>
           </div>
 

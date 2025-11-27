@@ -2,23 +2,57 @@ import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetPostDetailsQuery } from "@/services/post/post.service";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { MapPin, Calendar, DollarSign, Square, ChevronLeft, Building2, DoorOpen, ShieldCheck, Info, Share2, Heart, Star, Wifi } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  DollarSign,
+  Square,
+  ChevronLeft,
+  Building2,
+  DoorOpen,
+  ShieldCheck,
+  Info,
+  Share2,
+  Heart,
+  Star,
+  Wifi,
+} from "lucide-react";
 import ImageGallery from "./components/ImageGallery";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IGetPostDetailResponse } from "@/types/post";
 
-const statusToBadge: Record<string, { bg: string; text: string; label: string }> = {
-  active: { bg: "bg-emerald-100", text: "text-emerald-800", label: "Đang hiển thị" },
+const statusToBadge: Record<
+  string,
+  { bg: string; text: string; label: string }
+> = {
+  active: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-800",
+    label: "Đang hiển thị",
+  },
   hidden: { bg: "bg-gray-100", text: "text-gray-800", label: "Đang ẩn" },
   expired: { bg: "bg-amber-100", text: "text-amber-800", label: "Hết hạn" },
 };
 
-const roomStatusToBadge: Record<string, { bg: string; text: string; label: string }> = {
-  available: { bg: "bg-emerald-100", text: "text-emerald-800", label: "Còn trống" },
+const roomStatusToBadge: Record<
+  string,
+  { bg: string; text: string; label: string }
+> = {
+  available: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-800",
+    label: "Còn trống",
+  },
   rented: { bg: "bg-rose-100", text: "text-rose-800", label: "Đã thuê" },
   maintenance: { bg: "bg-amber-100", text: "text-amber-800", label: "Bảo trì" },
 };
@@ -47,7 +81,11 @@ const PostDetail = () => {
   const rooms = detail?.rooms ?? [];
   const services = detail?.services ?? [];
   const regulationsRaw = (detail as any)?.regulations;
-  const regulations = Array.isArray(regulationsRaw) ? regulationsRaw : regulationsRaw ? [regulationsRaw] : [];
+  const regulations = Array.isArray(regulationsRaw)
+    ? regulationsRaw
+    : regulationsRaw
+    ? [regulationsRaw]
+    : [];
 
   if (isLoading) {
     return (
@@ -84,7 +122,9 @@ const PostDetail = () => {
           <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
             <Info className="h-6 w-6 text-rose-500" />
           </div>
-          <h2 className="text-xl font-semibold">Không thể tải chi tiết bài đăng</h2>
+          <h2 className="text-xl font-semibold">
+            Không thể tải chi tiết bài đăng
+          </h2>
           <p className="text-muted-foreground">
             Vui lòng kiểm tra đường dẫn hoặc thử tải lại trang.
           </p>
@@ -100,7 +140,11 @@ const PostDetail = () => {
     );
   }
 
-  const statusMeta = statusToBadge[post.status] ?? { bg: "bg-gray-100", text: "text-gray-800", label: post.status };
+  const statusMeta = statusToBadge[post.status] ?? {
+    bg: "bg-gray-100",
+    text: "text-gray-800",
+    label: post.status,
+  };
 
   return (
     <div className="container mx-auto space-y-6">
@@ -111,7 +155,9 @@ const PostDetail = () => {
           Quay lại
         </Button>
         <div className="flex items-center gap-2">
-          <Badge className={`${statusMeta.bg} ${statusMeta.text}`}>{statusMeta.label}</Badge>
+          <Badge className={`${statusMeta.bg} ${statusMeta.text}`}>
+            {statusMeta.label}
+          </Badge>
           {post.isDraft && <Badge variant="outline">Bản nháp</Badge>}
         </div>
       </div>
@@ -255,17 +301,30 @@ const PostDetail = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Trạng thái</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Trạng thái
+                    </p>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className={building.status === "active" ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"}>
-                        {building.status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
+                      <Badge
+                        variant="secondary"
+                        className={
+                          building.status === "active"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {building.status === "active"
+                          ? "Đang hoạt động"
+                          : "Ngừng hoạt động"}
                       </Badge>
                     </div>
                   </div>
                 </div>
               </>
             ) : (
-              <p className="text-muted-foreground">Không có thông tin tòa nhà.</p>
+              <p className="text-muted-foreground">
+                Không có thông tin tòa nhà.
+              </p>
             )}
           </CardContent>
         </Card>
@@ -285,12 +344,18 @@ const PostDetail = () => {
                 <div key={s._id} className="border rounded-md p-3">
                   <div className="flex items-center justify-between">
                     <div className="font-medium">{s.label || s.name}</div>
-                    <Badge variant="outline">{chargeTypeLabel[s.chargeType] || s.chargeType}</Badge>
+                    <Badge variant="outline">
+                      {chargeTypeLabel[s.chargeType] || s.chargeType}
+                    </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {s.chargeType === "included" ? "Đã bao gồm" : `${s.fee.toLocaleString()} ${s.currency}`}
+                    {s.chargeType === "included"
+                      ? "Đã bao gồm"
+                      : `${s.fee.toLocaleString()} ${s.currency}`}
                   </div>
-                  {s.description && <div className="text-sm mt-2">{s.description}</div>}
+                  {s.description && (
+                    <div className="text-sm mt-2">{s.description}</div>
+                  )}
                 </div>
               ))
             ) : (
@@ -313,12 +378,23 @@ const PostDetail = () => {
           {rooms.length ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {rooms.map((room) => {
-                const rm = roomStatusToBadge[room.status] ?? { bg: "bg-gray-100", text: "text-gray-800", label: room.status };
+                const rm = roomStatusToBadge[room.status] ?? {
+                  bg: "bg-gray-100",
+                  text: "text-gray-800",
+                  label: room.status,
+                };
                 return (
-                  <div key={room._id} className="shadow-xl hover:shadow-2xl rounded-lg p-4 transition">
+                  <div
+                    key={room._id}
+                    className="shadow-xl hover:shadow-2xl rounded-lg p-4 transition"
+                  >
                     <div className="flex items-center justify-between">
-                      <div className="font-semibold">Phòng {room.roomNumber}</div>
-                      <Badge className={`${rm.bg} ${rm.text}`}>{rm.label}</Badge>
+                      <div className="font-semibold">
+                        Phòng {room.roomNumber}
+                      </div>
+                      <Badge className={`${rm.bg} ${rm.text}`}>
+                        {rm.label}
+                      </Badge>
                     </div>
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center gap-2">
@@ -346,7 +422,9 @@ const PostDetail = () => {
       <Card>
         <CardHeader>
           <CardTitle>Nội quy</CardTitle>
-          <CardDescription>Quy định áp dụng cho tòa nhà/bài đăng</CardDescription>
+          <CardDescription>
+            Quy định áp dụng cho tòa nhà/bài đăng
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {regulations.length ? (
@@ -358,7 +436,15 @@ const PostDetail = () => {
                     Hiệu lực từ {formatDate(r.effectiveFrom)}
                   </div>
                 </div>
-                {r.description && <div className="text-sm mt-2">{r.description}</div>}
+                {r.description && (
+                  <div className="text-sm mt-2">
+                    {/* {r.description} */}
+                    <div
+                      className="prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ __html: r.description }}
+                    />
+                  </div>
+                )}
               </div>
             ))
           ) : (

@@ -150,6 +150,15 @@ export const roomApi = createApi({
       invalidatesTags: ["Room"],
     }),
 
+    activeRoom: builder.mutation<IRoom, { id: string; active: boolean }>({
+      query: ({ id, active }) => ({
+        url: `/landlords/rooms/${id}/active`,
+        method: "PATCH",
+        data: { active },
+      }),
+      invalidatesTags: ["Room"],
+    }),
+
     addRoomImages: builder.mutation<
       { message: string; images: string[] },
       { id: string; images: File[] }
@@ -264,6 +273,7 @@ export const {
   useCreateRoomMutation,
   useUpdateRoomMutation,
   useDeleteRoomMutation,
+  useActiveRoomMutation,
   useAddRoomImagesMutation,
   useRemoveRoomImagesMutation,
   useGetRoomByIdQuery,

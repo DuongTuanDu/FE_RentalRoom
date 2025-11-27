@@ -40,8 +40,10 @@ const VerifyOtp: React.FC = () => {
         type,
         otp: otpValue,
       }).unwrap();
+      console.log("res", res);
+      
 
-      if (res.message === "OTP xác thực thành công!") {
+      if (res.success === true && res.data) {
         toast.success("Xác thực thành công!");
         navigate(config.loginPath);
       }

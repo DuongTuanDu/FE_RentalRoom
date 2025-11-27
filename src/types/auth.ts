@@ -1,6 +1,7 @@
 export default interface IAuth {
   accessToken: string;
   refreshToken: string;
+  success: boolean;
   data: {
     id: string;
     email: string;

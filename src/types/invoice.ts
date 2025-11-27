@@ -46,7 +46,7 @@ export interface InvoiceItem {
     sentAt: string;
     status: "sent" | "failed";
     note: string;
-  }
+  };
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -181,7 +181,7 @@ export interface InvoiceDetailResponse {
     updatedAt: string;
     __v: number;
     note: string;
-  }
+  };
 }
 
 export interface ITenantPayInvoiceRequest {
@@ -314,4 +314,20 @@ export interface IRoomCompletedContract {
 export interface IRoomCompletedContractResponse {
   message: string;
   data: IRoomCompletedContract[];
+}
+
+export interface IInvoicePaymentInfoResponse {
+  message: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  periodMonth: number;
+  periodYear: number;
+  amount: number;
+  bankInfo: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    qrImageUrl: string;
+  };
+  transferNote: string;
 }

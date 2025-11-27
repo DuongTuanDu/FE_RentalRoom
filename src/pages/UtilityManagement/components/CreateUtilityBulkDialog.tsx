@@ -52,6 +52,11 @@ export const CreateUtilityBulkDialog = ({
   const [periodYear, setPeriodYear] = useState("");
   const [readings, setReadings] = useState<BulkReadingItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [errors, setErrors] = useState<{
+    buildingId?: string;
+    periodMonth?: string;
+    periodYear?: string;
+  }>({});
 
   const [createUtilityReadingsBulk, { isLoading: isCreating }] =
     useCreateUtilityReadingsBulkMutation();
@@ -83,6 +88,7 @@ export const CreateUtilityBulkDialog = ({
       setPeriodYear(now.getFullYear().toString());
       setReadings([]);
       setBuildingId("");
+      setErrors({});
     }
   }, [open]);
 
@@ -128,11 +134,51 @@ export const CreateUtilityBulkDialog = ({
     setReadings(updated);
   };
 
+  const handleBuildingChange = (value: string) => {
+    setBuildingId(value);
+    if (errors.buildingId) {
+      setErrors({ ...errors, buildingId: undefined });
+    }
+  };
+
+  const handleMonthChange = (value: string) => {
+    setPeriodMonth(value);
+    if (errors.periodMonth) {
+      setErrors({ ...errors, periodMonth: undefined });
+    }
+  };
+
+  const handleYearChange = (value: string) => {
+    setPeriodYear(value);
+    if (errors.periodYear) {
+      setErrors({ ...errors, periodYear: undefined });
+    }
+  };
+
   const handleCreate = async () => {
-    if (!buildingId || !periodMonth || !periodYear) {
-      toast.error("Vui lòng điền đầy đủ thông tin kỳ đọc");
+    // Validate form fields
+    const newErrors: {
+      buildingId?: string;
+      periodMonth?: string;
+      periodYear?: string;
+    } = {};
+
+    if (!buildingId) {
+      newErrors.buildingId = "Vui lòng chọn tòa nhà";
+    }
+    if (!periodMonth) {
+      newErrors.periodMonth = "Vui lòng chọn tháng";
+    }
+    if (!periodYear) {
+      newErrors.periodYear = "Vui lòng chọn năm";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     if (readings.length === 0) {
       toast.error("Vui lòng thêm ít nhất một chỉ số");
@@ -204,8 +250,11 @@ export const CreateUtilityBulkDialog = ({
               </Label>
               <BuildingSelectCombobox
                 value={buildingId}
-                onValueChange={setBuildingId}
+                onValueChange={handleBuildingChange}
               />
+              {errors.buildingId && (
+                <p className="text-sm text-red-500">{errors.buildingId}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>
@@ -213,7 +262,7 @@ export const CreateUtilityBulkDialog = ({
               </Label>
               <Select
                 value={periodMonth}
-                onValueChange={setPeriodMonth}
+                onValueChange={handleMonthChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn tháng" />
@@ -226,6 +275,9 @@ export const CreateUtilityBulkDialog = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.periodMonth && (
+                <p className="text-sm text-red-500">{errors.periodMonth}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>
@@ -233,7 +285,7 @@ export const CreateUtilityBulkDialog = ({
               </Label>
               <Select
                 value={periodYear}
-                onValueChange={setPeriodYear}
+                onValueChange={handleYearChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn năm" />
@@ -246,6 +298,9 @@ export const CreateUtilityBulkDialog = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.periodYear && (
+                <p className="text-sm text-red-500">{errors.periodYear}</p>
+              )}
             </div>
           </div>
 
