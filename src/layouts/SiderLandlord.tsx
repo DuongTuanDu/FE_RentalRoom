@@ -124,7 +124,7 @@ const menuItems = [
     staffAccess: true,
     items: [
       {
-        title: "Dịch vụ phòng",
+        title: "Dịch vụ tòa nhà",
         icon: Wrench,
         path: "/landlord/building-services",
         staffAccess: true,

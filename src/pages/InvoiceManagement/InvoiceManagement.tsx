@@ -12,6 +12,7 @@ import {
   X,
   FileText,
   Loader2,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -52,10 +53,15 @@ import {
   useSendInvoiceMutation,
   useCreateGenerateMonthlyInvoiceMutation,
   useCreateGenerateInvoiceMutation,
+  useUpdateInvoiceMutation,
+  useSendDraftAllInvoicesMutation,
 } from "@/services/invoice/invoice.service";
 import type {
   InvoiceItem,
   IGenerateMonthlyInvoiceRequest,
+  IGenerateInvoiceRequest,
+  IUpdateInvoiceRequest,
+  ISendDraftInvoiceRequest,
 } from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
@@ -63,6 +69,8 @@ import { PayInvoiceDialog } from "./components/PayInvoiceDialog";
 import { GenerateMonthlyInvoiceDialog } from "./components/GenerateMonthlyInvoiceDialog";
 import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialog";
+import { UpdateInvoiceDialog } from "./components/UpdateInvoiceDialog";
+import { SendDraftAllInvoicesDialog } from "./components/SendDraftAllInvoicesDialog";
 import _ from "lodash";
 
 const InvoiceManagement = () => {
@@ -99,6 +107,12 @@ const InvoiceManagement = () => {
     message: string;
     errors: Array<{ roomNumber: string; message: string }>;
   } | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [updatingInvoiceId, setUpdatingInvoiceId] = useState<string | null>(
+    null
+  );
+  const [isSendDraftAllDialogOpen, setIsSendDraftAllDialogOpen] =
+    useState(false);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -153,6 +167,9 @@ const InvoiceManagement = () => {
     useCreateGenerateMonthlyInvoiceMutation();
   const [generateInvoice, { isLoading: isGeneratingInvoice }] =
     useCreateGenerateInvoiceMutation();
+  const [updateInvoice, { isLoading: isUpdating }] = useUpdateInvoiceMutation();
+  const [sendDraftAllInvoices, { isLoading: isSendingDrafts }] =
+    useSendDraftAllInvoicesMutation();
 
   const totalItems = invoicesData?.total ?? 0;
   const totalPages = Math.ceil(totalItems / pageLimit);
@@ -233,7 +250,10 @@ const InvoiceManagement = () => {
     data: IGenerateMonthlyInvoiceRequest
   ) => {
     try {
-      const response = await generateMonthlyInvoice(data).unwrap();
+      const response = await generateMonthlyInvoice({
+        ...data,
+        extraItems: data.extraItems || [],
+      }).unwrap();
 
       // Kiểm tra nếu có lỗi trong response (một số API trả về 200 nhưng có failCount > 0)
       const responseData = response as any;
@@ -287,13 +307,44 @@ const InvoiceManagement = () => {
     }
   };
 
-  const handleGenerateInvoice = async (data: any) => {
+  const handleGenerateInvoice = async (data: IGenerateInvoiceRequest) => {
     try {
-      await generateInvoice(data).unwrap();
+      await generateInvoice({
+        ...data,
+        extraItems: data.extraItems || [],
+      }).unwrap();
       toast.success("Tạo hóa đơn tùy chỉnh thành công!");
       setIsGenerateInvoiceDialogOpen(false);
     } catch (error: any) {
       toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
+    }
+  };
+
+  const handleUpdateInvoice = async (
+    invoiceId: string,
+    data: IUpdateInvoiceRequest
+  ) => {
+    try {
+      await updateInvoice({ id: invoiceId, data }).unwrap();
+      toast.success("Cập nhật hóa đơn thành công!");
+      setIsUpdateDialogOpen(false);
+      setUpdatingInvoiceId(null);
+      setIsDetailSheetOpen(false);
+      setSelectedInvoiceId(null);
+    } catch (error: any) {
+      toast.error(error?.message?.message || "Cập nhật hóa đơn thất bại!");
+    }
+  };
+
+  const handleSendDraftAllInvoices = async (data: ISendDraftInvoiceRequest) => {
+    try {
+      await sendDraftAllInvoices(data).unwrap();
+      toast.success("Gửi tất cả hóa đơn nháp thành công!");
+      setIsSendDraftAllDialogOpen(false);
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Gửi tất cả hóa đơn nháp thất bại!"
+      );
     }
   };
 
@@ -315,6 +366,13 @@ const InvoiceManagement = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsSendDraftAllDialogOpen(true)}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Gửi tất cả hóa đơn nháp
+          </Button>
           <Button
             variant="outline"
             onClick={() => setIsGenerateMonthlyDialogOpen(true)}
@@ -494,7 +552,7 @@ const InvoiceManagement = () => {
                       Đang tải...
                     </TableCell>
                   </TableRow>
-                ) : !invoicesData || invoicesData.items.length === 0 ? (
+                ) : !invoicesData || invoicesData.data.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={11}
@@ -504,7 +562,7 @@ const InvoiceManagement = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  invoicesData.items.map((invoice, idx) => (
+                  invoicesData.data.map((invoice, idx) => (
                     <TableRow key={invoice._id}>
                       <TableCell>
                         {(currentPage - 1) * pageLimit + idx + 1}
@@ -573,6 +631,26 @@ const InvoiceManagement = () => {
                                       <Button
                                         variant="outline"
                                         size="icon"
+                                        onClick={() => {
+                                          setUpdatingInvoiceId(invoice._id);
+                                          setIsUpdateDialogOpen(true);
+                                        }}
+                                        disabled={isUpdating}
+                                      >
+                                        <Edit className="h-4 w-4 text-green-600" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Cập nhật</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
                                         onClick={() =>
                                           handleOpenPayDialog(invoice._id)
                                         }
@@ -586,95 +664,102 @@ const InvoiceManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
-                                <Popover
-                                  open={
-                                    sendInvoicePopoverOpen &&
-                                    sendingInvoiceId === invoice._id
-                                  }
-                                  onOpenChange={(open) => {
-                                    setSendInvoicePopoverOpen(open);
-                                    if (open) {
-                                      setSendingInvoiceId(invoice._id);
-                                    } else {
-                                      setSendingInvoiceId(null);
+                                {invoice.status === "draft" && (
+                                  <Popover
+                                    open={
+                                      sendInvoicePopoverOpen &&
+                                      sendingInvoiceId === invoice._id
                                     }
-                                  }}
-                                >
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <PopoverTrigger asChild>
+                                    onOpenChange={(open) => {
+                                      setSendInvoicePopoverOpen(open);
+                                      if (open) {
+                                        setSendingInvoiceId(invoice._id);
+                                      } else {
+                                        setSendingInvoiceId(null);
+                                      }
+                                    }}
+                                  >
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              disabled={isSending}
+                                            >
+                                              <Send className="h-4 w-4" />
+                                            </Button>
+                                          </PopoverTrigger>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Gửi email</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <PopoverContent
+                                      className="w-80"
+                                      align="end"
+                                    >
+                                      <div className="space-y-4">
+                                        <div className="space-y-2">
+                                          <h4 className="font-medium text-sm">
+                                            Xác nhận gửi hóa đơn
+                                          </h4>
+                                          <p className="text-sm text-muted-foreground">
+                                            Bạn có chắc chắn muốn gửi hóa đơn{" "}
+                                            <span className="font-medium">
+                                              {invoice.invoiceNumber}
+                                            </span>{" "}
+                                            cho người thuê{" "}
+                                            <span className="font-medium">
+                                              {invoice.tenantId?.userInfo
+                                                ?.fullName || "N/A"}
+                                            </span>{" "}
+                                            qua email?
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center justify-end gap-2">
                                           <Button
                                             variant="outline"
-                                            size="icon"
-                                            disabled={isSending}
-                                          >
-                                            <Send className="h-4 w-4" />
-                                          </Button>
-                                        </PopoverTrigger>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Gửi email</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <PopoverContent className="w-80" align="end">
-                                    <div className="space-y-4">
-                                      <div className="space-y-2">
-                                        <h4 className="font-medium text-sm">
-                                          Xác nhận gửi hóa đơn
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
-                                          Bạn có chắc chắn muốn gửi hóa đơn{" "}
-                                          <span className="font-medium">
-                                            {invoice.invoiceNumber}
-                                          </span>{" "}
-                                          cho người thuê{" "}
-                                          <span className="font-medium">
-                                            {invoice.tenantId?.userInfo
-                                              ?.fullName || "N/A"}
-                                          </span>{" "}
-                                          qua email?
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center justify-end gap-2">
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => {
-                                            setSendInvoicePopoverOpen(false);
-                                            setSendingInvoiceId(null);
-                                          }}
-                                          disabled={isSending}
-                                        >
-                                          Hủy
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          onClick={async () => {
-                                            if (sendingInvoiceId) {
-                                              await handleSendInvoice(
-                                                sendingInvoiceId
-                                              );
+                                            size="sm"
+                                            onClick={() => {
                                               setSendInvoicePopoverOpen(false);
                                               setSendingInvoiceId(null);
-                                            }
-                                          }}
-                                          disabled={isSending}
-                                        >
-                                          {isSending ? (
-                                            <>
-                                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                              Đang gửi...
-                                            </>
-                                          ) : (
-                                            "Xác nhận gửi"
-                                          )}
-                                        </Button>
+                                            }}
+                                            disabled={isSending}
+                                          >
+                                            Hủy
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            onClick={async () => {
+                                              if (sendingInvoiceId) {
+                                                await handleSendInvoice(
+                                                  sendingInvoiceId
+                                                );
+                                                setSendInvoicePopoverOpen(
+                                                  false
+                                                );
+                                                setSendingInvoiceId(null);
+                                              }
+                                            }}
+                                            disabled={isSending}
+                                          >
+                                            {isSending ? (
+                                              <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Đang gửi...
+                                              </>
+                                            ) : (
+                                              "Xác nhận gửi"
+                                            )}
+                                          </Button>
+                                        </div>
                                       </div>
-                                    </div>
-                                  </PopoverContent>
-                                </Popover>
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
                               </>
                             )}
                         </div>
@@ -739,6 +824,10 @@ const InvoiceManagement = () => {
           if (!open) setSelectedInvoiceId(null);
         }}
         invoiceId={selectedInvoiceId}
+        onUpdateClick={(invoiceId) => {
+          setUpdatingInvoiceId(invoiceId);
+          setIsUpdateDialogOpen(true);
+        }}
       />
 
       {/* Pay Invoice Dialog */}
@@ -774,6 +863,50 @@ const InvoiceManagement = () => {
         open={isErrorDialogOpen}
         onOpenChange={setIsErrorDialogOpen}
         errorDetails={errorDetails}
+      />
+
+      {/* Update Invoice Dialog */}
+      {updatingInvoiceId && (
+        <UpdateInvoiceDialog
+          open={isUpdateDialogOpen}
+          onOpenChange={(open) => {
+            setIsUpdateDialogOpen(open);
+            if (!open) setUpdatingInvoiceId(null);
+          }}
+          invoiceId={updatingInvoiceId}
+          initialData={
+            invoicesData?.data.find((inv) => inv._id === updatingInvoiceId)
+              ? {
+                  note:
+                    invoicesData.data.find(
+                      (inv) => inv._id === updatingInvoiceId
+                    )?.note || "",
+                  discountAmount:
+                    invoicesData.data.find(
+                      (inv) => inv._id === updatingInvoiceId
+                    )?.discountAmount || 0,
+                  lateFee:
+                    invoicesData.data.find(
+                      (inv) => inv._id === updatingInvoiceId
+                    )?.lateFee || 0,
+                  status:
+                    invoicesData.data.find(
+                      (inv) => inv._id === updatingInvoiceId
+                    )?.status || "draft",
+                }
+              : undefined
+          }
+          onSubmit={handleUpdateInvoice}
+          isLoading={isUpdating}
+        />
+      )}
+
+      {/* Send Draft All Invoices Dialog */}
+      <SendDraftAllInvoicesDialog
+        open={isSendDraftAllDialogOpen}
+        onOpenChange={setIsSendDraftAllDialogOpen}
+        onSubmit={handleSendDraftAllInvoices}
+        isLoading={isSendingDrafts}
       />
     </div>
   );

@@ -85,9 +85,10 @@ export const PayInvoiceDialog = ({
     });
   };
 
+  const invoiceData = invoice?.data;
   const remainingAmount =
-    invoice && invoice.totalAmount
-      ? invoice.totalAmount - (invoice.paidAmount || 0)
+    invoiceData && invoiceData.totalAmount
+      ? invoiceData.totalAmount - (invoiceData.paidAmount || 0)
       : 0;
 
   return (
@@ -103,7 +104,7 @@ export const PayInvoiceDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        {invoice && (
+        {invoiceData && (
           <div className="space-y-4 py-4">
             {/* Invoice Info */}
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-2">
@@ -111,23 +112,23 @@ export const PayInvoiceDialog = ({
                 <span className="text-sm text-slate-600 dark:text-slate-400">
                   Số hóa đơn:
                 </span>
-                <span className="font-medium">{invoice.invoiceNumber}</span>
+                <span className="font-medium">{invoiceData.invoiceNumber}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600 dark:text-slate-400">
                   Tổng tiền:
                 </span>
                 <span className="font-semibold text-lg">
-                  {formatPrice(invoice.totalAmount)}
+                  {formatPrice(invoiceData.totalAmount)}
                 </span>
               </div>
-              {invoice.paidAmount > 0 && (
+              {invoiceData.paidAmount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-600 dark:text-slate-400">
                     Đã thanh toán:
                   </span>
                   <span className="font-medium text-green-600">
-                    {formatPrice(invoice.paidAmount)}
+                    {formatPrice(invoiceData.paidAmount)}
                   </span>
                 </div>
               )}

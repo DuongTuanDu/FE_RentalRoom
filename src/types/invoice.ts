@@ -1,18 +1,17 @@
 export interface InvoiceItem {
   _id: string;
+  landlordId: string;
   tenantId: {
     _id: string;
     email: string;
     userInfo: {
       _id: string;
       fullName: string;
-      phoneNumber: string;
     };
   };
   buildingId: {
     _id: string;
     name: string;
-    address: string;
   };
   roomId: {
     _id: string;
@@ -22,29 +21,6 @@ export interface InvoiceItem {
   periodMonth: number;
   periodYear: number;
   invoiceNumber: string;
-  totalAmount: number;
-  issuedAt: string;
-  dueDate: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface IGenerateMonthlyInvoiceRequest {
-  buildingId: string;
-  periodMonth: number;
-  periodYear: number;
-  includeRent: boolean;
-}
-
-export interface IGenerateInvoiceRequest {
-  tenantId: string;
-  roomId: string;
-  contractId: string;
-  periodMonth: number;
-  periodYear: number;
-  invoiceNumber: string;
-  dueDate: string;
   items: {
     type: "rent" | "electric" | "water" | "service" | "other";
     label: string;
@@ -52,8 +28,71 @@ export interface IGenerateInvoiceRequest {
     quantity: number;
     unitPrice: number;
     amount: number;
-    utilityReadingId: string;
   }[];
+  subtotal: number;
+  discountAmount: number;
+  lateFee: number;
+  totalAmount: number;
+  paidAmount: number;
+  currency: "VND" | string;
+  issuedAt: string;
+  dueDate: string;
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  paymentMethod: "cash" | "online_gateway" | null;
+  emailStatus: "pending" | "sent" | "failed" | null;
+  isDeleted: boolean;
+  reminders: {
+    channel: "email" | "sms" | "in_app";
+    sentAt: string;
+    status: "sent" | "failed";
+    note: string;
+  }
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  note: string;
+}
+
+export interface IGenerateMonthlyInvoiceRequest {
+  buildingId: string;
+  periodMonth: number;
+  periodYear: number;
+  includeRent: boolean;
+  extraItems: {
+    label: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }[];
+}
+
+export interface IGenerateInvoiceRequest {
+  roomId: string;
+  periodMonth: number;
+  periodYear: number;
+  dueDate: string;
+  includeRent: boolean;
+  extraItems: {
+    label: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }[];
+}
+
+export interface IUpdateInvoiceRequest {
+  note: string;
+  discountAmount: number;
+  lateFee: number;
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+}
+
+export interface ISendDraftInvoiceRequest {
+  buildingId: string;
+  periodMonth: number;
+  periodYear: number;
 }
 
 export interface IPayInvoiceRequest {
@@ -63,11 +102,10 @@ export interface IPayInvoiceRequest {
 }
 
 export interface InvoiceResponse {
-  items: InvoiceItem[];
+  data: InvoiceItem[];
   total: number;
   page: number;
   limit: number;
-  totalPages: number;
 }
 
 export interface Tenant {
@@ -88,63 +126,63 @@ export interface Tenant {
 }
 
 export interface InvoiceDetailResponse {
-  _id: string;
-  landlordId: string;
-  tenantId: Tenant;
-  buildingId: {
+  data: {
     _id: string;
-    name: string;
-    address: string;
-  };
-  roomId: {
-    _id: string;
-    roomNumber: string;
-  };
-  contractId: {
-    _id: string;
-    contract: {
-      no: string;
-      startDate: string;
-      endDate: string;
+    landlordId: string;
+    tenantId: Tenant;
+    buildingId: {
+      _id: string;
+      name: string;
+      address: string;
     };
-  };
-  periodMonth: number;
-  periodYear: number;
-  invoiceNumber: string;
-  items: {
-    type: "rent" | "electric" | "water" | "service" | "other";
-    label: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    amount: number;
-  }[];
-  subtotal: number;
-  discountAmount: number;
-  lateFee: number;
-  totalAmount: number;
-  paidAmount: number;
-  currency: string;
-  issuedAt: string;
-  dueDate: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
-  paymentMethod: string | null;
-  emailStatus: "pending" | "sent" | "failed";
-  createdBy: string;
-  isDeleted: boolean;
-  deletedAt: string | null;
-  reminders: {
-    channel: "email" | "sms" | "in_app";
-    sentAt: string;
-    status: "sent" | "failed";
-    note?: string;
-  }[];
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-  emailLastError: string;
-  emailSentAt: string;
-  sentAt: string;
+    roomId: {
+      _id: string;
+      roomNumber: string;
+    };
+    contractId: {
+      _id: string;
+      contract: {
+        no: string;
+        startDate: string;
+        endDate: string;
+      };
+    };
+    periodMonth: number;
+    periodYear: number;
+    invoiceNumber: string;
+    items: {
+      type: "rent" | "electric" | "water" | "service" | "other";
+      label: string;
+      description: string;
+      quantity: number;
+      unitPrice: number;
+      amount: number;
+    }[];
+    subtotal: number;
+    discountAmount: number;
+    lateFee: number;
+    totalAmount: number;
+    paidAmount: number;
+    currency: "VND" | string;
+    issuedAt: string;
+    dueDate: string;
+    status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+    paymentMethod: "cash" | "online_gateway" | null;
+    emailStatus: "pending" | "sent" | "failed";
+    createdBy: string;
+    isDeleted: boolean;
+    deletedAt: string | null;
+    reminders: {
+      channel: "email" | "sms" | "in_app";
+      sentAt: string;
+      status: "sent" | "failed";
+      note?: string;
+    }[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    note: string;
+  }
 }
 
 export interface ITenantPayInvoiceRequest {
@@ -152,7 +190,7 @@ export interface ITenantPayInvoiceRequest {
   note: string;
 }
 
-export interface InvoiceItem {
+export interface ITenantInvoiceItem {
   _id: string;
   buildingId: {
     _id: string;
@@ -177,7 +215,7 @@ export interface InvoiceItem {
 }
 
 export interface ITenantInvoiceResponse {
-  items: InvoiceItem[];
+  items: ITenantInvoiceItem[];
   total: number;
   page: number;
   limit: number;

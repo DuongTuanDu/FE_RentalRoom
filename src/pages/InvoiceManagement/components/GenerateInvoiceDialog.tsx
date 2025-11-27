@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -17,10 +18,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, FileText, Plus, Trash2 } from "lucide-react";
+import { Loader2, FileText, Plus, Trash2, Building2, Zap, Droplets } from "lucide-react";
 import { RoomCompletedContractSelectCombobox } from "./RoomCompletedContractSelectCombobox";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
 import { useGetRoomsCompletedContractQuery } from "@/services/invoice/invoice.service";
+import { useGetBuildingservicesQuery } from "@/services/building-services/building-services.service";
+import { useGetUtilityReadingsQuery } from "@/services/utility/utility.service";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type {
   IGenerateInvoiceRequest,
   IRoomCompletedContract,
@@ -52,11 +64,10 @@ export const GenerateInvoiceDialog = ({
   const [buildingId, setBuildingId] = useState("");
   const [roomId, setRoomId] = useState("");
   const [contractId, setContractId] = useState("");
-  const [tenantId, setTenantId] = useState("");
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [includeRent, setIncludeRent] = useState(true);
   const [items, setItems] = useState<InvoiceItem[]>([]);
 
   // Generate month options
@@ -70,14 +81,42 @@ export const GenerateInvoiceDialog = ({
       {
         buildingId: buildingId || undefined,
         page: 1,
-        limit: 100,
+        limit: 10,
       },
       {
         skip: !buildingId, // Skip query if no buildingId
       }
     );
 
-  // Find contractId and tenantId when roomId is selected
+  // Get building services
+  const { data: buildingServices, isLoading: isLoadingServices } =
+    useGetBuildingservicesQuery(
+      {
+        buildingId: buildingId || "",
+        includeDeleted: false,
+      },
+      {
+        skip: !buildingId,
+      }
+    );
+
+  // Get utility readings
+  const { data: utilityReadings, isLoading: isLoadingUtilities } =
+    useGetUtilityReadingsQuery(
+      {
+        buildingId: buildingId || undefined,
+        roomId: roomId || undefined,
+        periodMonth: periodMonth || undefined,
+        periodYear: periodYear || undefined,
+        page: 1,
+        limit: 100,
+      },
+      {
+        skip: !buildingId || !roomId || !periodMonth || !periodYear,
+      }
+    );
+
+  // Find contractId when roomId is selected
   useEffect(() => {
     if (roomId && roomsData?.data) {
       const roomContract = roomsData.data.find(
@@ -85,14 +124,11 @@ export const GenerateInvoiceDialog = ({
       );
       if (roomContract) {
         setContractId(roomContract.contractId);
-        setTenantId(roomContract.tenant._id);
       } else {
         setContractId("");
-        setTenantId("");
       }
     } else {
       setContractId("");
-      setTenantId("");
     }
   }, [roomId, roomsData?.data]);
 
@@ -118,8 +154,7 @@ export const GenerateInvoiceDialog = ({
       setBuildingId("");
       setRoomId("");
       setContractId("");
-      setTenantId("");
-      setInvoiceNumber("");
+      setIncludeRent(true);
       setItems([]);
     }
   }, [open]);
@@ -163,29 +198,26 @@ export const GenerateInvoiceDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      !tenantId ||
       !roomId ||
-      !contractId ||
       !periodMonth ||
       !periodYear ||
-      !invoiceNumber ||
-      !dueDate ||
-      items.length === 0
+      !dueDate
     ) {
       return;
     }
 
     onSubmit({
-      tenantId,
       roomId,
-      contractId,
       periodMonth: Number(periodMonth),
       periodYear: Number(periodYear),
-      invoiceNumber,
       dueDate: new Date(dueDate).toISOString(),
-      items: items.map((item) => ({
-        ...item,
-        utilityReadingId: item.utilityReadingId || "",
+      includeRent,
+      extraItems: items.map((item) => ({
+        label: item.label,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        amount: item.amount,
       })),
     });
   };
@@ -307,39 +339,286 @@ export const GenerateInvoiceDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2 grid grid-cols-2 gap-2">
-            {/* Invoice Number */}
-            <div className="space-y-2">
-              <Label>
-                Số hóa đơn <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-                placeholder="VD: INV-2024-001"
-                required
-              />
-            </div>
+          {/* Due Date */}
+          <div className="space-y-2">
+            <Label>
+              Hạn thanh toán <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              required
+            />
+          </div>
 
-            {/* Due Date */}
-            <div className="space-y-2 !mt-0">
-              <Label>
-                Hạn thanh toán <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                required
-              />
-            </div>
+          {/* Building Services Info */}
+          {buildingId && (
+            <Card className="border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  Dịch vụ tòa nhà
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Thông tin các dịch vụ được áp dụng cho tòa nhà
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingServices ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Đang tải...
+                    </span>
+                  </div>
+                ) : buildingServices && buildingServices.length > 0 ? (
+                  <div className="rounded-md border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[40px]">#</TableHead>
+                          <TableHead>Tên dịch vụ</TableHead>
+                          <TableHead>Mô tả</TableHead>
+                          <TableHead>Loại tính phí</TableHead>
+                          <TableHead className="text-right">Giá</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {buildingServices
+                          .filter((service) => !service.isDeleted)
+                          .map((service, index) => (
+                            <TableRow key={service._id}>
+                              <TableCell className="text-muted-foreground">
+                                {index + 1}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {service.label || service.name}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {service.description || "—"}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                                  {service.chargeType === "perRoom"
+                                    ? "Theo phòng"
+                                    : service.chargeType === "perPerson"
+                                    ? "Theo người"
+                                    : service.chargeType === "included"
+                                    ? "Đã bao gồm"
+                                    : "Cố định"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold text-blue-700 dark:text-blue-300">
+                                {service.fee.toLocaleString("vi-VN")} {service.currency}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    Chưa có dịch vụ nào được cấu hình
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Utility Readings Info */}
+          {buildingId && roomId && periodMonth && periodYear && (
+            <Card className="border-green-200 dark:border-green-800">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  Chỉ số điện nước
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Thông tin chỉ số điện nước kỳ {periodMonth}/{periodYear}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingUtilities ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Đang tải...
+                    </span>
+                  </div>
+                ) : utilityReadings && utilityReadings.items.length > 0 ? (
+                  <div className="space-y-3">
+                    {utilityReadings.items.map((reading) => (
+                      <div
+                        key={reading._id}
+                        className="p-3 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Electricity */}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Zap className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-400" />
+                              <span className="text-xs font-medium">Điện</span>
+                            </div>
+                            <div className="text-xs space-y-0.5">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Chỉ số cũ:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.ePreviousIndex.toLocaleString("vi-VN")}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Chỉ số mới:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.eCurrentIndex.toLocaleString("vi-VN")}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Tiêu thụ:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.eConsumption.toLocaleString("vi-VN")} kWh
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Đơn giá:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.eUnitPrice.toLocaleString("vi-VN")} đ/kWh
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-1 border-t border-green-200 dark:border-green-800">
+                                <span className="text-muted-foreground font-medium">
+                                  Thành tiền:
+                                </span>
+                                <span className="font-semibold text-green-700 dark:text-green-300">
+                                  {reading.eAmount.toLocaleString("vi-VN")} đ
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Water */}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Droplets className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                              <span className="text-xs font-medium">Nước</span>
+                            </div>
+                            <div className="text-xs space-y-0.5">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Chỉ số cũ:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.wPreviousIndex.toLocaleString("vi-VN")}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Chỉ số mới:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.wCurrentIndex.toLocaleString("vi-VN")}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Tiêu thụ:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.wConsumption.toLocaleString("vi-VN")} m³
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Đơn giá:
+                                </span>
+                                <span className="font-medium">
+                                  {reading.wUnitPrice.toLocaleString("vi-VN")} đ/m³
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-1 border-t border-green-200 dark:border-green-800">
+                                <span className="text-muted-foreground font-medium">
+                                  Thành tiền:
+                                </span>
+                                <span className="font-semibold text-green-700 dark:text-green-300">
+                                  {reading.wAmount.toLocaleString("vi-VN")} đ
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">
+                              Tổng cộng:
+                            </span>
+                            <span className="text-sm font-bold text-green-700 dark:text-green-300">
+                              {(reading.eAmount + reading.wAmount).toLocaleString(
+                                "vi-VN"
+                              )}{" "}
+                              đ
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-xs text-muted-foreground">
+                              Trạng thái:
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                reading.status === "confirmed"
+                                  ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
+                                  : reading.status === "billed"
+                                  ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                              }`}
+                            >
+                              {reading.status === "confirmed"
+                                ? "Đã xác nhận"
+                                : reading.status === "billed"
+                                ? "Đã xuất hóa đơn"
+                                : "Nháp"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    Chưa có chỉ số điện nước cho kỳ này
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Include Rent */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="includeRent"
+              checked={includeRent}
+              onCheckedChange={(checked) => setIncludeRent(checked === true)}
+            />
+            <Label
+              htmlFor="includeRent"
+              className="text-sm font-normal cursor-pointer"
+            >
+              Bao gồm tiền thuê
+            </Label>
           </div>
 
           {/* Items */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>
-                Khoản mục <span className="text-red-500">*</span>
+                Chi phí phát sinh
               </Label>
               <Button
                 type="button"
@@ -348,7 +627,7 @@ export const GenerateInvoiceDialog = ({
                 onClick={handleAddItem}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Thêm khoản mục
+                Thêm chi phí phát sinh
               </Button>
             </div>
 
@@ -360,7 +639,7 @@ export const GenerateInvoiceDialog = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">
-                      Khoản mục {index + 1}
+                      Phát sinh {index + 1}
                     </span>
                     <Button
                       type="button"
@@ -395,7 +674,7 @@ export const GenerateInvoiceDialog = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Tên khoản mục *</Label>
+                      <Label>Tên chi phí</Label>
                       <Input
                         value={item.label}
                         onChange={(e) =>
@@ -498,14 +777,10 @@ export const GenerateInvoiceDialog = ({
               type="submit"
               disabled={
                 isLoading ||
-                !tenantId ||
                 !roomId ||
-                !contractId ||
                 !periodMonth ||
                 !periodYear ||
-                !invoiceNumber ||
-                !dueDate ||
-                items.length === 0
+                !dueDate
               }
             >
               {isLoading ? (
