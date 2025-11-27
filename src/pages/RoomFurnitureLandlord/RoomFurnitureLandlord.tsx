@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit, Sofa, DoorOpen } from "lucide-react";
 import {
   Table,
@@ -23,6 +23,7 @@ import { BuildingSelectCombobox } from "../FloorManageLandlord/components/Buildi
 import { RoomSelectCombobox } from "./components/RoomSelectCombobox";
 import { ModalRoomFurniture } from "./components/ModalRoomFurniture";
 import { DeleteRoomFurniturePopover } from "./components/DeleteRoomFurniturePopover";
+import { useGetBuildingsQuery } from "@/services/building/building.service";
 import {
   useGetRoomFurnituresQuery,
   useCreateRoomFurnitureMutation,
@@ -58,6 +59,20 @@ const RoomFurnitureLandlord = () => {
 
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
+
+  // Auto-select first building
+  const { data: initialBuildingData } = useGetBuildingsQuery({
+    q: "",
+    page: 1,
+    limit: 1,
+    status: "active",
+  });
+
+  useEffect(() => {
+    if (initialBuildingData?.data?.[0]?._id && !selectedBuildingId) {
+      setSelectedBuildingId(initialBuildingData.data[0]._id);
+    }
+  }, [initialBuildingData, selectedBuildingId]);
 
   // Fetch room furnitures
   const { data: roomFurnituresData, isLoading } = useGetRoomFurnituresQuery(

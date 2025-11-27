@@ -5,13 +5,13 @@ import type {
   IGenerateMonthlyInvoiceRequest,
   InvoiceDetailResponse,
   InvoiceResponse,
-  IPayInvoiceRequest,
   ITenantInvoiceResponse,
   ITenantInvoiceDetailResponse,
   ITenantPayInvoiceRequest,
   IRoomCompletedContractResponse,
   IUpdateInvoiceRequest,
   ISendDraftInvoiceRequest,
+  IInvoicePaymentInfoResponse,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -93,13 +93,12 @@ export const invoiceApi = createApi({
       invalidatesTags: ["Invoice"],
     }),
     payInvoice: builder.mutation<
-      InvoiceResponse,
-      { id: string; data: IPayInvoiceRequest }
+      IInvoicePaymentInfoResponse,
+      string
     >({ // Đánh dáu hóa đơn đã thanh toán
-      query: ({ id, data }) => ({
+      query: (id) => ({
         url: `/landlords/invoices/${id}/pay`,
         method: "POST",
-        data,
       }),
       invalidatesTags: ["Invoice"],
     }),
@@ -182,7 +181,7 @@ export const invoiceApi = createApi({
         method: "GET",
       }),
     }),
-    payTenantInvoice: builder.mutation<ITenantInvoiceResponse, { id: string; data: ITenantPayInvoiceRequest }>({
+    payTenantInvoice: builder.mutation<IInvoicePaymentInfoResponse, { id: string; data: ITenantPayInvoiceRequest }>({
       query: ({ id, data }) => ({
         url: `/invoices/${id}/pay`,
         method: "POST",

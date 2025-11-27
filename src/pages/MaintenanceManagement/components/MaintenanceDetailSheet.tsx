@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Image as ImageIcon,
   Clock,
-  DollarSign,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useGetMaintenanceDetailsQuery } from "@/services/maintenance/maintenance.service";
@@ -34,19 +33,6 @@ const STATUS_LABELS = {
   rejected: "Đã từ chối",
 };
 
-const PRIORITY_COLORS = {
-  low: "bg-gray-100 text-gray-800",
-  medium: "bg-blue-100 text-blue-800",
-  high: "bg-orange-100 text-orange-800",
-  urgent: "bg-red-100 text-red-800",
-};
-
-const PRIORITY_LABELS = {
-  low: "Thấp",
-  medium: "Trung bình",
-  high: "Cao",
-  urgent: "Khẩn cấp",
-};
 
 interface MaintenanceDetailSheetProps {
   open: boolean;
@@ -128,19 +114,6 @@ export const MaintenanceDetailSheet = ({
                       ]
                     }
                   </Badge>
-                  <Badge
-                    className={
-                      PRIORITY_COLORS[
-                        maintenance.priority as keyof typeof PRIORITY_COLORS
-                      ]
-                    }
-                  >
-                    {
-                      PRIORITY_LABELS[
-                        maintenance.priority as keyof typeof PRIORITY_LABELS
-                      ]
-                    }
-                  </Badge>
                 </SheetDescription>
               </div>
             </div>
@@ -195,14 +168,9 @@ export const MaintenanceDetailSheet = ({
                 <label className="text-sm text-slate-600 dark:text-slate-400">
                   Tòa nhà
                 </label>
-                <div>
-                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {maintenance.buildingId.name || "—"}
-                  </p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    {maintenance.buildingId.address || "—"}
-                  </p>
-                </div>
+                <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                  {maintenance.buildingId.name || "—"}
+                </p>
               </div>
               <Separator />
               <div>
@@ -210,9 +178,7 @@ export const MaintenanceDetailSheet = ({
                   Phòng
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {typeof maintenance.roomId === "object" && maintenance.roomId
-                    ? maintenance.roomId.roomNumber
-                    : "—"}
+                  {maintenance.roomId.roomNumber || "—"}
                 </p>
               </div>
               <Separator />
@@ -221,10 +187,16 @@ export const MaintenanceDetailSheet = ({
                   Nội thất
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {typeof maintenance.furnitureId === "object" &&
-                  maintenance.furnitureId
-                    ? maintenance.furnitureId.name
-                    : "—"}
+                  {maintenance.furnitureId?.name || "—"}
+                </p>
+              </div>
+              <Separator />
+              <div>
+                <label className="text-sm text-slate-600 dark:text-slate-400">
+                  Chi phí sửa chữa
+                </label>
+                <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                  {maintenance.repairCost ? `${maintenance.repairCost.toLocaleString("vi-VN")} VNĐ` : "—"}
                 </p>
               </div>
               <Separator />
@@ -233,10 +205,7 @@ export const MaintenanceDetailSheet = ({
                   Người báo cáo
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {typeof maintenance.reporterAccountId === "object" &&
-                  maintenance.reporterAccountId
-                    ? maintenance.reporterAccountId.email
-                    : "—"}
+                  {maintenance.reporterAccountId.email || "—"}
                 </p>
               </div>
               {/* {maintenance.assigneeAccountId && (
@@ -255,57 +224,6 @@ export const MaintenanceDetailSheet = ({
             </div>
           </div>
 
-          {/* Thông tin xử lý */}
-          {(maintenance.scheduledAt ||
-            maintenance.estimatedCost !== undefined ||
-            maintenance.actualCost !== undefined) && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                <DollarSign className="w-4 h-4" />
-                Thông tin xử lý
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
-                {maintenance.scheduledAt && (
-                  <>
-                    <div>
-                      <label className="text-sm text-slate-600 dark:text-slate-400">
-                        Lịch hẹn
-                      </label>
-                      <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                        {formatDate(maintenance.scheduledAt)}
-                      </p>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-                {maintenance.estimatedCost !== undefined && (
-                  <>
-                    <div>
-                      <label className="text-sm text-slate-600 dark:text-slate-400">
-                        Chi phí dự kiến
-                      </label>
-                      <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                        {maintenance.estimatedCost.toLocaleString("vi-VN")} VNĐ
-                      </p>
-                    </div>
-                    {(maintenance.actualCost !== undefined && maintenance.actualCost > 0) && (
-                      <Separator />
-                    )}
-                  </>
-                )}
-                {maintenance.actualCost !== undefined && maintenance.actualCost > 0 && (
-                  <div>
-                    <label className="text-sm text-slate-600 dark:text-slate-400">
-                      Chi phí thực tế
-                    </label>
-                    <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                      {maintenance.actualCost.toLocaleString("vi-VN")} VNĐ
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Hình ảnh */}
           {maintenance.photos && maintenance.photos.length > 0 && (
@@ -320,14 +238,9 @@ export const MaintenanceDetailSheet = ({
                     <div key={photo._id} className="space-y-2">
                       <img
                         src={photo.url}
-                        alt={photo.note || `Hình ${index + 1}`}
+                        alt={`Hình ${index + 1}`}
                         className="w-full h-48 object-cover rounded-lg"
                       />
-                      {photo.note && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {photo.note}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -399,15 +312,6 @@ export const MaintenanceDetailSheet = ({
                 </label>
                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {formatDate(maintenance.createdAt)}
-                </p>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Cập nhật lần cuối
-                </label>
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {formatDate(maintenance.updatedAt)}
                 </p>
               </div>
             </div>

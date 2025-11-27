@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Building2 } from "lucide-react";
 import {
   Table,
@@ -66,6 +66,20 @@ const BuildingFurnitureLandlord = () => {
     useApplyBuildingFurnitureToRoomsMutation();
 
   const formatDate = useFormatDate();
+
+  // Auto-select first building
+  const { data: initialBuildingData } = useGetBuildingsQuery({
+    q: "",
+    page: 1,
+    limit: 1,
+    status: "active",
+  });
+
+  useEffect(() => {
+    if (initialBuildingData?.data?.[0]?._id && !selectedBuildingId) {
+      setSelectedBuildingId(initialBuildingData.data[0]._id);
+    }
+  }, [initialBuildingData, selectedBuildingId]);
 
   // Queries & Mutations
   const { data: buildingsData } = useGetBuildingsQuery({ page: 1, limit: 100 , status: "active"});
@@ -251,11 +265,7 @@ const BuildingFurnitureLandlord = () => {
                         }).unwrap();
 
                         if (res?.success) {
-                          toast.success(
-                            `Áp dụng thành công: modified=${
-                              res.modified ?? 0
-                            }, upserted=${res.upserted ?? 0}`
-                          );
+                          toast.success("Áp dụng thành công");
                         } else if (res?.message) {
                           toast.warning(res.message);
                         } else {

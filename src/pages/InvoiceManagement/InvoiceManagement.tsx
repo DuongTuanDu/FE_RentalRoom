@@ -62,10 +62,11 @@ import type {
   IGenerateInvoiceRequest,
   IUpdateInvoiceRequest,
   ISendDraftInvoiceRequest,
+  IInvoicePaymentInfoResponse,
 } from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
-import { PayInvoiceDialog } from "./components/PayInvoiceDialog";
+import { PayInvoiceDialog, PaymentInfoDialog } from "./components/PayInvoiceDialog";
 import { GenerateMonthlyInvoiceDialog } from "./components/GenerateMonthlyInvoiceDialog";
 import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialog";
@@ -96,6 +97,7 @@ const InvoiceManagement = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<IInvoicePaymentInfoResponse | null>(null);
   const [isGenerateMonthlyDialogOpen, setIsGenerateMonthlyDialogOpen] =
     useState(false);
   const [isGenerateInvoiceDialogOpen, setIsGenerateInvoiceDialogOpen] =
@@ -217,23 +219,25 @@ const InvoiceManagement = () => {
     setIsPayDialogOpen(true);
   };
 
-  const handlePayInvoice = async (data: {
-    paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
-    paidAt: string;
-    note: string;
-  }) => {
+  const handlePayInvoice = async () => {
     if (!payingInvoiceId) return;
 
     try {
-      await payInvoice({
-        id: payingInvoiceId,
-        data,
-      }).unwrap();
-      toast.success("Đánh dấu thanh toán thành công!");
-      setIsPayDialogOpen(false);
-      setPayingInvoiceId(null);
+      const response = await payInvoice(payingInvoiceId).unwrap();
+      
+      // Check if response has payment info
+      if (response && response.bankInfo) {
+        setPaymentInfo(response);
+        // Keep dialog open to show payment info
+      } else {
+        toast.success("Đánh dấu thanh toán thành công!");
+        setIsPayDialogOpen(false);
+        setPayingInvoiceId(null);
+        setPaymentInfo(null);
+      }
     } catch (error: any) {
       toast.error(error?.message?.message || "Đánh dấu thanh toán thất bại!");
+      setPaymentInfo(null);
     }
   };
 
@@ -645,6 +649,7 @@ const InvoiceManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
+                                {invoice.status === "sent" && (
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -664,6 +669,7 @@ const InvoiceManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
+                                )}
                                 {invoice.status === "draft" && (
                                   <Popover
                                     open={
@@ -832,15 +838,34 @@ const InvoiceManagement = () => {
 
       {/* Pay Invoice Dialog */}
       <PayInvoiceDialog
-        open={isPayDialogOpen}
+        open={isPayDialogOpen && !paymentInfo}
         onOpenChange={(open) => {
           setIsPayDialogOpen(open);
-          if (!open) setPayingInvoiceId(null);
+          if (!open) {
+            setPayingInvoiceId(null);
+            setPaymentInfo(null);
+          }
         }}
         invoiceId={payingInvoiceId}
         onPay={handlePayInvoice}
         isLoading={isPaying}
+        paymentInfo={paymentInfo}
       />
+      
+      {/* Payment Info Dialog - Show when paymentInfo is available */}
+      {paymentInfo && (
+        <PaymentInfoDialog
+          open={!!paymentInfo}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPaymentInfo(null);
+              setPayingInvoiceId(null);
+              setIsPayDialogOpen(false);
+            }
+          }}
+          paymentInfo={paymentInfo}
+        />
+      )}
 
       {/* Generate Monthly Invoice Dialog */}
       <GenerateMonthlyInvoiceDialog

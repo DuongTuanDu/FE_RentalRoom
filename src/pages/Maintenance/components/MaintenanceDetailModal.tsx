@@ -2,6 +2,27 @@ import {
   useGetMaintenanceTenantDetailsQuery,
   useCreateCommentTenantMutation,
 } from "@/services/maintenance/maintenance.service";
+import type { ICategory } from "@/types/maintenance";
+
+const getCategoryLabel = (category: ICategory): string => {
+  const labels: Record<ICategory, string> = {
+    furniture: "Đồ nội thất",
+    electrical: "Điện, ổ cắm, đèn",
+    plumbing: "Nước, vòi, bồn rửa, toilet",
+    air_conditioning: "Điều hòa",
+    door_lock: "Khóa cửa, chìa khóa",
+    wall_ceiling: "Tường, trần nhà, sơn, nứt",
+    flooring: "Sàn gỗ, gạch",
+    windows: "Cửa sổ, kính",
+    appliances: "Tủ lạnh, máy giặt, lò vi sóng...",
+    internet_wifi: "Mạng internet",
+    pest_control: "Diệt côn trùng",
+    cleaning: "Vệ sinh",
+    safety: "Bình chữa cháy, báo khói",
+    other: "Khác",
+  };
+  return labels[category] || category;
+};
 import { useFormatDate } from "@/hooks/useFormatDate";
 import {
   Sheet,
@@ -218,10 +239,18 @@ export const MaintenanceDetailModal = ({
           {/* Header Info */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              {maintenance.furnitureId && (
+                <div className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Đồ đạc:</span>
+                  <span className="font-medium">{maintenance.furnitureId.name}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
-                <Wrench className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Đồ đạc:</span>
-                <span className="font-medium">{maintenance.furnitureId.name}</span>
+                <span className="text-muted-foreground">Danh mục:</span>
+                <span className="font-medium">
+                  {getCategoryLabel(maintenance.category)}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Số lượng:</span>
@@ -233,6 +262,14 @@ export const MaintenanceDetailModal = ({
                   <span className="text-muted-foreground">Người xử lý:</span>
                   <span className="font-medium">
                     {maintenance.assigneeAccountId.userInfo?.fullName || "Chưa phân công"}
+                  </span>
+                </div>
+              )}
+              {(maintenance as any).repairCost !== null && (maintenance as any).repairCost !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Chi phí sửa chữa:</span>
+                  <span className="font-medium">
+                    {Number((maintenance as any).repairCost).toLocaleString("vi-VN")} VNĐ
                   </span>
                 </div>
               )}

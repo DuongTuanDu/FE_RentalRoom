@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Plus,
   Edit,
-  Trash2,
   Eye,
   Search,
   DoorOpen,
@@ -35,6 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
@@ -43,7 +49,7 @@ import {
   useGetRoomsQuery,
   useCreateRoomMutation,
   useUpdateRoomMutation,
-  useDeleteRoomMutation,
+  useActiveRoomMutation,
   useAddRoomImagesMutation,
 } from "@/services/room/room.service";
 import { useGetFloorsQuery } from "@/services/floor/floor.service";
@@ -51,7 +57,6 @@ import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from "./const/data";
 import { Spinner } from "@/components/ui/spinner";
 import { ModalRoom } from "./components/ModalRoom";
 import { ModalQuickRoom } from "./components/ModalQuickRoom";
-import { DeleteRoomPopover } from "./components/DeleteRoomPopover";
 import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
 import type { IRoom } from "@/types/room";
@@ -69,10 +74,6 @@ const RoomManageLandlord = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
-
-  // Delete dialog states
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingRoom, setDeletingRoom] = useState<IRoom | null>(null);
 
   // Room detail drawer states
   const [isRoomDetailOpen, setIsRoomDetailOpen] = useState(false);
@@ -142,7 +143,7 @@ const RoomManageLandlord = () => {
   // Mutations
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
-  const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
+  const [activeRoom, { isLoading: isActivating }] = useActiveRoomMutation();
   const [addRoomImages, { isLoading: isUploadingImages }] =
     useAddRoomImagesMutation();
 
@@ -165,9 +166,18 @@ const RoomManageLandlord = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteDialog = (room: IRoom) => {
-    setDeletingRoom(room);
-    setIsDeleteDialogOpen(true);
+  const handleToggleActive = async (room: IRoom) => {
+    try {
+      const currentActive = (room as any).active ?? true;
+      const newActive = !currentActive;
+      await activeRoom({ id: room._id, active: newActive }).unwrap();
+      toast.success(
+        `Phòng đã được ${newActive ? "kích hoạt" : "ngừng hoạt động"}!`
+      );
+    } catch (error: any) {
+      toast.error("Cập nhật trạng thái hoạt động thất bại!");
+      console.error(error);
+    }
   };
 
   const handleOpenRoomDetail = (room: IRoom) => {
@@ -236,20 +246,6 @@ const RoomManageLandlord = () => {
       toast.error(
         editingRoom ? "Cập nhật phòng thất bại!" : "Thêm phòng mới thất bại!"
       );
-      console.error(error);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deletingRoom) return;
-
-    try {
-      await deleteRoom(deletingRoom._id).unwrap();
-      toast.success("Xóa phòng thành công!");
-      setIsDeleteDialogOpen(false);
-      setDeletingRoom(null);
-    } catch (error: any) {
-      toast.error("Xóa phòng thất bại!");
       console.error(error);
     }
   };
@@ -495,15 +491,30 @@ const RoomManageLandlord = () => {
                               </Button>
                             </Permission>
                             <Permission permission="room:delete">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleOpenDeleteDialog(room)}
-                                title="Xóa phòng"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                              </Button>
+                              <div className="flex items-center">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center">
+                                        <Switch
+                                          checked={(room as any).active ?? true}
+                                          onCheckedChange={() =>
+                                            handleToggleActive(room)
+                                          }
+                                          disabled={isActivating}
+                                        />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>
+                                        {(room as any).active
+                                          ? "Click để ngừng hoạt động phòng"
+                                          : "Click để kích hoạt phòng"}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
                             </Permission>
                           </div>
                         </TableCell>
@@ -614,20 +625,6 @@ const RoomManageLandlord = () => {
         onSubmit={handleSubmitRoom}
         isLoading={isCreating || isUpdating || isUploadingImages}
         defaultBuildingId={selectedBuildingId}
-      />
-
-      {/* Delete Room Popover */}
-      <DeleteRoomPopover
-        open={isDeleteDialogOpen}
-        onOpenChange={(open) => {
-          setIsDeleteDialogOpen(open);
-          if (!open) {
-            setDeletingRoom(null);
-          }
-        }}
-        room={deletingRoom}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
       />
 
       {/* Room Detail Drawer */}

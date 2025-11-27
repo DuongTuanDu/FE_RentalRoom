@@ -136,7 +136,9 @@ const PostManageLandlord = () => {
         toast.success("Cập nhật bài đăng thành công");
       } else {
         await createPost(formData).unwrap();
-        toast.success("Tạo bài đăng thành công");
+        toast.success("Tạo bài đăng thành công",
+          {description: "Hãy thiết lập lịch xem phòng"}
+        );
       }
       setIsModalOpen(false);
       setEditingPost(null);

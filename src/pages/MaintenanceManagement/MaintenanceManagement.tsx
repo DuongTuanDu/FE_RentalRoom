@@ -49,19 +49,6 @@ const STATUS_LABELS = {
   rejected: "Đã từ chối",
 };
 
-const PRIORITY_COLORS = {
-  low: "bg-gray-100 text-gray-800",
-  medium: "bg-blue-100 text-blue-800",
-  high: "bg-orange-100 text-orange-800",
-  urgent: "bg-red-100 text-red-800",
-};
-
-const PRIORITY_LABELS = {
-  low: "Thấp",
-  medium: "Trung bình",
-  high: "Cao",
-  urgent: "Khẩn cấp",
-};
 
 const MaintenanceManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +56,6 @@ const MaintenanceManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [buildingFilter, setBuildingFilter] = useState<string>("");
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [viewingMaintenance, setViewingMaintenance] = useState<IMaintenanceItem | null>(null);
@@ -100,7 +86,6 @@ const MaintenanceManagement = () => {
   const { data, error, isLoading, isFetching } = useGetMaintenancesQuery({
     q: debouncedSearch || undefined,
     status: statusFilter !== "all" ? (statusFilter as any) : undefined,
-    priority: priorityFilter !== "all" ? (priorityFilter as any) : undefined,
     buildingId: buildingFilter || undefined,
     page: currentPage,
     limit: pageLimit,
@@ -187,27 +172,6 @@ const MaintenanceManagement = () => {
               </div>
               <div>
                 <Select
-                  value={priorityFilter}
-                  onValueChange={(value) => {
-                    setPriorityFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  disabled={isFetching}
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
-                    <SelectItem value="low">Thấp</SelectItem>
-                    <SelectItem value="medium">Trung bình</SelectItem>
-                    <SelectItem value="high">Cao</SelectItem>
-                    <SelectItem value="urgent">Khẩn cấp</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select
                   value={pageLimit.toString()}
                   onValueChange={(value) => {
                     setPageLimit(Number(value));
@@ -284,11 +248,11 @@ const MaintenanceManagement = () => {
                     <TableHeader>
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tiêu đề</TableHead>
-                        <TableHead className="font-semibold">Tòa nhà</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">Nội thất</TableHead>
                         <TableHead className="font-semibold">Người báo</TableHead>
-                        <TableHead className="font-semibold">Độ ưu tiên</TableHead>
+                        <TableHead className="font-semibold">Người được giao</TableHead>
+                        <TableHead className="font-semibold">Chi phí sửa chữa</TableHead>
+                        <TableHead className="font-semibold">Phải trả</TableHead>
                         <TableHead className="font-semibold">Trạng thái</TableHead>
                         <TableHead className="font-semibold">Ngày tạo</TableHead>
                         <TableHead className="text-center font-semibold">
@@ -308,34 +272,22 @@ const MaintenanceManagement = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {maintenance.buildingId?.name || '—'}
+                            {maintenance.roomNumber || '—'}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {typeof maintenance.roomId === 'object' && maintenance.roomId
-                              ? maintenance.roomId.roomNumber
-                              : '—'}
+                            {maintenance.reportedBy || '—'}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {typeof maintenance.furnitureId === 'object' && maintenance.furnitureId
-                              ? maintenance.furnitureId.name
-                              : '—'}
+                            {maintenance.assignee?.name || '—'}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {typeof maintenance.reporterAccountId === 'object' && maintenance.reporterAccountId
-                              ? maintenance.reporterAccountId.email
-                              : '—'}
+                            {maintenance.repairCost ? `${maintenance.repairCost.toLocaleString("vi-VN")} VNĐ` : '—'}
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={
-                                PRIORITY_COLORS[
-                                  maintenance.priority as keyof typeof PRIORITY_COLORS
-                                ] || "bg-gray-100 text-gray-800"
-                              }
+                              className={maintenance.mustPay ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}
                             >
-                              {PRIORITY_LABELS[
-                                maintenance.priority as keyof typeof PRIORITY_LABELS
-                              ] || maintenance.priority}
+                              {maintenance.mustPay ? "Có" : "Không"}
                             </Badge>
                           </TableCell>
                           <TableCell>

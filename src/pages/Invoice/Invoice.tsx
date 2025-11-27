@@ -41,9 +41,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
-import type { ITenantInvoiceItem } from "@/types/invoice";
+import type { ITenantInvoiceItem, IInvoicePaymentInfoResponse } from "@/types/invoice";
 import { TenantInvoiceDetailSheet } from "./components/TenantInvoiceDetailSheet";
-import { TenantPayInvoiceDialog } from "./components/TenantPayInvoiceDialog";
+import { TenantPayInvoiceDialog, PaymentInfoDialog } from "./components/TenantPayInvoiceDialog";
 import {
   Tooltip,
   TooltipContent,
@@ -73,6 +73,7 @@ const Invoice = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<IInvoicePaymentInfoResponse | null>(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -139,7 +140,7 @@ const Invoice = () => {
         icon: FileText,
       },
       sent: {
-        label: "Đã gửi",
+        label: "Chủ trọ đã gửi",
         className: "bg-blue-100 text-blue-800 border-blue-200",
         icon: CheckCircle,
       },
@@ -187,17 +188,26 @@ const Invoice = () => {
     if (!payingInvoiceId) return;
 
     try {
-      await payInvoice({
+      const response = await payInvoice({
         id: payingInvoiceId,
         data,
       }).unwrap();
-      toast.success("Báo đã thanh toán hóa đơn thành công!");
-      setIsPayDialogOpen(false);
-      setPayingInvoiceId(null);
+      
+      // Check if response has payment info (for bank_transfer or online_gateway)
+      if (response && response.bankInfo && (data.paymentMethod === "bank_transfer" || data.paymentMethod === "online_gateway")) {
+        setPaymentInfo(response);
+        // Keep dialog open to show payment info
+      } else {
+        toast.success("Báo đã thanh toán hóa đơn thành công!");
+        setIsPayDialogOpen(false);
+        setPayingInvoiceId(null);
+        setPaymentInfo(null);
+      }
     } catch (error: any) {
       toast.error(
         error?.message?.message || "Báo đã thanh toán hóa đơn thất bại!"
       );
+      setPaymentInfo(null);
     }
   };
 
@@ -663,15 +673,34 @@ const Invoice = () => {
 
         {/* Pay Invoice Dialog */}
         <TenantPayInvoiceDialog
-          open={isPayDialogOpen}
+          open={isPayDialogOpen && !paymentInfo}
           onOpenChange={(open) => {
             setIsPayDialogOpen(open);
-            if (!open) setPayingInvoiceId(null);
+            if (!open) {
+              setPayingInvoiceId(null);
+              setPaymentInfo(null);
+            }
           }}
           invoiceId={payingInvoiceId}
           onPay={handlePayInvoice}
           isLoading={isPaying}
+          paymentInfo={paymentInfo}
         />
+        
+        {/* Payment Info Dialog - Show when paymentInfo is available */}
+        {paymentInfo && (
+          <PaymentInfoDialog
+            open={!!paymentInfo}
+            onOpenChange={(open) => {
+              if (!open) {
+                setPaymentInfo(null);
+                setPayingInvoiceId(null);
+                setIsPayDialogOpen(false);
+              }
+            }}
+            paymentInfo={paymentInfo}
+          />
+        )}
       </div>
     </div>
   );

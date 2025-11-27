@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Filter, Edit, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
+import { useGetBuildingsQuery } from "@/services/building/building.service";
 import {
   useGetBuildingservicesQuery,
   useCreateBuildingservicesMutation,
@@ -40,6 +41,20 @@ const BuildingServiceManageLandlord = () => {
   const [selectedService, setSelectedService] =
     useState<IBuildingService | null>(null);
   const [isEdit, setIsEdit] = useState(false);
+
+  // Auto-select first building
+  const { data: initialBuildingData } = useGetBuildingsQuery({
+    q: "",
+    page: 1,
+    limit: 1,
+    status: "active",
+  });
+
+  useEffect(() => {
+    if (initialBuildingData?.data?.[0]?._id && !selectedBuildingId) {
+      setSelectedBuildingId(initialBuildingData.data[0]._id);
+    }
+  }, [initialBuildingData, selectedBuildingId]);
 
   // API hooks
   const { data: services, isLoading } = useGetBuildingservicesQuery(

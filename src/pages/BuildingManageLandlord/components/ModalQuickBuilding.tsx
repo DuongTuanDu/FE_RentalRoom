@@ -9,6 +9,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -274,7 +275,6 @@ const ModalQuickBuilding = ({
                 <CardTitle className="text-lg">Cấu hình tầng</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control as any}
                     name="floors.count"
@@ -298,20 +298,22 @@ const ModalQuickBuilding = ({
                     name="floors.startLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tầng bắt đầu *</FormLabel>
+                        <FormLabel>Tầng bắt đầu (chữ số đầu) *</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min="0"
-                            placeholder="Tầng bắt đầu"
+                            placeholder="VD: 1 (cho phòng 121, 122...)"
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription>
+                          Chữ số đầu tiên trong số phòng. Ví dụ: phòng 121 thì nhập 1, phòng 201 thì nhập 2
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
                 <FormField
                   control={form.control as any}
                   name="floors.description"
@@ -337,7 +339,6 @@ const ModalQuickBuilding = ({
                 <CardTitle className="text-lg">Cấu hình phòng</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control as any}
                     name="rooms.perFloor"
@@ -361,20 +362,24 @@ const ModalQuickBuilding = ({
                     name="rooms.seqStart"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Số thứ tự bắt đầu *</FormLabel>
+                        <FormLabel>Số thứ tự bắt đầu (chữ số giữa) *</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            min="1"
-                            placeholder="Số thứ tự bắt đầu"
+                            min="0"
+                            placeholder="VD: 2 (cho phòng 121, 122...)"
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription>
+                          Chữ số thứ 2 trong số phòng. Ví dụ: phòng 121 thì nhập
+                          2, phòng 201 thì nhập 0. Số cuối sẽ tự tăng (1, 2,
+                          3...)
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
                 <Separator />
 

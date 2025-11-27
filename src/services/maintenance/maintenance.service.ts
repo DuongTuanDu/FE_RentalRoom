@@ -1,7 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { ICommentMaintenanceRequest, IMaintenanceRequest, IMaintenanceResponse, IMaintenanceDetailResponse, IMaintenanceTenantResponse, IMaintenanceTenantDetailsResponse, IMaintenanceCreateRequest } from "@/types/maintenance";
-
+import type { ICommentMaintenanceRequest, IMaintenanceRequest, IMaintenanceResponse, IMaintenanceDetailResponse, IMaintenanceTenantResponse, IMaintenanceTenantDetailsResponse, IMaintenanceCreateRequest, ICategory } from "@/types/maintenance";
 
 export const maintenanceApi = createApi({
   reducerPath: "maintenanceApi",
@@ -9,7 +8,7 @@ export const maintenanceApi = createApi({
     const { url, method, data, params } = args;
     return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["Maintenance"],
+  tagTypes: ["Maintenance", "MaintenanceDetail"],
   endpoints: (builder) => ({
     getMaintenances: builder.query<
       IMaintenanceResponse,
@@ -36,9 +35,9 @@ export const maintenanceApi = createApi({
         url: `/landlords/maintenance/${id}`,
         method: "GET",
       }),
-      providesTags: ["Maintenance"],
+      providesTags: ["MaintenanceDetail"],
     }),
-    updateMaintenance: builder.mutation<any, { id: string; data: IMaintenanceRequest }>({
+    updateMaintenance: builder.mutation<IMaintenanceResponse, { id: string; data: IMaintenanceRequest }>({
       query: ({ id, data }) => ({
         url: `/landlords/maintenance/${id}`,
         method: "PATCH",
@@ -52,24 +51,24 @@ export const maintenanceApi = createApi({
         method: "POST",
         data,
       }),
-      invalidatesTags: ["Maintenance"],
+      invalidatesTags: ["Maintenance", "MaintenanceDetail"],
     }),
 
     // Tenant
     getTenantMaintenances: builder.query<IMaintenanceTenantResponse, {
       status?: "open" | "in_progress" | "resolved" | "rejected";
-      priority?: "low" | "medium" | "high" | "urgent";
+      category?: ICategory;
       page: number;
       limit: number;
     }>({
-      query: ({ status, priority, page, limit }) => ({
+      query: ({ status, category, page, limit }) => ({
         url: "/maintenance/my-room",
         method: "GET",
-        params: { status, priority, page, limit },
+        params: { status, category, page, limit },
       }),
       providesTags: ["Maintenance"],
     }),
-    createMaintenance: builder.mutation<IMaintenanceTenantResponse, IMaintenanceCreateRequest>({
+    createMaintenance: builder.mutation<IMaintenanceTenantResponse, IMaintenanceCreateRequest | FormData>({
       query: (data) => ({
         url: "/maintenance",
         method: "POST",

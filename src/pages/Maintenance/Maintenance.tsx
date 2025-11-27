@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGetTenantMaintenancesQuery } from "@/services/maintenance/maintenance.service";
-import type { IMaintenanceTenant } from "@/types/maintenance";
+import type { IMaintenanceRequestItem } from "@/types/maintenance";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -35,27 +35,22 @@ const Maintenance = () => {
   const [statusFilter, setStatusFilter] = useState<
     "open" | "in_progress" | "resolved" | "rejected" | "all"
   >("all");
-  const [priorityFilter, setPriorityFilter] = useState<
-    "low" | "medium" | "high" | "urgent" | "all"
-  >("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit] = useState(9);
 
   const { data, isLoading, error, isFetching } = useGetTenantMaintenancesQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
-    priority: priorityFilter !== "all" ? priorityFilter : undefined,
     page: currentPage,
     limit: pageLimit,
   });
-  console.log("data", data);
-  const allMaintenances = data?.data || [];
+  const allMaintenances = data?.requests || [];
   const totalItems = data?.total || 0;
-  
+
   // Reset to page 1 and clear list when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, priorityFilter, searchQuery]);
+  }, [statusFilter, searchQuery]);
 
   const getStatusBadge = (status: string) => {
     const variants: Record<
@@ -90,36 +85,13 @@ const Maintenance = () => {
     );
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const colors: Record<string, string> = {
-      low: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-      medium:
-        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-      high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-      urgent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    };
-
-    const labels: Record<string, string> = {
-      low: "Thấp",
-      medium: "Trung bình",
-      high: "Cao",
-      urgent: "Khẩn cấp",
-    };
-
-    return (
-      <Badge className={colors[priority] || "bg-gray-100 text-gray-700"}>
-        {labels[priority] || priority}
-      </Badge>
-    );
-  };
-
   // Filter by search query (client-side since API doesn't support search)
   const filteredMaintenances = allMaintenances.filter((item) => {
     if (searchQuery === "") return true;
     const query = searchQuery.toLowerCase();
     return (
       item.title.toLowerCase().includes(query) ||
-      item.furnitureId.name.toLowerCase().includes(query)
+      (item.itemName && item.itemName.toLowerCase().includes(query))
     );
   });
 
@@ -217,21 +189,6 @@ const Maintenance = () => {
                   <SelectItem value="rejected">Từ chối</SelectItem>
                 </SelectContent>
               </Select>
-              <Select
-                value={priorityFilter}
-                onValueChange={(value: any) => setPriorityFilter(value)}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Độ ưu tiên" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
-                  <SelectItem value="low">Thấp</SelectItem>
-                  <SelectItem value="medium">Trung bình</SelectItem>
-                  <SelectItem value="high">Cao</SelectItem>
-                  <SelectItem value="urgent">Khẩn cấp</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
@@ -258,93 +215,91 @@ const Maintenance = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredMaintenances.map((maintenance: IMaintenanceTenant) => (
-              <Card
-                key={maintenance._id}
-                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col py-0"
-                onClick={() => setSelectedMaintenance(maintenance._id)}
-              >
-                <CardContent className="p-5 flex flex-col h-full">
-                  {/* Image */}
-                  {maintenance.photos && maintenance.photos.length > 0 && (
-                    <div className="relative w-full h-40 rounded-lg overflow-hidden mb-4 bg-muted">
-                      <img
-                        src={maintenance.photos[0].url}
-                        alt={maintenance.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
+            {filteredMaintenances.map(
+              (maintenance: IMaintenanceRequestItem) => (
+                <Card
+                  key={maintenance._id}
+                  className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col py-0"
+                  onClick={() => setSelectedMaintenance(maintenance._id)}
+                >
+                  <CardContent className="p-5 flex flex-col h-full">
+                    {/* Header with badges */}
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <h3 className="text-base font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                          {maintenance.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {getStatusBadge(maintenance.status)}
+                        </div>
+                      </div>
 
-                  {/* Header with badges */}
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <h3 className="text-base font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
-                        {maintenance.title}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        {getStatusBadge(maintenance.status)}
-                        {getPriorityBadge(maintenance.priority)}
-                      </div>
-                    </div>
-
-                    {/* Info Grid */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Wrench className="h-3.5 w-3.5 shrink-0" />
-                        <span
-                          className="truncate"
-                          title={maintenance.furnitureId.name}
-                        >
-                          {maintenance.furnitureId.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <span className="text-xs">Số lượng:</span>
-                        <span className="font-medium">
-                          {maintenance.affectedQuantity}
-                        </span>
-                      </div>
-                      {maintenance.assigneeName && (
+                      {/* Info Grid */}
+                      <div className="space-y-2 text-sm">
+                        {maintenance.itemName && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Wrench className="h-3.5 w-3.5 shrink-0" />
+                            <span
+                              className="truncate"
+                              title={maintenance.itemName}
+                            >
+                              {maintenance.itemName}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <User className="h-3.5 w-3.5 shrink-0" />
-                          <span
-                            className="truncate"
-                            title={maintenance.assigneeName}
-                          >
-                            {maintenance.assigneeName}
+                          <span className="text-xs">Phòng:</span>
+                          <span className="font-medium">
+                            {maintenance.roomNumber}
                           </span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 shrink-0" />
-                        <span className="text-xs">
-                          {new Date(maintenance.createdAt).toLocaleDateString(
-                            "vi-VN"
-                          )}
-                        </span>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <span className="text-xs">Số lượng:</span>
+                          <span className="font-medium">
+                            {maintenance.affectedQuantity}
+                          </span>
+                        </div>
+                        {maintenance.assignee && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <User className="h-3.5 w-3.5 shrink-0" />
+                            <span
+                              className="truncate"
+                              title={maintenance.assignee}
+                            >
+                              {maintenance.assignee}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5 shrink-0" />
+                          <span className="text-xs">
+                            {new Date(maintenance.createdAt).toLocaleDateString(
+                              "vi-VN"
+                            )}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Action Button */}
-                  <div className="mt-4 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedMaintenance(maintenance._id);
-                      }}
-                      className="w-full gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Xem chi tiết
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    {/* Action Button */}
+                    <div className="mt-4 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMaintenance(maintenance._id);
+                        }}
+                        className="w-full gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Xem chi tiết
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            )}
           </div>
         )}
 
