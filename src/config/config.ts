@@ -12,6 +12,7 @@ export default {
   contactRequestPath: '/contact-requests',
   maintenancePath: '/maintenance',
   myInvoicePath: '/my-invoices',
+  settingPath: '/settings',
   myRoomPath: '/my-rooms',
   contractPath: '/contracts',
   roleAdmin: "admin",

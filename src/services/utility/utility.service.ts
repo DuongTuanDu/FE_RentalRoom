@@ -56,7 +56,6 @@ export const utilityApi = createApi({
       {
         buildingId?: string;
         roomId?: string;
-        type?: "electricity" | "water";
         status?: "draft" | "confirmed" | "billed";
         periodMonth?: string;
         periodYear?: string;
@@ -67,7 +66,6 @@ export const utilityApi = createApi({
       query: ({
         buildingId,
         roomId,
-        type,
         status,
         periodMonth,
         periodYear,
@@ -81,7 +79,6 @@ export const utilityApi = createApi({
           limit,
           ...(buildingId ? { buildingId } : {}),
           ...(roomId ? { roomId } : {}),
-          ...(type ? { type } : {}),
           ...(status ? { status } : {}),
           ...(periodMonth ? { periodMonth } : {}),
           ...(periodYear ? { periodYear } : {}),

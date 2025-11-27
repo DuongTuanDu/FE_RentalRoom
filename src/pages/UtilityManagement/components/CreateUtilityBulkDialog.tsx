@@ -16,7 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Search, Zap, Droplets } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
 import { useGetUtilityReadingsRoomQuery } from "@/services/utility/utility.service";
 import { useCreateUtilityReadingsBulkMutation } from "@/services/utility/utility.service";
@@ -24,9 +32,8 @@ import { toast } from "sonner";
 
 interface BulkReadingItem {
   roomId: string;
-  type: "electricity" | "water";
-  currentIndex: string;
-  unitPrice: string;
+  eCurrentIndex: string;
+  wCurrentIndex: string;
 }
 
 interface CreateUtilityBulkDialogProps {
@@ -43,8 +50,8 @@ export const CreateUtilityBulkDialog = ({
   const [buildingId, setBuildingId] = useState("");
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
-  const [readingDate, setReadingDate] = useState("");
   const [readings, setReadings] = useState<BulkReadingItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [createUtilityReadingsBulk, { isLoading: isCreating }] =
     useCreateUtilityReadingsBulkMutation();
@@ -74,7 +81,6 @@ export const CreateUtilityBulkDialog = ({
       const now = new Date();
       setPeriodMonth((now.getMonth() + 1).toString());
       setPeriodYear(now.getFullYear().toString());
-      setReadingDate(now.toISOString().split("T")[0]);
       setReadings([]);
       setBuildingId("");
     }
@@ -85,12 +91,12 @@ export const CreateUtilityBulkDialog = ({
     if (roomsData?.data && open) {
       const initialReadings: BulkReadingItem[] = roomsData.data.map((room) => {
         const electricityReading = room.readingTemplate?.electricity;
+        const waterReading = room.readingTemplate?.water;
 
         return {
           roomId: room._id,
-          type: "electricity",
-          currentIndex: electricityReading?.currentIndex?.toString() || "",
-          unitPrice: electricityReading?.unitPrice?.toString() || "",
+          eCurrentIndex: electricityReading?.currentIndex?.toString() || "",
+          wCurrentIndex: waterReading?.currentIndex?.toString() || "",
         };
       });
       setReadings(initialReadings);
@@ -102,9 +108,8 @@ export const CreateUtilityBulkDialog = ({
       ...readings,
       {
         roomId: "",
-        type: "electricity",
-        currentIndex: "",
-        unitPrice: "",
+        eCurrentIndex: "",
+        wCurrentIndex: "",
       },
     ]);
   };
@@ -124,7 +129,7 @@ export const CreateUtilityBulkDialog = ({
   };
 
   const handleCreate = async () => {
-    if (!buildingId || !periodMonth || !periodYear || !readingDate) {
+    if (!buildingId || !periodMonth || !periodYear) {
       toast.error("Vui lòng điền đầy đủ thông tin kỳ đọc");
       return;
     }
@@ -135,7 +140,7 @@ export const CreateUtilityBulkDialog = ({
     }
 
     const validReadings = readings.filter(
-      (r) => r.roomId && r.currentIndex && r.unitPrice
+      (r) => r.roomId && r.eCurrentIndex && r.wCurrentIndex
     );
 
     if (validReadings.length === 0) {
@@ -147,12 +152,10 @@ export const CreateUtilityBulkDialog = ({
       await createUtilityReadingsBulk({
         readings: validReadings.map((r) => ({
           roomId: r.roomId,
-          type: r.type,
           periodMonth: parseInt(periodMonth),
           periodYear: parseInt(periodYear),
-          currentIndex: parseFloat(r.currentIndex),
-          unitPrice: parseFloat(r.unitPrice),
-          readingDate,
+          eCurrentIndex: parseFloat(r.eCurrentIndex),
+          wCurrentIndex: parseFloat(r.wCurrentIndex),
         })),
       }).unwrap();
 
@@ -175,6 +178,18 @@ export const CreateUtilityBulkDialog = ({
     return room ? `Phòng ${room.roomNumber}` : "";
   };
 
+  // Filter readings based on search query
+  const filteredReadings = readings.filter((reading) => {
+    if (!searchQuery) return true;
+    const roomName = getRoomName(reading.roomId).toLowerCase();
+    return roomName.includes(searchQuery.toLowerCase());
+  });
+
+  // Count valid readings
+  const validReadingsCount = readings.filter(
+    (r) => r.roomId && r.eCurrentIndex && r.wCurrentIndex
+  ).length;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full !max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -182,7 +197,7 @@ export const CreateUtilityBulkDialog = ({
           <DialogTitle>Tạo chỉ số điện nước hàng loạt</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>
                 Tòa nhà <span className="text-red-500">*</span>
@@ -190,16 +205,6 @@ export const CreateUtilityBulkDialog = ({
               <BuildingSelectCombobox
                 value={buildingId}
                 onValueChange={setBuildingId}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Ngày đọc chỉ số <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="date"
-                value={readingDate}
-                onChange={(e) => setReadingDate(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -246,7 +251,14 @@ export const CreateUtilityBulkDialog = ({
 
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-4">
-              <Label className="text-base">Danh sách chỉ số</Label>
+              <div className="flex items-center gap-4">
+                <Label className="text-base">Danh sách chỉ số</Label>
+                {readings.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    ({validReadingsCount}/{readings.length} phòng hợp lệ)
+                  </span>
+                )}
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -259,108 +271,139 @@ export const CreateUtilityBulkDialog = ({
               </Button>
             </div>
 
-            <div className="space-y-4 max-h-[400px] overflow-y-auto">
-              {readings.map((reading, index) => (
-                <div
-                  key={index}
-                  className="p-4 border rounded-lg space-y-3 bg-slate-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">
-                      Chỉ số #{index + 1}
-                    </Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveReading(index)}
-                      className="h-8 w-8 text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Phòng</Label>
-                      <Select
-                        value={reading.roomId}
-                        onValueChange={(value) =>
-                          handleUpdateReading(index, "roomId", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn phòng" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roomsData?.data?.map((room) => (
-                            <SelectItem key={room._id} value={room._id}>
-                              Phòng {room.roomNumber}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Loại</Label>
-                      <Select
-                        value={reading.type}
-                        onValueChange={(value: "electricity" | "water") =>
-                          handleUpdateReading(index, "type", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="electricity">Điện</SelectItem>
-                          <SelectItem value="water">Nước</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Chỉ số hiện tại</Label>
-                      <Input
-                        type="number"
-                        value={reading.currentIndex}
-                        onChange={(e) =>
-                          handleUpdateReading(
-                            index,
-                            "currentIndex",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Nhập chỉ số"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Đơn giá</Label>
-                      <Input
-                        type="number"
-                        value={reading.unitPrice}
-                        onChange={(e) =>
-                          handleUpdateReading(
-                            index,
-                            "unitPrice",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Nhập đơn giá"
-                      />
-                    </div>
-                  </div>
-                  {reading.roomId && (
-                    <p className="text-xs text-slate-500">
-                      {getRoomName(reading.roomId)}
-                    </p>
-                  )}
+            {readings.length > 0 && (
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Tìm kiếm theo tên phòng..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-              ))}
-              {readings.length === 0 && (
-                <div className="text-center py-8 text-slate-500 text-sm">
-                  Chưa có chỉ số nào. Nhấn "Thêm chỉ số" để bắt đầu.
+              </div>
+            )}
+
+            {readings.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 text-sm border rounded-lg">
+                Chưa có chỉ số nào. Nhấn "Thêm chỉ số" để bắt đầu.
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="max-h-[400px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[60px]">STT</TableHead>
+                        <TableHead>Phòng</TableHead>
+                        <TableHead className="text-center">
+                          <div className="flex gap-1">
+                            <Zap className="w-4 h-4 text-yellow-500" />
+                            <span>Chỉ số điện</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-center">
+                          <div className="flex gap-1">
+                            <Droplets className="w-4 h-4 text-blue-500" />
+                            <span>Chỉ số nước</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="w-[80px] text-right">Thao tác</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredReadings.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                            Không tìm thấy phòng nào
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredReadings.map((reading) => {
+                          const originalIndex = readings.findIndex((r) => r === reading);
+                          const isValid = reading.roomId && reading.eCurrentIndex && reading.wCurrentIndex;
+                          
+                          return (
+                            <TableRow
+                              key={originalIndex}
+                              className={isValid ? "" : "bg-muted/30"}
+                            >
+                              <TableCell className="font-medium">
+                                {originalIndex + 1}
+                              </TableCell>
+                              <TableCell>
+                                {reading.roomId ? (
+                                  <span className="font-medium">
+                                    {getRoomName(reading.roomId)}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground italic">
+                                    Chưa chọn phòng
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={reading.eCurrentIndex}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                                      handleUpdateReading(
+                                        originalIndex,
+                                        "eCurrentIndex",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  placeholder="Nhập chỉ số"
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={reading.wCurrentIndex}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                                      handleUpdateReading(
+                                        originalIndex,
+                                        "wCurrentIndex",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  placeholder="Nhập chỉ số"
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleRemoveReading(originalIndex)}
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -378,7 +421,7 @@ export const CreateUtilityBulkDialog = ({
                 Đang tạo...
               </>
             ) : (
-              `Tạo ${readings.filter((r) => r.roomId && r.currentIndex && r.unitPrice).length} chỉ số`
+              `Tạo ${validReadingsCount} chỉ số`
             )}
           </Button>
         </DialogFooter>

@@ -63,7 +63,6 @@ const UtilityManagement = () => {
   const [roomId, setRoomId] = useState("");
   console.log("roomId", roomId);
   
-  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
@@ -100,10 +99,6 @@ const UtilityManagement = () => {
     limit: pageLimit,
     buildingId: buildingId || undefined,
     roomId: roomId || undefined,
-    type:
-      typeFilter !== "all"
-        ? (typeFilter as "electricity" | "water")
-        : undefined,
     status:
       statusFilter !== "all"
         ? (statusFilter as "draft" | "confirmed" | "billed")
@@ -280,25 +275,6 @@ const UtilityManagement = () => {
                   buildingId={buildingId || undefined}
                   disabled={!buildingId}
                 />
-              </div>
-              <div>
-                <Label className="mb-2 block">Loại</Label>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) => {
-                    setTypeFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    <SelectItem value="electricity">Điện</SelectItem>
-                    <SelectItem value="water">Nước</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div>
                 <Label className="mb-2 block">Trạng thái</Label>

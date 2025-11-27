@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Droplets, Loader2, Zap } from "lucide-react";
 import { RoomSelectCombobox } from "@/pages/RoomFurnitureLandlord/components/RoomSelectCombobox";
 import { useCreateUtilityReadingMutation } from "@/services/utility/utility.service";
 import { toast } from "sonner";
@@ -36,12 +36,10 @@ export const CreateUtilityDialog = ({
 }: CreateUtilityDialogProps) => {
   const [formData, setFormData] = useState({
     roomId: "",
-    type: "electricity" as "electricity" | "water",
     periodMonth: "",
     periodYear: "",
-    currentIndex: "",
-    unitPrice: "",
-    readingDate: "",
+    eCurrentIndex: "",
+    wCurrentIndex: "",
   });
 
   const [createUtilityReading, { isLoading: isCreating }] =
@@ -58,12 +56,10 @@ export const CreateUtilityDialog = ({
       const now = new Date();
       setFormData({
         roomId: "",
-        type: "electricity",
         periodMonth: (now.getMonth() + 1).toString(),
         periodYear: now.getFullYear().toString(),
-        currentIndex: "",
-        unitPrice: "",
-        readingDate: now.toISOString().split("T")[0],
+        eCurrentIndex: "",
+        wCurrentIndex: "",
       });
     }
   }, [open]);
@@ -73,36 +69,33 @@ export const CreateUtilityDialog = ({
       !formData.roomId ||
       !formData.periodMonth ||
       !formData.periodYear ||
-      !formData.currentIndex ||
-      !formData.unitPrice ||
-      !formData.readingDate
+      !formData.eCurrentIndex ||
+      !formData.wCurrentIndex
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
-    const currentIndexNum = parseFloat(formData.currentIndex);
-    const unitPriceNum = parseFloat(formData.unitPrice);
+    const eCurrentIndexNum = parseFloat(formData.eCurrentIndex);
+    const wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
 
-    if (currentIndexNum < 0) {
-      toast.error("Chỉ số hiện tại không được là số âm");
+    if (eCurrentIndexNum < 0) {
+      toast.error("Chỉ số điện hiện tại không được là số âm");
       return;
     }
 
-    if (unitPriceNum < 0) {
-      toast.error("Đơn giá không được là số âm");
+    if (wCurrentIndexNum < 0) {
+      toast.error("Chỉ số nước hiện tại không được là số âm");
       return;
     }
 
     try {
       await createUtilityReading({
         roomId: formData.roomId,
-        type: formData.type,
         periodMonth: parseInt(formData.periodMonth),
         periodYear: parseInt(formData.periodYear),
-        currentIndex: currentIndexNum,
-        unitPrice: unitPriceNum,
-        readingDate: formData.readingDate,
+        eCurrentIndex: eCurrentIndexNum,
+        wCurrentIndex: wCurrentIndexNum,
       }).unwrap();
 
       onOpenChange(false);
@@ -120,7 +113,7 @@ export const CreateUtilityDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full !max-w-xl">
+      <DialogContent className="w-full !max-w-lg">
         <DialogHeader>
           <DialogTitle>Tạo chỉ số điện nước mới</DialogTitle>
         </DialogHeader>
@@ -138,27 +131,7 @@ export const CreateUtilityDialog = ({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>
-                Loại <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: "electricity" | "water") =>
-                  setFormData((prev) => ({ ...prev, type: value }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="electricity">Điện</SelectItem>
-                  <SelectItem value="water">Nước</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
                 Tháng <span className="text-red-500">*</span>
@@ -204,64 +177,51 @@ export const CreateUtilityDialog = ({
               </Select>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>
-              Chỉ số hiện tại <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.currentIndex}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Chỉ cho phép số dương hoặc rỗng
-                if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    currentIndex: value,
-                  }));
-                }
-              }}
-              placeholder="Nhập chỉ số hiện tại"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>
-              Đơn giá <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.unitPrice}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Chỉ cho phép số dương hoặc rỗng
-                if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    unitPrice: value,
-                  }));
-                }
-              }}
-              placeholder="Nhập đơn giá"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>
-              Ngày đọc chỉ số <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="date"
-              value={formData.readingDate}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  readingDate: e.target.value,
-                }))
-              }
-            />
+          <div className="space-y-2 grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>
+                Chỉ số điện hiện tại <span><Zap className="w-4 h-4 text-yellow-500" /></span>
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.eCurrentIndex}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Chỉ cho phép số dương hoặc rỗng
+                  if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      eCurrentIndex: value,
+                    }));
+                  }
+                }}
+                placeholder="Nhập chỉ số điện hiện tại"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>
+                Chỉ số nước hiện tại <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span>
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.wCurrentIndex}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Chỉ cho phép số dương hoặc rỗng
+                  if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      wCurrentIndex: value,
+                    }));
+                  }
+                }}
+                placeholder="Nhập chỉ số nước hiện tại"
+              />
+            </div>
           </div>
         </div>
         <DialogFooter>
