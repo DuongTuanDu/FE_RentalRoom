@@ -10,6 +10,8 @@ import type {
   ITenantInvoiceDetailResponse,
   ITenantPayInvoiceRequest,
   IRoomCompletedContractResponse,
+  IUpdateInvoiceRequest,
+  ISendDraftInvoiceRequest,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -124,6 +126,22 @@ export const invoiceApi = createApi({
       }),
       providesTags: ["Invoice"],
     }),
+    updateInvoice: builder.mutation<InvoiceResponse, { id: string, data: IUpdateInvoiceRequest }>({
+      query: ({ id, data }) => ({
+        url: `/landlords/invoices/${id}`,
+        method: "PATCH",
+        data,
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
+    sendDraftAllInvoices: builder.mutation<InvoiceResponse, ISendDraftInvoiceRequest>({ // Gửi tất cả hóa đơn đang draft cho người thuê qua email
+      query: (data) => ({
+        url: `/landlords/invoices/send-drafts`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
 
     // Tenant
     getTenantInvoices: builder.query<
@@ -183,6 +201,8 @@ export const {
   usePayInvoiceMutation,
   useSendInvoiceMutation,
   useGetRoomsCompletedContractQuery,
+  useUpdateInvoiceMutation,
+  useSendDraftAllInvoicesMutation,
 
   // Tenant
   useGetTenantInvoicesQuery,

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useChangePasswordMutation } from "@/services/auth/auth.service";
 import useValidateChangePasswordFormHook, { type IChangePasswordRequest } from "@/hooks/setting/useValidateChangePasswordForm.hook";
 import { toast } from "sonner";
+import { useGetProfileQuery } from "@/services/profile/profile.service";
 
 const SettingLandlord = () => {
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -14,6 +15,10 @@ const SettingLandlord = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const { data } = useGetProfileQuery();
+  console.log("data", data);
+  const role = data?.user.role;
+  
 
   const {
     oldPasswordRegister,
@@ -44,7 +49,7 @@ const SettingLandlord = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 max-w-3xl">
+    <div className={`container mx-auto px-4 max-w-3xl ${role === "resident" ? "py-6" : ""}`}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Cài đặt tài khoản

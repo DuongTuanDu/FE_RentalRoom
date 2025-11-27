@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   FileText,
   Building2,
@@ -17,6 +18,7 @@ import {
   Mail,
   CreditCard,
   Clock,
+  Edit,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
@@ -26,12 +28,14 @@ interface InvoiceDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string | null;
+  onUpdateClick?: (invoiceId: string) => void;
 }
 
 export const InvoiceDetailSheet = ({
   open,
   onOpenChange,
   invoiceId,
+  onUpdateClick,
 }: InvoiceDetailSheetProps) => {
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
@@ -112,7 +116,7 @@ export const InvoiceDetailSheet = ({
     );
   }
 
-  if (isError || !invoice) {
+  if (isError || !invoice || !invoice.data) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto pl-2 sm:pl-4">
@@ -132,6 +136,8 @@ export const InvoiceDetailSheet = ({
     );
   }
 
+  const invoiceData = invoice.data;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto pl-2 sm:pl-4">
@@ -146,11 +152,21 @@ export const InvoiceDetailSheet = ({
                   Hóa đơn
                 </SheetTitle>
                 <SheetDescription className="flex items-center gap-2 mt-1">
-                  {getStatusBadge(invoice.status)}
-                  {getEmailStatusBadge(invoice.emailStatus)}
+                  {getStatusBadge(invoiceData.status)}
+                  {getEmailStatusBadge(invoiceData.emailStatus)}
                 </SheetDescription>
               </div>
             </div>
+            {onUpdateClick && invoiceId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onUpdateClick(invoiceId)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Cập nhật
+              </Button>
+            )}
           </div>
         </SheetHeader>
 
@@ -167,7 +183,7 @@ export const InvoiceDetailSheet = ({
                   Họ tên
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.tenantId?.userInfo?.fullName || "N/A"}
+                  {invoiceData.tenantId?.userInfo?.fullName || "N/A"}
                 </p>
               </div>
               <Separator />
@@ -176,7 +192,7 @@ export const InvoiceDetailSheet = ({
                   Email
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.tenantId?.email || "N/A"}
+                  {invoiceData.tenantId?.email || "N/A"}
                 </p>
               </div>
               <Separator />
@@ -185,7 +201,7 @@ export const InvoiceDetailSheet = ({
                   Số điện thoại
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.tenantId?.userInfo?.phoneNumber || "N/A"}
+                  {invoiceData.tenantId?.userInfo?.phoneNumber || "N/A"}
                 </p>
               </div>
             </div>
@@ -203,7 +219,7 @@ export const InvoiceDetailSheet = ({
                   Tòa nhà
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.buildingId?.name || "N/A"}
+                  {invoiceData.buildingId?.name || "N/A"}
                 </p>
               </div>
               <Separator />
@@ -212,7 +228,7 @@ export const InvoiceDetailSheet = ({
                   Địa chỉ
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.buildingId?.address || "N/A"}
+                  {invoiceData.buildingId?.address || "N/A"}
                 </p>
               </div>
               <Separator />
@@ -221,14 +237,14 @@ export const InvoiceDetailSheet = ({
                   Phòng
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoice.roomId?.roomNumber || "N/A"}
+                  {invoiceData.roomId?.roomNumber || "N/A"}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Thông tin hợp đồng */}
-          {invoice.contractId && (
+          {invoiceData.contractId && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 <FileText className="w-4 h-4" />
@@ -240,7 +256,7 @@ export const InvoiceDetailSheet = ({
                     Số hợp đồng
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {invoice.contractId?.contract?.no || "N/A"}
+                    {invoiceData.contractId?.contract?.no || "N/A"}
                   </p>
                 </div>
                 <Separator />
@@ -249,8 +265,8 @@ export const InvoiceDetailSheet = ({
                     Ngày bắt đầu
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {invoice.contractId?.contract?.startDate
-                      ? formatDate(invoice.contractId.contract.startDate)
+                    {invoiceData.contractId?.contract?.startDate
+                      ? formatDate(invoiceData.contractId.contract.startDate)
                       : "N/A"}
                   </p>
                 </div>
@@ -260,8 +276,8 @@ export const InvoiceDetailSheet = ({
                     Ngày kết thúc
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {invoice.contractId?.contract?.endDate
-                      ? formatDate(invoice.contractId.contract.endDate)
+                    {invoiceData.contractId?.contract?.endDate
+                      ? formatDate(invoiceData.contractId.contract.endDate)
                       : "N/A"}
                   </p>
                 </div>
@@ -285,7 +301,7 @@ export const InvoiceDetailSheet = ({
                     Tháng/Năm
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {invoice.periodMonth}/{invoice.periodYear}
+                    {invoiceData.periodMonth}/{invoiceData.periodYear}
                   </p>
                 </div>
                 <Separator />
@@ -294,7 +310,7 @@ export const InvoiceDetailSheet = ({
                     Ngày phát hành
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {formatDate(invoice.issuedAt)}
+                    {formatDate(invoiceData.issuedAt)}
                   </p>
                 </div>
                 <Separator />
@@ -303,7 +319,7 @@ export const InvoiceDetailSheet = ({
                     Hạn thanh toán
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {formatDate(invoice.dueDate)}
+                    {formatDate(invoiceData.dueDate)}
                   </p>
                 </div>
               </CardContent>
@@ -311,7 +327,7 @@ export const InvoiceDetailSheet = ({
           </div>
 
           {/* Danh sách items */}
-          {invoice.items && invoice.items.length > 0 && (
+          {invoiceData.items && invoiceData.items.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 <FileText className="w-4 h-4" />
@@ -341,7 +357,7 @@ export const InvoiceDetailSheet = ({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {invoice.items.map((item, idx) => (
+                        {invoiceData.items.map((item, idx) => (
                           <tr key={idx}>
                             <td className="px-4 py-3 text-sm">
                               <Badge variant="outline">{item.label}</Badge>
@@ -379,10 +395,10 @@ export const InvoiceDetailSheet = ({
                   Tạm tính
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                  {formatPrice(invoice.subtotal)}
+                  {formatPrice(invoiceData.subtotal)}
                 </p>
               </div>
-              {invoice.discountAmount > 0 && (
+              {invoiceData.discountAmount > 0 && (
                 <>
                   <Separator />
                   <div className="flex justify-between items-center">
@@ -390,12 +406,12 @@ export const InvoiceDetailSheet = ({
                       Giảm trừ
                     </label>
                     <p className="text-base font-medium text-red-600 dark:text-red-400">
-                      -{formatPrice(invoice.discountAmount)}
+                      -{formatPrice(invoiceData.discountAmount)}
                     </p>
                   </div>
                 </>
               )}
-              {invoice.lateFee > 0 && (
+              {invoiceData.lateFee > 0 && (
                 <>
                   <Separator />
                   <div className="flex justify-between items-center">
@@ -403,7 +419,7 @@ export const InvoiceDetailSheet = ({
                       Phí trễ hạn
                     </label>
                     <p className="text-base font-medium text-red-600 dark:text-red-400">
-                      {formatPrice(invoice.lateFee)}
+                      {formatPrice(invoiceData.lateFee)}
                     </p>
                   </div>
                 </>
@@ -414,10 +430,10 @@ export const InvoiceDetailSheet = ({
                   Tổng cộng
                 </label>
                 <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                  {formatPrice(invoice.totalAmount)}
+                  {formatPrice(invoiceData.totalAmount)}
                 </p>
               </div>
-              {invoice.paidAmount > 0 && (
+              {invoiceData.paidAmount > 0 && (
                 <>
                   <Separator />
                   <div className="flex justify-between items-center">
@@ -425,7 +441,7 @@ export const InvoiceDetailSheet = ({
                       Đã thanh toán
                     </label>
                     <p className="text-base font-medium text-green-600 dark:text-green-400">
-                      {formatPrice(invoice.paidAmount)}
+                      {formatPrice(invoiceData.paidAmount)}
                     </p>
                   </div>
                   <Separator />
@@ -434,7 +450,7 @@ export const InvoiceDetailSheet = ({
                       Còn lại
                     </label>
                     <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
-                      {formatPrice(invoice.totalAmount - invoice.paidAmount)}
+                      {formatPrice(invoiceData.totalAmount - invoiceData.paidAmount)}
                     </p>
                   </div>
                 </>
@@ -443,7 +459,7 @@ export const InvoiceDetailSheet = ({
           </Card>
 
           {/* Thông tin thanh toán */}
-          {invoice.status === "paid" && invoice.paymentMethod && (
+          {invoiceData.status === "paid" && invoiceData.paymentMethod && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 <CreditCard className="w-4 h-4" />
@@ -455,7 +471,7 @@ export const InvoiceDetailSheet = ({
                     Phương thức thanh toán
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {invoice.paymentMethod}
+                    {invoiceData.paymentMethod}
                   </p>
                 </div>
               </div>
@@ -463,7 +479,7 @@ export const InvoiceDetailSheet = ({
           )}
 
           {/* Thông tin email */}
-          {invoice.emailSentAt && (
+          {invoiceData.emailStatus && invoiceData.emailStatus !== "pending" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 <Mail className="w-4 h-4" />
@@ -472,25 +488,52 @@ export const InvoiceDetailSheet = ({
               <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
                 <div>
                   <label className="text-sm text-slate-600 dark:text-slate-400">
-                    Ngày gửi
+                    Trạng thái
                   </label>
                   <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {formatDate(invoice.emailSentAt)}
+                    {getEmailStatusBadge(invoiceData.emailStatus)}
                   </p>
                 </div>
-                {invoice.emailLastError && (
+                {invoiceData.reminders && invoiceData.reminders.length > 0 && (
                   <>
                     <Separator />
                     <div>
                       <label className="text-sm text-slate-600 dark:text-slate-400">
-                        Lỗi gửi email
+                        Lịch sử gửi
                       </label>
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {invoice.emailLastError}
-                      </p>
+                      <div className="mt-2 space-y-2">
+                        {invoiceData.reminders.map((reminder, idx) => (
+                          <div key={idx} className="text-sm">
+                            <p className="text-slate-700 dark:text-slate-300">
+                              {formatDate(reminder.sentAt)} - {reminder.channel} -{" "}
+                              {reminder.status}
+                            </p>
+                            {reminder.note && (
+                              <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                                {reminder.note}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Ghi chú */}
+          {invoiceData.note && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <FileText className="w-4 h-4" />
+                Ghi chú
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+                <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                  {invoiceData.note}
+                </p>
               </div>
             </div>
           )}
@@ -507,7 +550,7 @@ export const InvoiceDetailSheet = ({
                   Ngày tạo
                 </label>
                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {formatDate(invoice.createdAt)}
+                  {formatDate(invoiceData.createdAt)}
                 </p>
               </div>
               <Separator />
@@ -516,7 +559,7 @@ export const InvoiceDetailSheet = ({
                   Cập nhật lần cuối
                 </label>
                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {formatDate(invoice.updatedAt)}
+                  {formatDate(invoiceData.updatedAt)}
                 </p>
               </div>
             </div>

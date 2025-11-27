@@ -99,34 +99,32 @@ export interface IUtilityItem {
 
 export interface IUtilityReadingRequest {
   roomId: string;
-  type: "electricity" | "water";
   periodMonth: number;
   periodYear: number;
-  currentIndex: number;
-  unitPrice: number;
-  readingDate: string;
+  eCurrentIndex: number;
+  wCurrentIndex: number;
 }
 
 export interface ICreateUtilityBulkRequest {
   readings: {
     roomId: string;
-    type: "electricity" | "water";
     periodMonth: number;
     periodYear: number;
-    currentIndex: number;
-    unitPrice: number;
-    readingDate: string;
+    eCurrentIndex: number;
+    wCurrentIndex: number;
   }[];
 }
 
 export interface IUpdateReadingRequest {
-  currentIndex: number;
-  unitPrice: number;
-  readingDate: string;
-  periodMonth: number;
-  periodYear: number;
+  ePreviousIndex: number;
+  eCurrentIndex: number;
+  eUnitPrice: number;
+  wPreviousIndex: number;
+  wCurrentIndex: number;
+  wUnitPrice: number;
+  status: "draft" | "confirmed" | "billed";
+  note: string;
 }
-
 
 export interface IUtilityRoomListResponse {
   message: string;

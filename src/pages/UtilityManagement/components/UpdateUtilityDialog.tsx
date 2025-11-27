@@ -16,10 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Droplets, Loader2, Zap } from "lucide-react";
 import { useUpdateUtilityReadingMutation } from "@/services/utility/utility.service";
 import { toast } from "sonner";
 import type { IUtilityItem } from "@/types/utility";
+import { Textarea } from "@/components/ui/textarea";
 
 interface UpdateUtilityDialogProps {
   open: boolean;
@@ -35,72 +36,69 @@ export const UpdateUtilityDialog = ({
   onSuccess,
 }: UpdateUtilityDialogProps) => {
   const [formData, setFormData] = useState({
-    type: "electricity" as "electricity" | "water",
-    periodMonth: "",
-    periodYear: "",
-    currentIndex: "",
-    unitPrice: "",
-    readingDate: "",
+    ePreviousIndex: "",
+    eCurrentIndex: "",
+    eUnitPrice: "",
+    wPreviousIndex: "",
+    wCurrentIndex: "",
+    wUnitPrice: "",
+    status: "draft" as "draft" | "confirmed" | "billed",
+    note: "",
   });
 
   const [updateUtilityReading, { isLoading: isUpdating }] =
     useUpdateUtilityReadingMutation();
 
-  // Generate month and year options
-  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
-
   // Set form data when utility changes
   useEffect(() => {
     if (utility && open) {
-      const readingDate = utility.readingDate
-        ? new Date(utility.readingDate).toISOString().split("T")[0]
-        : "";
-      setFormData((prev) => ({
-        ...prev,
-        periodMonth: utility.periodMonth.toString(),
-        periodYear: utility.periodYear.toString(),
-        currentIndex: utility.eCurrentIndex.toString(),
-        unitPrice: utility.eUnitPrice.toString(),
-        readingDate,
-      }));
+      setFormData({
+        ePreviousIndex: utility.ePreviousIndex.toString(),
+        eCurrentIndex: utility.eCurrentIndex.toString(),
+        eUnitPrice: utility.eUnitPrice.toString(),
+        wPreviousIndex: utility.wPreviousIndex.toString(),
+        wCurrentIndex: utility.wCurrentIndex.toString(),
+        wUnitPrice: utility.wUnitPrice.toString(),
+        status: utility.status,
+        note: "",
+      });
     }
   }, [utility, open]);
-
-  // Update form data when type changes
-  useEffect(() => {
-    if (utility && open) {
-      const readingDate = utility.readingDate
-        ? new Date(utility.readingDate).toISOString().split("T")[0]
-        : "";
-      if (formData.type === "electricity") {
-        setFormData((prev) => ({
-          ...prev,
-          currentIndex: utility.eCurrentIndex.toString(),
-          unitPrice: utility.eUnitPrice.toString(),
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          currentIndex: utility.wCurrentIndex.toString(),
-          unitPrice: utility.wUnitPrice.toString(),
-        }));
-      }
-    }
-  }, [formData.type, utility, open]);
 
   const handleUpdate = async () => {
     if (!utility) return;
 
     if (
-      !formData.periodMonth ||
-      !formData.periodYear ||
-      !formData.currentIndex ||
-      !formData.unitPrice ||
-      !formData.readingDate
+      !formData.ePreviousIndex ||
+      !formData.eCurrentIndex ||
+      !formData.eUnitPrice ||
+      !formData.wPreviousIndex ||
+      !formData.wCurrentIndex ||
+      !formData.wUnitPrice
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    const ePreviousIndexNum = parseFloat(formData.ePreviousIndex);
+    const eCurrentIndexNum = parseFloat(formData.eCurrentIndex);
+    const eUnitPriceNum = parseFloat(formData.eUnitPrice);
+    const wPreviousIndexNum = parseFloat(formData.wPreviousIndex);
+    const wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
+    const wUnitPriceNum = parseFloat(formData.wUnitPrice);
+
+    if (eCurrentIndexNum < ePreviousIndexNum) {
+      toast.error("Chỉ số điện hiện tại không được nhỏ hơn chỉ số trước");
+      return;
+    }
+
+    if (wCurrentIndexNum < wPreviousIndexNum) {
+      toast.error("Chỉ số nước hiện tại không được nhỏ hơn chỉ số trước");
+      return;
+    }
+
+    if (eUnitPriceNum < 0 || wUnitPriceNum < 0) {
+      toast.error("Đơn giá không được là số âm");
       return;
     }
 
@@ -108,11 +106,14 @@ export const UpdateUtilityDialog = ({
       await updateUtilityReading({
         id: utility._id,
         data: {
-          periodMonth: parseInt(formData.periodMonth),
-          periodYear: parseInt(formData.periodYear),
-          currentIndex: parseFloat(formData.currentIndex),
-          unitPrice: parseFloat(formData.unitPrice),
-          readingDate: formData.readingDate,
+          ePreviousIndex: ePreviousIndexNum,
+          eCurrentIndex: eCurrentIndexNum,
+          eUnitPrice: eUnitPriceNum,
+          wPreviousIndex: wPreviousIndexNum,
+          wCurrentIndex: wCurrentIndexNum,
+          wUnitPrice: wUnitPriceNum,
+          status: formData.status,
+          note: formData.note,
         },
       }).unwrap();
 
@@ -133,121 +134,187 @@ export const UpdateUtilityDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full !max-w-lg">
+      <DialogContent className="w-full !max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa chỉ số điện nước</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>
-              Loại <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, type: value as "electricity" | "water" }))
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="electricity">Điện</SelectItem>
-                <SelectItem value="water">Nước</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="border-b pb-4">
+            <Label className="text-sm font-semibold mb-3">Thông tin điện <span><Zap className="w-4 h-4 text-yellow-500" /></span></Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>
+                  Chỉ số trước <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.ePreviousIndex}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        ePreviousIndex: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Chỉ số trước"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Chỉ số hiện tại <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.eCurrentIndex}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        eCurrentIndex: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Chỉ số hiện tại"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Đơn giá <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.eUnitPrice}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        eUnitPrice: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Đơn giá"
+                />
+              </div>
+            </div>
           </div>
+
+          <div className="border-b pb-4">
+            <Label className="text-sm font-semibold mb-3">Thông tin nước <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span></Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>
+                  Chỉ số trước <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.wPreviousIndex}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        wPreviousIndex: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Chỉ số trước"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Chỉ số hiện tại <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.wCurrentIndex}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        wCurrentIndex: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Chỉ số hiện tại"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Đơn giá <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.wUnitPrice}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        wUnitPrice: value,
+                      }));
+                    }
+                  }}
+                  placeholder="Đơn giá"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
-                Tháng <span className="text-red-500">*</span>
+                Trạng thái <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={formData.periodMonth}
+                value={formData.status}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, periodMonth: value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    status: value as "draft" | "confirmed" | "billed",
+                  }))
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn tháng" />
+                  <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  {monthOptions.map((month) => (
-                    <SelectItem key={month} value={month.toString()}>
-                      Tháng {month}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Năm <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.periodYear}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, periodYear: value }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn năm" />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearOptions.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="draft">Nháp</SelectItem>
+                  <SelectItem value="confirmed">Đã xác nhận</SelectItem>
+                  <SelectItem value="billed">Đã xuất hóa đơn</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
           <div className="space-y-2">
-            <Label>
-              Chỉ số hiện tại ({formData.type === "electricity" ? "Điện" : "Nước"}) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              value={formData.currentIndex}
+            <Label>Ghi chú</Label>
+            <Textarea
+              value={formData.note}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  currentIndex: e.target.value,
+                  note: e.target.value,
                 }))
               }
-              placeholder={`Nhập chỉ số hiện tại ${formData.type === "electricity" ? "điện" : "nước"}`}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>
-              Đơn giá ({formData.type === "electricity" ? "Điện" : "Nước"}) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              value={formData.unitPrice}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  unitPrice: e.target.value,
-                }))
-              }
-              placeholder={`Nhập đơn giá ${formData.type === "electricity" ? "điện" : "nước"}`}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>
-              Ngày đọc chỉ số <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="date"
-              value={formData.readingDate}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  readingDate: e.target.value,
-                }))
-              }
+              placeholder="Nhập ghi chú (nếu có)"
+              rows={3}
             />
           </div>
         </div>
