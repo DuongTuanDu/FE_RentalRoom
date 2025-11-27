@@ -122,7 +122,6 @@ export interface IUpdateReadingRequest {
   wPreviousIndex: number;
   wCurrentIndex: number;
   wUnitPrice: number;
-  status: "draft" | "confirmed" | "billed";
   note: string;
 }
 

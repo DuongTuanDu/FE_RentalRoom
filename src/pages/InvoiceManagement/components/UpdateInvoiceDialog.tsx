@@ -10,13 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Edit } from "lucide-react";
 import type { IUpdateInvoiceRequest } from "@/types/invoice";
@@ -46,9 +39,6 @@ export const UpdateInvoiceDialog = ({
   const [note, setNote] = useState("");
   const [discountAmount, setDiscountAmount] = useState("0");
   const [lateFee, setLateFee] = useState("0");
-  const [status, setStatus] = useState<
-    "draft" | "sent" | "paid" | "overdue" | "cancelled"
-  >("draft");
 
   // Reset form when dialog opens/closes or initialData changes
   useEffect(() => {
@@ -56,12 +46,10 @@ export const UpdateInvoiceDialog = ({
       setNote(initialData.note || "");
       setDiscountAmount(String(initialData.discountAmount || 0));
       setLateFee(String(initialData.lateFee || 0));
-      setStatus(initialData.status || "draft");
     } else if (!open) {
       setNote("");
       setDiscountAmount("0");
       setLateFee("0");
-      setStatus("draft");
     }
   }, [open, initialData]);
 
@@ -73,7 +61,6 @@ export const UpdateInvoiceDialog = ({
       note,
       discountAmount: Number(discountAmount) || 0,
       lateFee: Number(lateFee) || 0,
-      status,
     });
   };
 
@@ -91,25 +78,6 @@ export const UpdateInvoiceDialog = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {/* Status */}
-          <div className="space-y-2">
-            <Label>
-              Trạng thái <span className="text-red-500">*</span>
-            </Label>
-            <Select value={status} onValueChange={(v: any) => setStatus(v)} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Nháp</SelectItem>
-                <SelectItem value="sent">Đã gửi</SelectItem>
-                <SelectItem value="paid">Đã thanh toán</SelectItem>
-                <SelectItem value="overdue">Quá hạn</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Discount Amount */}
           <div className="space-y-2">
             <Label>Giảm trừ (VND)</Label>

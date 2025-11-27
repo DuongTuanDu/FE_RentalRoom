@@ -200,7 +200,7 @@ export const CreateUtilityDialog = ({
                 placeholder="Nhập chỉ số điện hiện tại"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 !mt-0">
               <Label>
                 Chỉ số nước hiện tại <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span>
               </Label>

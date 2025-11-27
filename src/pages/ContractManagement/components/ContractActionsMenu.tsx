@@ -1,4 +1,4 @@
-import { Eye, Send, CheckCircle, Edit, Trash2, Ban, XCircle, Download, Copy } from "lucide-react";
+import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -42,14 +42,11 @@ export const ContractActionsMenu = ({
   onUpdate,
   onSign,
   onSendToTenant,
-  onConfirmMoveIn,
-  onDelete,
   onTerminate,
   onDisable,
   onDownload,
   onClone,
   isSending,
-  isConfirming,
   isDownloading,
   isCloning,
   sendConfirmPopoverOpen,
@@ -175,47 +172,6 @@ export const ContractActionsMenu = ({
           </PopoverContent>
         </Popover>
       )}
-
-      {((status === "completed" && !moveInConfirmedAt)) && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => onConfirmMoveIn(contractId)}
-                disabled={isConfirming}
-              >
-                <CheckCircle className="w-4 h-4 text-purple-600" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Xác nhận vào ở</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-
-      {/* {status === "draft" && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => onDelete(contractId)}
-              >
-                <Trash2 className="w-4 h-4 text-red-600" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Xóa hợp đồng</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )} */}
 
       {((status === "completed" && moveInConfirmedAt)) && (
         <TooltipProvider>

@@ -334,15 +334,23 @@ export const CreateUtilityBulkDialog = ({
                                 {originalIndex + 1}
                               </TableCell>
                               <TableCell>
-                                {reading.roomId ? (
-                                  <span className="font-medium">
-                                    {getRoomName(reading.roomId)}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground italic">
-                                    Chưa chọn phòng
-                                  </span>
-                                )}
+                                <Select
+                                  value={reading.roomId}
+                                  onValueChange={(value) =>
+                                    handleUpdateReading(originalIndex, "roomId", value)
+                                  }
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn phòng" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {roomsData?.data?.map((room) => (
+                                      <SelectItem key={room._id} value={room._id}>
+                                        Phòng {room.roomNumber}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </TableCell>
                               <TableCell>
                                 <Input

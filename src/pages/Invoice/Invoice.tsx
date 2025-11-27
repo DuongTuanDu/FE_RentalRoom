@@ -41,7 +41,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
-import type { InvoiceItem } from "@/types/invoice";
+import type { ITenantInvoiceItem } from "@/types/invoice";
 import { TenantInvoiceDetailSheet } from "./components/TenantInvoiceDetailSheet";
 import { TenantPayInvoiceDialog } from "./components/TenantPayInvoiceDialog";
 import {
@@ -131,7 +131,7 @@ const Invoice = () => {
   const totalPages = invoicesData?.totalPages ?? 0;
 
   // Status badge helper
-  const getStatusBadge = (status: InvoiceItem["status"]) => {
+  const getStatusBadge = (status: ITenantInvoiceItem["status"]) => {
     const statusConfig = {
       draft: {
         label: "Nháp",
@@ -221,19 +221,19 @@ const Invoice = () => {
     }
 
     const items = allInvoicesData.items;
-    const paid = items.filter((inv) => inv.status === "paid").length;
+    const paid = items.filter((inv: ITenantInvoiceItem) => inv.status === "paid").length;
     const pending = items.filter(
-      (inv) => inv.status === "sent" || inv.status === "draft"
+      (inv: ITenantInvoiceItem) => inv.status === "sent" || inv.status === "draft"
     ).length;
-    const overdue = items.filter((inv) => inv.status === "overdue").length;
+    const overdue = items.filter((inv: ITenantInvoiceItem) => inv.status === "overdue").length;
 
-    const totalAmount = items.reduce((sum, inv) => sum + inv.totalAmount, 0);
+    const totalAmount = items.reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
     const paidAmount = items
-      .filter((inv) => inv.status === "paid")
-      .reduce((sum, inv) => sum + inv.totalAmount, 0);
+      .filter((inv: ITenantInvoiceItem) => inv.status === "paid")
+      .reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
     const pendingAmount = items
-      .filter((inv) => inv.status === "sent" || inv.status === "overdue")
-      .reduce((sum, inv) => sum + inv.totalAmount, 0);
+      .filter((inv: ITenantInvoiceItem) => inv.status === "sent" || inv.status === "overdue")
+      .reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
 
     return {
       total: items.length,
@@ -516,7 +516,7 @@ const Invoice = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    invoicesData.items.map((invoice, idx) => (
+                    invoicesData.items.map((invoice: ITenantInvoiceItem, idx: number) => (
                       <TableRow key={invoice._id} className="hover:bg-slate-50">
                         <TableCell>
                           {(currentPage - 1) * pageLimit + idx + 1}

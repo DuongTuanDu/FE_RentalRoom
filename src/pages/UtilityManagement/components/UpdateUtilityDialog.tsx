@@ -9,13 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Droplets, Loader2, Zap } from "lucide-react";
 import { useUpdateUtilityReadingMutation } from "@/services/utility/utility.service";
 import { toast } from "sonner";
@@ -42,7 +35,6 @@ export const UpdateUtilityDialog = ({
     wPreviousIndex: "",
     wCurrentIndex: "",
     wUnitPrice: "",
-    status: "draft" as "draft" | "confirmed" | "billed",
     note: "",
   });
 
@@ -59,7 +51,6 @@ export const UpdateUtilityDialog = ({
         wPreviousIndex: utility.wPreviousIndex.toString(),
         wCurrentIndex: utility.wCurrentIndex.toString(),
         wUnitPrice: utility.wUnitPrice.toString(),
-        status: utility.status,
         note: "",
       });
     }
@@ -112,7 +103,6 @@ export const UpdateUtilityDialog = ({
           wPreviousIndex: wPreviousIndexNum,
           wCurrentIndex: wCurrentIndexNum,
           wUnitPrice: wUnitPriceNum,
-          status: formData.status,
           note: formData.note,
         },
       }).unwrap();
@@ -274,32 +264,6 @@ export const UpdateUtilityDialog = ({
                   placeholder="Đơn giá"
                 />
               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                Trạng thái <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    status: value as "draft" | "confirmed" | "billed",
-                  }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Nháp</SelectItem>
-                  <SelectItem value="confirmed">Đã xác nhận</SelectItem>
-                  <SelectItem value="billed">Đã xuất hóa đơn</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
