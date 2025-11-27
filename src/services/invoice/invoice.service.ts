@@ -145,7 +145,7 @@ export const invoiceApi = createApi({
 
     // Tenant
     getTenantInvoices: builder.query<
-      InvoiceResponse,
+      ITenantInvoiceResponse,
       {
         status?: "draft" | "sent" | "paid" | "overdue" | "cancelled";
         periodMonth?: string;

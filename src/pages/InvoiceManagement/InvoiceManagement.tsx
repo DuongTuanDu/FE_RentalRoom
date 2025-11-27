@@ -278,7 +278,7 @@ const InvoiceManagement = () => {
           duration: 5000,
         });
       } else {
-        toast.success("Tạo hóa đơn tháng thành công!");
+        toast.success("Tạo hóa đơn hàng loạt thành công!");
         setIsGenerateMonthlyDialogOpen(false);
       }
     } catch (error: any) {
@@ -313,7 +313,7 @@ const InvoiceManagement = () => {
         ...data,
         extraItems: data.extraItems || [],
       }).unwrap();
-      toast.success("Tạo hóa đơn tùy chỉnh thành công!");
+      toast.success("Tạo hóa đơn thành công!");
       setIsGenerateInvoiceDialogOpen(false);
     } catch (error: any) {
       toast.error(error?.message?.message || "Tạo hóa đơn thất bại!");
@@ -378,11 +378,11 @@ const InvoiceManagement = () => {
             onClick={() => setIsGenerateMonthlyDialogOpen(true)}
           >
             <Calendar className="h-4 w-4 mr-2" />
-            Tạo hóa đơn tháng
+            Tạo hóa đơn hàng loạt
           </Button>
           <Button onClick={() => setIsGenerateInvoiceDialogOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
-            Tạo hóa đơn tùy chỉnh
+            Tạo hóa đơn
           </Button>
         </div>
       </div>

@@ -37,13 +37,6 @@ export const ContractActionsGuide = () => {
       availableWhen: "Khi hợp đồng ở trạng thái: Đã ký bởi chủ trọ",
     },
     {
-      icon: CheckCircle,
-      iconColor: "text-purple-600",
-      title: "Xác nhận vào ở",
-      description: "Xác nhận khách thuê đã chính thức vào ở sau khi hợp đồng đã hoàn thành",
-      availableWhen: "Khi hợp đồng ở trạng thái: Hoàn thành và chưa xác nhận vào ở",
-    },
-    {
       icon: Ban,
       iconColor: "text-red-600",
       title: "Chấm dứt hợp đồng",
@@ -102,7 +95,7 @@ export const ContractActionsGuide = () => {
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="pt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {actions.map((action, index) => {
                 const Icon = action.icon;
                 return (

@@ -86,7 +86,6 @@ export interface IUpdateInvoiceRequest {
   note: string;
   discountAmount: number;
   lateFee: number;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
 }
 
 export interface ISendDraftInvoiceRequest {
