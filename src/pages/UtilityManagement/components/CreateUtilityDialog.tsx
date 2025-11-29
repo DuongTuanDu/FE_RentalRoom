@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Droplets, Loader2, Zap } from "lucide-react";
-import { RoomSelectCombobox } from "@/pages/RoomFurnitureLandlord/components/RoomSelectCombobox";
+import { RoomCompletedContractSelectCombobox } from "@/pages/InvoiceManagement/components/RoomCompletedContractSelectCombobox";
 import { useCreateUtilityReadingMutation } from "@/services/utility/utility.service";
 import { toast } from "sonner";
 
@@ -122,7 +122,7 @@ export const CreateUtilityDialog = ({
             <Label>
               Phòng <span className="text-red-500">*</span>
             </Label>
-            <RoomSelectCombobox
+            <RoomCompletedContractSelectCombobox
               value={formData.roomId}
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, roomId: value }))

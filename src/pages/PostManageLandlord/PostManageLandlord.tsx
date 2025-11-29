@@ -35,6 +35,7 @@ import { useFormatPrice } from "@/hooks/useFormatPrice";
 import {
   useGetPostsQuery,
   useCreatePostMutation,
+  useUpdatePostMutation,
   useSoftDeletePostMutation,
 } from "@/services/post/post.service";
 import { STATUS_COLORS, STATUS_LABELS } from "./const/data";
@@ -94,6 +95,7 @@ const PostManageLandlord = () => {
   } = useGetPostsQuery({ page, limit, isDraft });
 
   const [createPost, { isLoading: isCreating }] = useCreatePostMutation();
+  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation();
   const [softDeletePost, { isLoading: isDeleting }] =
     useSoftDeletePostMutation();
 
@@ -133,12 +135,13 @@ const PostManageLandlord = () => {
   const handleSubmitPost = async (formData: FormData) => {
     try {
       if (editingPost) {
+        await updatePost({ id: editingPost._id, data: formData }).unwrap();
         toast.success("Cập nhật bài đăng thành công");
       } else {
         await createPost(formData).unwrap();
-        toast.success("Tạo bài đăng thành công",
-          {description: "Hãy thiết lập lịch xem phòng"}
-        );
+        toast.success("Tạo bài đăng thành công", {
+          description: "Hãy thiết lập lịch xem phòng",
+        });
       }
       setIsModalOpen(false);
       setEditingPost(null);
@@ -324,7 +327,7 @@ const PostManageLandlord = () => {
                 {/* Content */}
                 <CardContent className="px-4 pb-4">
                   {/* Tiêu đề */}
-                  <h3 className="text-base font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-base font-semibold line-clamp-1 mb-2 group-hover:text-primary transition-colors">
                     {post.title}
                   </h3>
 
@@ -360,7 +363,12 @@ const PostManageLandlord = () => {
 
                   {/* Mô tả ngắn */}
                   <p className="text-sm text-muted-foreground line-clamp-1 mb-4">
-                    {post.description.replace(/<[^>]*>/g, "")}
+                    <div
+              className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
+              dangerouslySetInnerHTML={{
+                __html: post.description,
+              }}
+            />
                   </p>
 
                   {/* Actions */}
@@ -495,7 +503,7 @@ const PostManageLandlord = () => {
         }}
         post={editingPost}
         onSubmit={handleSubmitPost}
-        isLoading={isCreating}
+        isLoading={isCreating || isUpdating}
       />
 
       {/* Delete Post Popover */}

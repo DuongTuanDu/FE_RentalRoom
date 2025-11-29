@@ -43,7 +43,7 @@ import {
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
-import { RoomSelectCombobox } from "@/pages/RoomFurnitureLandlord/components/RoomSelectCombobox";
+import { RoomCompletedContractSelectCombobox } from "@/pages/InvoiceManagement/components/RoomCompletedContractSelectCombobox";
 import type { IUtilityItem } from "@/types/utility";
 import { CreateUtilityDialog } from "./components/CreateUtilityDialog";
 import { CreateUtilityBulkDialog } from "./components/CreateUtilityBulkDialog";
@@ -61,7 +61,6 @@ const UtilityManagement = () => {
   const [pageLimit, setPageLimit] = useState(20);
   const [buildingId, setBuildingId] = useState("");
   const [roomId, setRoomId] = useState("");
-  console.log("roomId", roomId);
   
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodMonth, setPeriodMonth] = useState("");
@@ -266,7 +265,7 @@ const UtilityManagement = () => {
               </div>
               <div>
                 <Label className="mb-2 block">Phòng</Label>
-                <RoomSelectCombobox
+                <RoomCompletedContractSelectCombobox
                   value={roomId}
                   onValueChange={(value) => {
                     setRoomId(value);

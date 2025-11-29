@@ -32,7 +32,7 @@ const PostCard = ({
   formatDate = (v) => (v ? new Date(v).toLocaleDateString() : ""),
   formatPrice = (v) => (typeof v === "number" ? v.toLocaleString("vi-VN") : ""),
   className,
-  onViewDetail
+  onViewDetail,
 }: PostCardProps) => {
   const navigate = useNavigate();
   const images = post.images || [];
@@ -45,7 +45,7 @@ const PostCard = ({
     // Gọi callback để lưu vào localStorage
     if (onViewDetail) {
       console.log("bịp");
-      
+
       onViewDetail(post);
     }
     // Navigate đến trang chi tiết
@@ -148,7 +148,12 @@ const PostCard = ({
 
         {/* Mô tả ngắn */}
         <p className="text-sm text-muted-foreground line-clamp-1 mb-4">
-          {(post.description || "").replace(/<[^>]*>/g, "")}
+          <div
+            className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
+            dangerouslySetInnerHTML={{
+              __html: post.description,
+            }}
+          />
         </p>
 
         {/* Actions */}

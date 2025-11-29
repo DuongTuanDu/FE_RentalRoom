@@ -250,8 +250,10 @@ const PostDetailResident = () => {
         <CardContent>
           {post.description ? (
             <div
-              className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: post.description }}
+              className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
+              dangerouslySetInnerHTML={{
+                __html: post.description,
+              }}
             />
           ) : (
             <p className="text-muted-foreground">Chưa có mô tả.</p>
