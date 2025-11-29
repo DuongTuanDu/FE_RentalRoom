@@ -14,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  useUpdateCommentMutation,
-  useDeleteCommentMutation,
+  useUpdateCommentTenantMutation,
+  useDeleteCommentTenantMutation,
 } from "@/services/maintenance/maintenance.service";
 import { toast } from "sonner";
 import { Loader2, Edit2, Trash2, X, Check, MoreVertical } from "lucide-react";
@@ -44,22 +44,27 @@ const commentSchema = z.object({
 
 type CommentFormValues = z.infer<typeof commentSchema>;
 
-interface CommentItemProps {
+interface CommentItemTenantProps {
   comment: ITimeline;
   maintenanceId: string;
 }
 
-export const CommentItem = ({ comment, maintenanceId }: CommentItemProps) => {
+export const CommentItemTenant = ({
+  comment,
+  maintenanceId,
+}: CommentItemTenantProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formatDate = useFormatDate();
   const { userInfo } = useSelector((state: any) => state.auth);
 
-  // Kiểm tra xem comment có phải của user hiện tại không
+  // Kiểm tra xem comment có phải của user hiện tại không (tenant)
   const isOwnComment = comment.by._id === userInfo?._id;
 
-  const [updateComment, { isLoading: isUpdating }] = useUpdateCommentMutation();
-  const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
+  const [updateComment, { isLoading: isUpdating }] =
+    useUpdateCommentTenantMutation();
+  const [deleteComment, { isLoading: isDeleting }] =
+    useDeleteCommentTenantMutation();
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
@@ -188,7 +193,7 @@ export const CommentItem = ({ comment, maintenanceId }: CommentItemProps) => {
           isOwnComment ? "flex-row-reverse" : "flex-row"
         }`}
       >
-        {/* Avatar - chỉ hiển thị bên trái cho người thuê, bên phải cho chủ trọ */}
+        {/* Avatar */}
         <Avatar
           className={`h-9 w-9 shrink-0 border-2 ${
             isOwnComment
@@ -236,58 +241,58 @@ export const CommentItem = ({ comment, maintenanceId }: CommentItemProps) => {
 
           {/* Message Content */}
           <div className="flex items-center gap-2">
-          {isOwnComment && (
-            <div className="flex">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700"
-                  >
-                    <MoreVertical className="h-3.5 w-3.5 text-slate-500" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setIsEditing(true)}
-                    disabled={isDeleting}
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Chỉnh sửa
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    disabled={isDeleting}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Xóa
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+            {isOwnComment && (
+              <div className="flex">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700"
+                    >
+                      <MoreVertical className="h-3.5 w-3.5 text-slate-500" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setIsEditing(true)}
+                      disabled={isDeleting}
+                    >
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Chỉnh sửa
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      disabled={isDeleting}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Xóa
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
 
-          <div className="relative group">
-            <div
-              className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-                isOwnComment
-                  ? "bg-blue-500 text-white rounded-tr-sm"
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-tl-sm"
-              }`}
-            >
-              <p
-                className={`text-sm leading-relaxed whitespace-pre-wrap ${
+            <div className="relative group">
+              <div
+                className={`rounded-2xl px-4 py-2.5 shadow-sm ${
                   isOwnComment
-                    ? "text-white"
-                    : "text-slate-700 dark:text-slate-200"
+                    ? "bg-blue-500 text-white rounded-tr-sm"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-tl-sm"
                 }`}
               >
-                {comment.note}
-              </p>
+                <p
+                  className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                    isOwnComment
+                      ? "text-white"
+                      : "text-slate-700 dark:text-slate-200"
+                  }`}
+                >
+                  {comment.note}
+                </p>
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
@@ -326,3 +331,4 @@ export const CommentItem = ({ comment, maintenanceId }: CommentItemProps) => {
     </>
   );
 };
+
