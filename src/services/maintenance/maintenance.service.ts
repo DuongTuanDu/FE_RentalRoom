@@ -45,11 +45,26 @@ export const maintenanceApi = createApi({
       }),
       invalidatesTags: ["Maintenance"],
     }),
-    createComment: builder.mutation<any, { id: string; data: ICommentMaintenanceRequest }>({
+    createComment: builder.mutation<IMaintenanceResponse, { id: string; data: ICommentMaintenanceRequest }>({
       query: ({ id, data }) => ({
         url: `/landlords/maintenance/${id}/comment`,
         method: "POST",
         data,
+      }),
+      invalidatesTags: ["Maintenance", "MaintenanceDetail"],
+    }),
+    updateComment: builder.mutation<IMaintenanceResponse, { id: string; commentId: string; data: {note: string} }>({
+      query: ({ id, commentId, data }) => ({
+        url: `/landlords/maintenance/${id}/comment/${commentId}`,
+        method: "PUT",
+        data,
+      }),
+      invalidatesTags: ["Maintenance", "MaintenanceDetail"],
+    }),
+    deleteComment: builder.mutation<IMaintenanceResponse, { id: string; commentId: string }>({
+      query: ({ id, commentId }) => ({
+        url: `/landlords/maintenance/${id}/comment/${commentId}`,
+        method: "DELETE",
       }),
       invalidatesTags: ["Maintenance", "MaintenanceDetail"],
     }),
@@ -83,11 +98,26 @@ export const maintenanceApi = createApi({
       }),
       providesTags: ["Maintenance"],
     }),
-    createCommentTenant: builder.mutation<any, { id: string; data: ICommentMaintenanceRequest }>({
+    createCommentTenant: builder.mutation<IMaintenanceTenantResponse, { id: string; data: ICommentMaintenanceRequest }>({
       query: ({ id, data }) => ({
         url: `/maintenance/${id}/comment`,
         method: "POST",
         data,
+      }),
+      invalidatesTags: ["Maintenance"],
+    }),
+    updateCommentTenant: builder.mutation<IMaintenanceTenantResponse, { id: string; commentId: string; data: {note: string} }>({
+      query: ({ id, commentId, data }) => ({
+        url: `/maintenance/${id}/comment/${commentId}`,
+        method: "PUT",
+        data,
+      }),
+      invalidatesTags: ["Maintenance"],
+    }),
+    deleteCommentTenant: builder.mutation<IMaintenanceTenantResponse, { id: string; commentId: string }>({
+      query: ({ id, commentId }) => ({
+        url: `/maintenance/${id}/comment/${commentId}`,
+        method: "DELETE",
       }),
       invalidatesTags: ["Maintenance"],
     })
@@ -99,10 +129,14 @@ export const {
   useGetMaintenanceDetailsQuery,
   useUpdateMaintenanceMutation,
   useCreateCommentMutation,
+  useUpdateCommentMutation,
+  useDeleteCommentMutation,
 
   // Tenant
   useGetTenantMaintenancesQuery,
   useCreateMaintenanceMutation,
   useGetMaintenanceTenantDetailsQuery,
-  useCreateCommentTenantMutation
+  useCreateCommentTenantMutation,
+  useUpdateCommentTenantMutation,
+  useDeleteCommentTenantMutation
 } = maintenanceApi;

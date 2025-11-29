@@ -9,6 +9,7 @@ import {
   Eye,
   BarChart3,
   List,
+  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -439,52 +440,6 @@ const RevenueManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Bộ lọc</CardTitle>
-          <CardDescription>
-            Lọc danh sách thu chi và xuất Excel theo các tiêu chí
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Loại</Label>
-            <Select
-              value={selectedType}
-              onValueChange={(v: "all" | "revenue" | "expenditure") =>
-                setSelectedType(v)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="revenue">Thu</SelectItem>
-                <SelectItem value="expenditure">Chi</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Từ ngày</Label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Đến ngày</Label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Table */}
       <Card>
         <CardHeader>
@@ -539,6 +494,46 @@ const RevenueManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Filters */}
+          <div className="mb-6 pb-6 border-b">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Loại</Label>
+                <Select
+                  value={selectedType}
+                  onValueChange={(v: "all" | "revenue" | "expenditure") =>
+                    setSelectedType(v)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="revenue">Thu</SelectItem>
+                    <SelectItem value="expenditure">Chi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Từ ngày</Label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Đến ngày</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           {tableView === "list" ? (
             <>
               <div className="rounded-md border overflow-hidden">
@@ -550,6 +545,7 @@ const RevenueManagement = () => {
                       <TableHead>Tiêu đề</TableHead>
                       <TableHead>Loại</TableHead>
                       <TableHead>Số tiền</TableHead>
+                      <TableHead>Hình ảnh</TableHead>
                       <TableHead>Ngày ghi nhận</TableHead>
                       <TableHead>Ngày tạo</TableHead>
                       <TableHead className="w-[140px] text-right">
@@ -561,7 +557,7 @@ const RevenueManagement = () => {
                     {isRevenuesLoading ? (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={9}
                           className="text-center py-8 text-muted-foreground"
                         >
                           Đang tải...
@@ -570,7 +566,7 @@ const RevenueManagement = () => {
                     ) : !revenuesData || revenuesData.data.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={9}
                           className="text-center py-8 text-muted-foreground"
                         >
                           Không có dữ liệu thu chi
@@ -599,6 +595,32 @@ const RevenueManagement = () => {
                           </TableCell>
                           <TableCell className="font-semibold">
                             {formatPrice(revenue.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {revenue.images && revenue.images.length > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <img
+                                    src={revenue.images[0]}
+                                    alt={`Thumbnail ${idx + 1}`}
+                                    className="w-10 h-10 object-cover rounded border"
+                                  />
+                                  {revenue.images.length > 1 && (
+                                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                                      +{revenue.images.length - 1}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {revenue.images.length} ảnh
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-muted-foreground">
+                                <ImageIcon className="h-4 w-4" />
+                                <span className="ml-1 text-xs">Không có</span>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>{formatDate(revenue.recordedAt)}</TableCell>
                           <TableCell>{formatDate(revenue.createdAt)}</TableCell>

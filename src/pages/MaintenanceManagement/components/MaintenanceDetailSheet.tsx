@@ -13,11 +13,12 @@ import {
   Calendar,
   AlertCircle,
   Image as ImageIcon,
-  Clock,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useGetMaintenanceDetailsQuery } from "@/services/maintenance/maintenance.service";
 import { CreateCommentForm } from "./CreateCommentForm";
+import { CommentItem } from "./CommentItem";
+import { MessageSquare } from "lucide-react";
 
 const STATUS_COLORS = {
   open: "bg-blue-100 text-blue-800",
@@ -205,10 +206,10 @@ export const MaintenanceDetailSheet = ({
                   Người báo cáo
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {maintenance.reporterAccountId.email || "—"}
+                  {maintenance.reporterAccountId.userInfo.fullName || maintenance.reporterAccountId.email || "—"}
                 </p>
               </div>
-              {/* {maintenance.assigneeAccountId && (
+              {maintenance.assigneeAccountId && (
                 <>
                   <Separator />
                   <div>
@@ -216,11 +217,11 @@ export const MaintenanceDetailSheet = ({
                       Người được giao
                     </label>
                     <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                      {maintenance.assigneeAccountId.email || "—"}
+                      {maintenance.assigneeAccountId.userInfo.fullName || maintenance.assigneeAccountId.email || "—"}
                     </p>
                   </div>
                 </>
-              )} */}
+              )}
             </div>
           </div>
 
@@ -248,53 +249,55 @@ export const MaintenanceDetailSheet = ({
             </div>
           )}
 
-          {/* Timeline */}
-          {maintenance.timeline && maintenance.timeline.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                <Clock className="w-4 h-4" />
-                Lịch sử xử lý
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
-                <div className="space-y-4">
-                  {maintenance.timeline.map((item, index) => (
-                    <div key={item._id} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
-                        {index < maintenance.timeline.length - 1 && (
-                          <div className="w-0.5 h-full bg-slate-300 dark:bg-slate-700 mt-2"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                            {item.action}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {formatDate(item.at)}
-                          </p>
-                        </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                          Bởi: {item.by.userInfo.fullName}
-                        </p>
-                        {item.note && (
-                          <p className="text-sm text-slate-700 dark:text-slate-300 mt-2">
-                            {item.note}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Comments Section */}
+          {(() => {
+            const comments = maintenance.timeline;
 
-          {/* Tạo comment */}
-          <div className="space-y-4">
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <MessageSquare className="w-4 h-4" />
+                    Bình luận
+                    {comments.length > 0 && (
+                      <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
+                        {comments.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {comments.length > 0 ? (
+                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 min-h-[200px] max-h-[500px] overflow-y-auto">
+                    <div className="space-y-2">
+                      {comments.map((comment) => (
+                        <CommentItem
+                          key={comment._id}
+                          comment={comment}
+                          maintenanceId={maintenance._id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center">
+                    <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Chưa có bình luận nào
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      Hãy là người đầu tiên bình luận về yêu cầu này
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Add Comment Section */}
+          <div className="space-y-4 border-t border-slate-200 dark:border-slate-700 pt-6">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
               <User className="w-4 h-4" />
-              Thêm bình luận
+              Thêm bình luận mới
             </div>
             <CreateCommentForm maintenanceId={maintenance._id} />
           </div>

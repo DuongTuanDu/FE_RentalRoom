@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useGetTenantMaintenancesQuery } from "@/services/maintenance/maintenance.service";
-import type { IMaintenanceRequestItem } from "@/types/maintenance";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -216,7 +215,7 @@ const Maintenance = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMaintenances.map(
-              (maintenance: IMaintenanceRequestItem) => (
+              (maintenance) => (
                 <Card
                   key={maintenance._id}
                   className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col py-0"
@@ -264,9 +263,9 @@ const Maintenance = () => {
                             <User className="h-3.5 w-3.5 shrink-0" />
                             <span
                               className="truncate"
-                              title={maintenance.assignee}
+                              title={maintenance.assignee.name}
                             >
-                              {maintenance.assignee}
+                              {maintenance.assignee.name}
                             </span>
                           </div>
                         )}

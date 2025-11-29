@@ -9,7 +9,7 @@ export interface IMaintenanceDetailItem {
   roomId: {
     _id: string;
     roomNumber: string;
-    currentTenantIds: string[]
+    currentTenantIds: string[];
   };
   furnitureId: IFurniture;
   category: ICategory;
@@ -24,7 +24,15 @@ export interface IMaintenanceDetailItem {
   affectedQuantity: number;
   timeline: ITimeline[];
   repairCost: number;
-  image: string[] // ảnh landlord gửi
+  image: string[]; // ảnh landlord gửi
+  assigneeAccountId: {
+    _id: string;
+    email: string;
+    userInfo: {
+      _id: string;
+      fullName: string;
+    };
+  }
   createdAt: string;
 }
 
@@ -71,7 +79,10 @@ export interface IReporterAccount {
   _id: string;
   email: string;
   password: string;
-  userInfo: string;
+  userInfo: {
+    _id: string;
+    fullName: string;
+  };
   role: "resident" | "landlord" | "admin";
   isActivated: boolean;
   accessToken: string;
@@ -244,7 +255,10 @@ export interface IMaintenanceRequestItem {
     name: string;
     isMe: boolean;
   };
-  assignee: string | null;
+  assignee: {
+    name: string;
+    phone: number;
+  };
   photoCount: number;
   hasPhoto: boolean;
   affectedQuantity: number;

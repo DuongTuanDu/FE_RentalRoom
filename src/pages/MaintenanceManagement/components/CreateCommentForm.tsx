@@ -6,7 +6,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,7 +58,7 @@ export const CreateCommentForm = ({
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
@@ -67,11 +66,11 @@ export const CreateCommentForm = ({
             name="note"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bình luận</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Nhập bình luận của bạn..."
-                    rows={3}
+                    placeholder="Viết bình luận của bạn ở đây..."
+                    rows={4}
+                    className="resize-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                     {...field}
                   />
                 </FormControl>
@@ -79,14 +78,28 @@ export const CreateCommentForm = ({
               </FormItem>
             )}
           />
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading} size="sm">
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => form.reset()}
+              disabled={isLoading}
+            >
+              Hủy
+            </Button>
+            <Button type="submit" disabled={isLoading} size="sm" className="min-w-[120px]">
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang gửi...
+                </>
               ) : (
-                <Send className="mr-2 h-4 w-4" />
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Gửi bình luận
+                </>
               )}
-              Gửi bình luận
             </Button>
           </div>
         </form>
