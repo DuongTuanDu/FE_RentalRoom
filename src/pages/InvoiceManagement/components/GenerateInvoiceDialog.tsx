@@ -84,7 +84,21 @@ export const GenerateInvoiceDialog = ({
         limit: 10,
       },
       {
-        skip: !buildingId, // Skip query if no buildingId
+        skip: !buildingId,
+      }
+    );
+
+  // Get room contract info for selected room
+  const { data: selectedRoomContractData, isLoading: isLoadingSelectedRoom } =
+    useGetRoomsCompletedContractQuery(
+      {
+        buildingId: buildingId || undefined,
+        roomId: roomId || undefined,
+        page: 1,
+        limit: 100,
+      },
+      {
+        skip: !buildingId || !roomId,
       }
     );
 
@@ -420,6 +434,69 @@ export const GenerateInvoiceDialog = ({
                 ) : (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     Chưa có dịch vụ nào được cấu hình
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Room Price Info */}
+          {roomId && selectedRoomContractData?.data && (
+            <Card className="border-purple-200 dark:border-purple-800">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  Giá phòng
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Thông tin giá phòng theo hợp đồng
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingSelectedRoom ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Đang tải...
+                    </span>
+                  </div>
+                ) : selectedRoomContractData?.data && selectedRoomContractData.data.length > 0 ? (
+                  (() => {
+                    const selectedRoomContract = selectedRoomContractData.data[0];
+                    return (
+                      <div className="p-3 rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">
+                              Phòng:
+                            </span>
+                            <span className="text-sm font-medium">
+                              Phòng {selectedRoomContract.room.roomNumber}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">
+                              Số hợp đồng:
+                            </span>
+                            <span className="text-sm font-medium">
+                              {selectedRoomContract.contract.no}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t border-purple-200 dark:border-purple-800">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              Giá phòng/tháng:
+                            </span>
+                            <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
+                              {selectedRoomContract.contract.price.toLocaleString("vi-VN")} đ
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    Không tìm thấy thông tin hợp đồng
                   </div>
                 )}
               </CardContent>

@@ -84,6 +84,17 @@ export const postApi = createApi({
       }),
       invalidatesTags: ["Post"],
     }),
+    updatePost: builder.mutation<IGetPostsResponse, { id: string; data: FormData }>({
+      query: ({ id, data }) => ({
+        url: `/landlords/posts/${id}`,
+        method: "PUT",
+        data,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }),
+      invalidatesTags: ["Post"],
+    }),
     softDeletePost: builder.mutation<IGetPostsResponse, string>({
       query: (id) => ({
         url: `/landlords/posts/${id}/soft-delete`,
@@ -122,6 +133,7 @@ export const {
   useGetPostsQuery,
   useAiGeneratePostMutation,
   useCreatePostMutation,
+  useUpdatePostMutation,
   useSoftDeletePostMutation,
   useGetVacantRoomsByBuildingIdQuery,
   useGetPostDetailsQuery,

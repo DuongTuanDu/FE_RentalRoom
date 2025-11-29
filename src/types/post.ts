@@ -12,7 +12,7 @@ export interface IPost {
   buildingId: {
     name: string;
     address: string;
-    id: string;
+    _id: string;
   };
   roomIds: string[];
   title: string;
