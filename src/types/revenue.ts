@@ -22,6 +22,7 @@ export interface IRevenue {
   description: string;
   type: "revenue" | "expenditure";
   amount: number;
+  images: string[];
   recordedAt: string;
   isDeleted: boolean;
   createdAt: string;
@@ -36,6 +37,7 @@ export interface IRevenueRequest {
   type: "revenue" | "expenditure";
   amount: number;
   recordedAt: string;
+  images: File[];
 }
 
 export interface IRevenueResponse {

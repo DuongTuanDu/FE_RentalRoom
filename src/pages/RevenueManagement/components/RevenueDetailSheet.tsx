@@ -16,6 +16,7 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
+  ImageIcon,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
@@ -141,6 +142,40 @@ export const RevenueDetailSheet = ({
                 <p className="text-base text-slate-900 dark:text-slate-100 whitespace-pre-wrap">
                   {revenue.description}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Hình ảnh */}
+          {revenue.images && revenue.images.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <ImageIcon className="w-4 h-4" />
+                Hình ảnh ({revenue.images.length})
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {revenue.images.map((imageUrl, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-square relative overflow-hidden rounded-lg border">
+                        <img
+                          src={imageUrl}
+                          alt={`Hình ảnh ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => window.open(imageUrl, "_blank")}
+                            className="text-white text-sm font-medium px-3 py-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                          >
+                            Xem ảnh
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

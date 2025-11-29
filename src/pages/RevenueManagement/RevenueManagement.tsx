@@ -9,6 +9,7 @@ import {
   Eye,
   BarChart3,
   List,
+  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -550,6 +551,7 @@ const RevenueManagement = () => {
                       <TableHead>Tiêu đề</TableHead>
                       <TableHead>Loại</TableHead>
                       <TableHead>Số tiền</TableHead>
+                      <TableHead>Hình ảnh</TableHead>
                       <TableHead>Ngày ghi nhận</TableHead>
                       <TableHead>Ngày tạo</TableHead>
                       <TableHead className="w-[140px] text-right">
@@ -561,7 +563,7 @@ const RevenueManagement = () => {
                     {isRevenuesLoading ? (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={9}
                           className="text-center py-8 text-muted-foreground"
                         >
                           Đang tải...
@@ -570,7 +572,7 @@ const RevenueManagement = () => {
                     ) : !revenuesData || revenuesData.data.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={9}
                           className="text-center py-8 text-muted-foreground"
                         >
                           Không có dữ liệu thu chi
@@ -599,6 +601,32 @@ const RevenueManagement = () => {
                           </TableCell>
                           <TableCell className="font-semibold">
                             {formatPrice(revenue.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {revenue.images && revenue.images.length > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <img
+                                    src={revenue.images[0]}
+                                    alt={`Thumbnail ${idx + 1}`}
+                                    className="w-10 h-10 object-cover rounded border"
+                                  />
+                                  {revenue.images.length > 1 && (
+                                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                                      +{revenue.images.length - 1}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {revenue.images.length} ảnh
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-muted-foreground">
+                                <ImageIcon className="h-4 w-4" />
+                                <span className="ml-1 text-xs">Không có</span>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>{formatDate(revenue.recordedAt)}</TableCell>
                           <TableCell>{formatDate(revenue.createdAt)}</TableCell>
