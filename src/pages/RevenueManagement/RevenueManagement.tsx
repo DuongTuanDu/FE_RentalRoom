@@ -440,52 +440,6 @@ const RevenueManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Bộ lọc</CardTitle>
-          <CardDescription>
-            Lọc danh sách thu chi và xuất Excel theo các tiêu chí
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Loại</Label>
-            <Select
-              value={selectedType}
-              onValueChange={(v: "all" | "revenue" | "expenditure") =>
-                setSelectedType(v)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="revenue">Thu</SelectItem>
-                <SelectItem value="expenditure">Chi</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Từ ngày</Label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Đến ngày</Label>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Table */}
       <Card>
         <CardHeader>
@@ -540,6 +494,46 @@ const RevenueManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Filters */}
+          <div className="mb-6 pb-6 border-b">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Loại</Label>
+                <Select
+                  value={selectedType}
+                  onValueChange={(v: "all" | "revenue" | "expenditure") =>
+                    setSelectedType(v)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="revenue">Thu</SelectItem>
+                    <SelectItem value="expenditure">Chi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Từ ngày</Label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Đến ngày</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           {tableView === "list" ? (
             <>
               <div className="rounded-md border overflow-hidden">
