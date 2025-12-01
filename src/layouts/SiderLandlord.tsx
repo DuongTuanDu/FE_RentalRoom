@@ -20,6 +20,7 @@ import {
   FileSignature,
   FileSpreadsheet,
   BellElectric,
+  WashingMachine,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -102,7 +103,7 @@ const menuItems = [
   {
     title: "Tài chính",
     icon: DollarSign,
-    staffAccess: true, 
+    staffAccess: true,
     items: [
       {
         title: "Hóa đơn",
@@ -115,7 +116,7 @@ const menuItems = [
         icon: ClipboardList,
         path: "/landlord/revenues",
         staffAccess: true,
-      }
+      },
     ],
   },
   {
@@ -133,6 +134,12 @@ const menuItems = [
         title: "Quản lý điện nước",
         icon: BellElectric,
         path: "/landlord/utilities",
+        staffAccess: true,
+      },
+      {
+        title: "Thiết bị giặt sấy",
+        icon: WashingMachine,
+        path: "/landlord/laundry-devices",
         staffAccess: true,
       },
       {
@@ -178,7 +185,7 @@ const menuItems = [
     title: "Quản lý bài viết",
     icon: Newspaper,
     path: "/landlord/posts",
-    staffAccess: true, 
+    staffAccess: true,
   },
   {
     title: "Quản lý hợp đồng",
@@ -189,7 +196,7 @@ const menuItems = [
         title: "Quản lý điều khoản",
         icon: FileSignature,
         path: "/landlord/terms",
-        staffAccess: true
+        staffAccess: true,
       },
       {
         title: "Mẫu hợp đồng",
@@ -232,7 +239,7 @@ const menuItems = [
   {
     title: "Gói dịch vụ",
     icon: Layers,
-    staffAccess: false, 
+    staffAccess: false,
     items: [
       {
         title: "Các gói dịch vụ",
@@ -274,9 +281,10 @@ const AppSidebar = () => {
   const dispatch = useDispatch();
   const authState = useSelector((state: any) => state.auth);
 
-  const isStaff = authState.userInfo?.role === "staff" || 
-                  authState.userInfo?.userType === "staff" ||
-                  authState.role === "staff";
+  const isStaff =
+    authState.userInfo?.role === "staff" ||
+    authState.userInfo?.userType === "staff" ||
+    authState.role === "staff";
 
   const adminInfo = {
     name: authState.userInfo?.name || (isStaff ? "Nhân viên" : "Chủ trọ"),
@@ -298,24 +306,28 @@ const AppSidebar = () => {
   const isActivePath = (path: string) => location.pathname === path;
 
   const filterMenuItems = (items: any[]) => {
-    return items.filter(item => {
-      if (!isStaff) return true;
-      
-      if (item.items) {
-        const filteredSubItems = item.items.filter((subItem: any) => subItem.staffAccess);
-        return item.staffAccess && filteredSubItems.length > 0;
-      }
-      
-      return item.staffAccess;
-    }).map(item => {
-      if (item.items && isStaff) {
-        return {
-          ...item,
-          items: item.items.filter((subItem: any) => subItem.staffAccess)
-        };
-      }
-      return item;
-    });
+    return items
+      .filter((item) => {
+        if (!isStaff) return true;
+
+        if (item.items) {
+          const filteredSubItems = item.items.filter(
+            (subItem: any) => subItem.staffAccess
+          );
+          return item.staffAccess && filteredSubItems.length > 0;
+        }
+
+        return item.staffAccess;
+      })
+      .map((item) => {
+        if (item.items && isStaff) {
+          return {
+            ...item,
+            items: item.items.filter((subItem: any) => subItem.staffAccess),
+          };
+        }
+        return item;
+      });
   };
 
   const filteredMenuItems = filterMenuItems(menuItems);

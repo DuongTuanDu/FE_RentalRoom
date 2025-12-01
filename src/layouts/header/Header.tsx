@@ -11,6 +11,7 @@ import {
   ScrollText,
   Wrench,
   Receipt,
+  WashingMachine,
 } from "lucide-react";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
@@ -184,6 +185,13 @@ const Header = () => {
                     >
                       <Receipt className="mr-2 h-4 w-4" />
                       <span>Hóa đơn của tôi</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.washerPath)}
+                      className="cursor-pointer"
+                    >
+                      <WashingMachine className="mr-2 h-4 w-4" />
+                      <span>Thiết bị giặt sấy</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate(config.maintenancePath)}
