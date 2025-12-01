@@ -23,6 +23,7 @@ import type { IAccount } from "@/types/account";
 import { toast } from "sonner";
 import AlertInactiveAccount from "./components/AlertInactiveAccount";
 import AccountDetailModal from "./components/ModalAccountDetail";
+import _ from "lodash";
 
 const AccountManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
