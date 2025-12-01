@@ -13,6 +13,7 @@ export default {
   maintenancePath: '/maintenance',
   myInvoicePath: '/my-invoices',
   settingPath: '/settings',
+  washerPath: '/washers',
   myRoomPath: '/my-rooms',
   contractPath: '/contracts',
   roleAdmin: "admin",

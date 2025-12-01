@@ -9,7 +9,6 @@ import { lazyLoad } from '@/utils/lazyLoad'
 const residentRoutes = (
   <>
     <Route path={config.profilePath} element={lazyLoad(() => import('@/pages/Profile'))} />
-    <Route path={config.postDetailUserPath} element={lazyLoad(() => import('@/pages/PostDetail/PostDetailResident'))} />
     <Route path={config.contactRequestPath} element={lazyLoad(() => import('@/pages/ContactRequest'))} />
     <Route path="/resident/contact-requests" element={<ContactRequest />} />
     <Route path="/resident/my-appointments" element={<MyAppointment />} />
@@ -18,6 +17,7 @@ const residentRoutes = (
     <Route path={config.maintenancePath} element={lazyLoad(() => import('@/pages/Maintenance'))} />
     <Route path={config.myInvoicePath} element={lazyLoad(() => import('@/pages/Invoice'))} />
     <Route path={config.settingPath} element={lazyLoad(() => import('@/pages/SettingLandlord'))} />
+    <Route path={config.washerPath} element={lazyLoad(() => import('@/pages/Washer'))} />
   </>
 ) as ReactElement
 
