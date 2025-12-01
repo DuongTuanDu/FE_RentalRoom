@@ -41,11 +41,8 @@ const PostCard = ({
   const extraCount = hasImages && images.length > 1 ? images.length - 1 : 0;
 
   const handleViewDetail = () => {
-    console.log("lừa à");
     // Gọi callback để lưu vào localStorage
     if (onViewDetail) {
-      console.log("bịp");
-
       onViewDetail(post);
     }
     // Navigate đến trang chi tiết

@@ -246,7 +246,6 @@ const ModalCreateNotification = ({
       formDataToSend.append("target", JSON.stringify({ rooms: target.rooms }));
     }
 
-    // Thêm ảnh
     images.forEach((image) => {
       formDataToSend.append("images", image);
     });

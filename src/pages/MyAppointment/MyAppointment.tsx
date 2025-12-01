@@ -1,5 +1,9 @@
-import { useState, useMemo, useCallback } from "react";
-import { Calendar, Search, Clock, MapPin, User, Phone, Mail, Building2, FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
+// src/pages/MyAppointments.tsx
+import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  Calendar, Search, Clock, MapPin, User, Phone, Mail,
+  Building2, FileText, X, ChevronLeft, ChevronRight, Loader2
+} from "lucide-react";
 import _ from "lodash";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,57 +30,89 @@ import {
   useGetTenantAppointmentsQuery,
   useCancelAppointmentMutation,
 } from "@/services/room-appointment/room-appointment.service";
+import { useGetPostDetailsResidentsQuery } from "@/services/post/post.service";
 import { toast } from "sonner";
+import CreateContact from "../PostDetail/components/CreateContact";
+import { useNavigate } from "react-router-dom";
 
 const MyAppointments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(5);
+  const [pageLimit, setPageLimit] = useState(10);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const { data: appointmentsData, isLoading: loadingAppointments, error: errorAppointments } = useGetTenantAppointmentsQuery();
 
-  const { data, isLoading, error } = useGetTenantAppointmentsQuery();
+  const [cancelAppointment, { isLoading: cancelling }] = useCancelAppointmentMutation();
 
-  const [cancelAppointment, { isLoading: isCancelling }] = useCancelAppointmentMutation();
+  const {
+    data: postDetailData,
+    isFetching: loadingPostDetail,
+  } = useGetPostDetailsResidentsQuery(selectedPostId!, {
+    skip: !selectedPostId,
+  });
+
+  const postDetail = postDetailData?.data;
+  const fullRooms = postDetail?.rooms ?? [];
 
   const debouncedSetSearch = useMemo(
-    () =>
-      _.debounce((value: string) => {
-        setDebouncedSearch(value);
-        setCurrentPage(1);
-      }, 700),
+    () => _.debounce((value: string) => {
+      setDebouncedSearch(value);
+      setCurrentPage(1);
+    }, 600),
     []
   );
 
-  const handleCancelClick = (appointmentId: string) => {
-    setSelectedAppointmentId(appointmentId);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    debouncedSetSearch(value);
+  }, [debouncedSetSearch]);
+
+  const handleCancelClick = (id: string) => {
+    setAppointmentToCancel(id);
     setCancelDialogOpen(true);
   };
 
   const handleCancelConfirm = async () => {
-    if (!selectedAppointmentId) return;
-
+    if (!appointmentToCancel) return;
     try {
-      await cancelAppointment(selectedAppointmentId).unwrap();
-      toast.success("Hủy lịch hẹn thành công");
+      await cancelAppointment(appointmentToCancel).unwrap();
+      toast.success("Đã hủy lịch hẹn thành công");
       setCancelDialogOpen(false);
-      setSelectedAppointmentId(null);
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi hủy lịch hẹn");
-      console.error("Cancel appointment error:", error);
+      setAppointmentToCancel(null);
+    } catch (err) {
+      toast.error("Hủy lịch thất bại, vui lòng thử lại");
     }
   };
 
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchQuery(value);
-      debouncedSetSearch(value);
-    },
-    [debouncedSetSearch]
-  );
+  const handleRequestContract = (appointment: any) => {
+    const postId = typeof appointment.postId === "object" ? appointment.postId._id : appointment.postId;
+    if (!postId) {
+      toast.error("Không tìm thấy bài đăng");
+      return;
+    }
+    setSelectedPostId(postId); 
+  };
+
+  useEffect(() => {
+    if (selectedPostId && postDetail && !loadingPostDetail) {
+      setIsContactModalOpen(true);
+    }
+  }, [selectedPostId, postDetail, loadingPostDetail]);
+
+  const navigate = useNavigate();
+   const handleViewDetail = (postId: string) => {
+    if (!postId) {
+      toast.error("Không tìm thấy bài đăng");
+      return;
+    }
+    navigate(`/posts/${postId}`);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -93,328 +129,226 @@ const MyAppointments = () => {
     );
   };
 
-  const formatAppointmentDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', { 
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric'
-    });
-  };
+  const formatDate = (date: string) => new Date(date).toLocaleDateString("vi-VN", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  });
 
-  const formatCreatedDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatTime = (date: string) => new Date(date).toLocaleDateString("vi-VN", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit"
+  });
 
-  const filteredData = useMemo(() => {
-    if (!data?.data) return [];
-    
-    let filtered = data.data;
-    
+  const filteredAppointments = useMemo(() => {
+    if (!appointmentsData?.data) return [];
+
+    let list = appointmentsData.data;
+
     if (statusFilter !== "all") {
-      filtered = filtered.filter((appointment) => appointment.status === statusFilter);
+      list = list.filter(a => a.status === statusFilter);
     }
-    
-    if (debouncedSearch) {
-      const searchLower = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((appointment) => {
-        const buildingName = typeof appointment.buildingId === 'object'
-          ? appointment.buildingId.name?.toLowerCase() || ''
-          : '';
-        const postTitle = typeof appointment.postId === 'object'
-          ? appointment.postId.title?.toLowerCase() || ''
-          : '';
 
-        return (
-          buildingName.includes(searchLower) ||
-          postTitle.includes(searchLower)
-        );
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      list = list.filter(a => {
+        const building = typeof a.buildingId === "object" ? a.buildingId.name?.toLowerCase() : "";
+        const post = typeof a.postId === "object" ? a.postId.title?.toLowerCase() : "";
+        return building.includes(q) || post.includes(q);
       });
     }
-    
-    return filtered;
-  }, [data?.data, debouncedSearch, statusFilter]);
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageLimit;
-    const endIndex = startIndex + pageLimit;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, pageLimit]);
+    return list;
+  }, [appointmentsData?.data, statusFilter, debouncedSearch]);
 
-  const totalItems = filteredData.length;
+  const totalItems = filteredAppointments.length;
   const totalPages = Math.ceil(totalItems / pageLimit);
+  const paginated = filteredAppointments.slice(
+    (currentPage - 1) * pageLimit,
+    currentPage * pageLimit
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-black rounded-lg">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                Lịch hẹn xem phòng của tôi
-              </h1>
-              <p className="text-slate-600 mt-1">
-                Quản lý các lịch hẹn xem phòng bạn đã đặt
-              </p>
-            </div>
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <div className="max-w-7xl mx-auto space-y-8">
+
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-black rounded-xl">
+            <Calendar className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Lịch hẹn xem phòng của tôi</h1>
+            <p className="text-slate-600">Quản lý và theo dõi tất cả lịch hẹn bạn đã đặt</p>
           </div>
         </div>
 
         <Card>
-          <CardContent >
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Tìm kiếm theo tên tòa nhà, tiêu đề bài đăng..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="pl-10"
-                  />
-                </div>
+          <CardContent className="pt-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Input
+                  placeholder="Tìm kiếm tòa nhà, tiêu đề bài đăng..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="pl-10"
+                />
               </div>
-              <div>
-                <Select value={statusFilter} onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}>
-                  <SelectTrigger className="w-44">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                    <SelectItem value="accept">Đã xác nhận</SelectItem>
-                    <SelectItem value="reject">Đã từ chối</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select
-                  value={pageLimit.toString()}
-                  onValueChange={(value) => {
-                    setPageLimit(Number(value));
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5 / trang</SelectItem>
-                    <SelectItem value="10">10 / trang</SelectItem>
-                    <SelectItem value="20">20 / trang</SelectItem>
-                    <SelectItem value="50">50 / trang</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="pending">Chờ xác nhận</SelectItem>
+                  <SelectItem value="accepted">Đã xác nhận</SelectItem>
+                  <SelectItem value="rejected">Đã từ chối</SelectItem>
+                  <SelectItem value="cancelled">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={pageLimit.toString()} onValueChange={(v) => { setPageLimit(+v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[5, 10, 20, 50].map(n => (
+                    <SelectItem key={n} value={n.toString()}>{n} / trang</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
 
-        {isLoading ? (
+        {loadingAppointments ? (
+          <Card><CardContent className="py-20 text-center"><Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-600" /></CardContent></Card>
+        ) : errorAppointments || filteredAppointments.length === 0 ? (
           <Card>
-            <CardContent className="py-12">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : error ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
-                <p className="text-red-600 font-medium">Có lỗi xảy ra khi tải dữ liệu</p>
-                <p className="text-slate-500 text-sm mt-2">Vui lòng thử lại sau</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : filteredData.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
-                <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-medium">
-                  Không tìm thấy lịch hẹn nào
-                </p>
-                <p className="text-slate-500 text-sm mt-2">
-                  {searchQuery ? "Thử thay đổi từ khóa tìm kiếm" : "Bạn chưa đặt lịch hẹn nào"}
-                </p>
-              </div>
+            <CardContent className="py-20 text-center">
+              <Calendar className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+              <p className="text-lg font-medium text-slate-600">Chưa có lịch hẹn nào</p>
+              <p className="text-slate-500 mt-2">{searchQuery ? "Không tìm thấy kết quả phù hợp" : "Bạn chưa đặt lịch xem phòng"}</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {paginatedData.map((appointment) => (
-              <Card key={appointment._id} className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl text-blue-600 mb-2">
-                        {typeof appointment.postId === 'object'
-                          ? appointment.postId.title
-                          : '—'}
+          <div className="space-y-6">
+            {paginated.map((appt) => (
+              <Card key={appt._id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl text-blue-600" onClick={() => handleViewDetail(typeof appt.postId === "object" ? appt.postId._id : "")} style={{ cursor: 'pointer' }}>
+                      {typeof appt.postId === "object" ? appt.postId.title : "Bài đăng không tồn tại"}
                       </CardTitle>
-                      <div className="flex items-center gap-2 text-slate-600">
+                      <div className="flex items-center gap-2 mt-1 text-slate-600">
                         <Building2 className="w-4 h-4" />
                         <span className="font-medium">
-                          {typeof appointment.buildingId === 'object'
-                            ? appointment.buildingId.name
-                            : '—'}
+                          {typeof appt.buildingId === "object" ? appt.buildingId.name : "—"}
                         </span>
                       </div>
                     </div>
-                    <div>
-                      {getStatusBadge(appointment.status)}
-                    </div>
+                    {getStatusBadge(appt.status)}
                   </div>
                 </CardHeader>
-                
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                          Thông tin lịch hẹn
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3">
-                            <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Ngày hẹn</p>
-                              <p className="font-medium text-slate-900">
-                                {formatAppointmentDate(appointment.date)}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-start gap-3">
-                            <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Giờ hẹn</p>
-                              <p className="font-medium text-blue-600 text-lg">
-                                {appointment.timeSlot}
-                              </p>
-                            </div>
-                          </div>
 
-                          <div className="flex items-start gap-3">
-                            <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Địa chỉ</p>
-                              <p className="text-slate-900">
-                                {typeof appointment.buildingId === 'object'
-                                  ? appointment.buildingId.address || appointment.postId.address
-                                  : '—'}
-                              </p>
-                            </div>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-slate-700">Thông tin lịch hẹn</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex gap-3">
+                          <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Ngày hẹn</p>
+                            <p className="font-medium">{formatDate(appt.date)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Giờ hẹn</p>
+                            <p className="font-medium text-lg text-blue-600">{appt.timeSlot}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Địa chỉ</p>
+                            <p className="font-medium">{typeof appt.postId === "object" ? appt.postId.address : "—"}</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                          Thông tin liên hệ
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3">
-                            <User className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Người liên hệ</p>
-                              <p className="font-medium text-slate-900">
-                                {appointment.contactName}
-                              </p>
-                            </div>
+                      <h3 className="font-semibold text-slate-700">Thông tin liên hệ</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex gap-3">
+                          <User className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Người đặt</p>
+                            <p className="font-medium">{appt.contactName}</p>
                           </div>
-
-                          <div className="flex items-start gap-3">
-                            <Phone className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Số điện thoại</p>
-                              <p className="font-medium text-slate-900">
-                                {appointment.contactPhone}
-                              </p>
-                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <Phone className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Số điện thoại</p>
+                            <p className="font-medium">{appt.contactPhone}</p>
                           </div>
-
-                          <div className="flex items-start gap-3">
-                            <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm text-slate-500">Email chủ trọ</p>
-                              <p className="font-medium text-slate-900">
-                                {typeof appointment.landlordId === 'object'
-                                  ? appointment.landlordId?.email
-                                  : '—'}
-                              </p>
-                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-slate-500">Email chủ trọ</p>
+                            <p>{typeof appt.landlordId === "object" ? appt.landlordId.email : "—"}</p>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {(appointment.tenantNote || appointment.landlordNote) && (
-                    <div className="mt-6 pt-6 border-t border-slate-200">
-                      <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                        Ghi chú
-                      </h3>
-                      <div className="space-y-3">
-                        {appointment.tenantNote && (
-                          <div className="flex items-start gap-3">
-                            <FileText className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-sm text-slate-500">Ghi chú của bạn</p>
-                              <p className="text-slate-900 bg-blue-50 p-3 rounded-lg mt-1">
-                                {appointment.tenantNote}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {appointment.landlordNote && (
-                          <div className="flex items-start gap-3">
-                            <FileText className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-sm text-slate-500">Phản hồi từ chủ trọ</p>
-                              <p className="text-slate-900 bg-orange-50 p-3 rounded-lg mt-1">
-                                {appointment.landlordNote}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                  {(appt.tenantNote || appt.landlordNote) && (
+                    <div className="pt-6 border-t">
+                      <h3 className="font-semibold text-slate-700 mb-3">Ghi chú</h3>
+                      {appt.tenantNote && (
+                        <div className="bg-blue-50 p-4 rounded-lg mb-3">
+                          <p className="text-sm text-slate-600 font-medium mb-1">Ghi chú của bạn:</p>
+                          <p>{appt.tenantNote}</p>
+                        </div>
+                      )}
+                      {appt.landlordNote && (
+                        <div className="bg-orange-50 p-4 rounded-lg">
+                          <p className="text-sm text-orange-700 font-medium mb-1">Phản hồi từ chủ trọ:</p>
+                          <p>{appt.landlordNote}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  <div className="mt-6 pt-4 border-t border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-slate-500">
-                        Đặt lịch lúc: {formatCreatedDate(appointment.createdAt)}
-                      </p>
-                      {appointment.status === 'pending' && (
+                  <div className="pt-6 border-t flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <p className="text-sm text-slate-500">
+                      Đặt lúc: {formatTime(appt.createdAt)}
+                    </p>
+
+                    <div className="flex gap-3">
+                      {appt.status === "pending" && (
+                        <Button variant="destructive" size="sm" onClick={() => handleCancelClick(appt._id)}>
+                          <X className="w-4 h-4 mr-1" /> Hủy lịch
+                        </Button>
+                      )}
+
+                      {appt.status === "accepted" && (
                         <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleCancelClick(appointment._id)}
-                          className="gap-2"
+                          onClick={() => handleRequestContract(appt)}
+                          disabled={loadingPostDetail}
+                          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                         >
-                          <X className="w-4 h-4" />
-                          Hủy lịch hẹn
+                          {loadingPostDetail ? (
+                            <>Đang tải <Loader2 className="w-4 h-4 ml-2 animate-spin" /></>
+                          ) : (
+                            "Yêu cầu tạo hợp đồng"
+                          )}
                         </Button>
                       )}
                     </div>
@@ -425,62 +359,29 @@ const MyAppointments = () => {
           </div>
         )}
 
-        {!isLoading && !error && filteredData.length > 0 && (
+        {totalPages > 1 && (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-slate-600">
-                  Hiển thị <span className="font-semibold">{((currentPage - 1) * pageLimit) + 1}</span> - <span className="font-semibold">{Math.min(currentPage * pageLimit, totalItems)}</span> trong tổng số <span className="font-semibold">{totalItems}</span> lịch hẹn
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="gap-2"
-                  >
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p className="text-sm text-slate-600">
+                  Hiển thị {(currentPage - 1) * pageLimit + 1} - {Math.min(currentPage * pageLimit, totalItems)} trong tổng {totalItems}
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
                     <ChevronLeft className="w-4 h-4" />
-                    Trước
                   </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter(page => {
-                        return page === 1 || 
-                               page === totalPages || 
-                               (page >= currentPage - 1 && page <= currentPage + 1);
-                      })
-                      .map((page, index, array) => {
-                        const prevPage = array[index - 1];
-                        const showEllipsis = prevPage && page - prevPage > 1;
-                        
-                        return (
-                          <div key={page} className="flex items-center">
-                            {showEllipsis && (
-                              <span className="px-2 text-slate-400">...</span>
-                            )}
-                            <Button
-                              variant={currentPage === page ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setCurrentPage(page)}
-                              className="min-w-[2.5rem]"
-                            >
-                              {page}
-                            </Button>
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="gap-2"
-                  >
-                    Sau
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + Math.max(1, currentPage - 2)).map(page => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  {totalPages > 5 && currentPage < totalPages - 2 && <span className="px-2">...</span>}
+                  <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -493,25 +394,36 @@ const MyAppointments = () => {
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận hủy lịch hẹn</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận hủy lịch hẹn?</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn có chắc chắn muốn hủy lịch hẹn này không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isCancelling}>
-              Không, giữ lại
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCancelConfirm}
-              disabled={isCancelling}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isCancelling ? "Đang hủy..." : "Có, hủy lịch hẹn"}
+            <AlertDialogCancel>Không, giữ lại</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelConfirm} className="bg-red-600 hover:bg-red-700" disabled={cancelling}>
+              {cancelling ? "Đang hủy..." : "Có, hủy lịch"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {postDetail && (
+        <CreateContact
+          open={isContactModalOpen}
+          onOpenChange={(open) => {
+            setIsContactModalOpen(open);
+            if (!open) {
+              setSelectedPostId(null);
+            }
+          }}
+          postId={postDetail._id}
+          buildingId={typeof postDetail.buildingId === "object" ? postDetail.buildingId._id : postDetail.buildingId}
+          buildingName={typeof postDetail.buildingId === "object" ? postDetail.buildingId.name : ""}
+          postTitle={postDetail.title}
+          rooms={fullRooms}
+        />
+      )}
     </div>
   );
 };

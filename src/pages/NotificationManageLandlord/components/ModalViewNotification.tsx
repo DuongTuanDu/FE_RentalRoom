@@ -8,9 +8,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Info, X, MessageSquare } from "lucide-react";
+import { Calendar, Clock, User, Info, X, MessageSquare, ArrowRight, ExternalLink } from "lucide-react";
 import type { INotification } from "@/types/notification";
 import Linkify from "linkify-react";
+import type { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const typeLabels: Record<string, string> = {
   general: "Thông báo chung",
@@ -49,6 +52,22 @@ const ModalViewNotification = ({
   notification,
 }: ModalViewNotificationProps) => {
   if (!notification) return null;
+
+  const user = useSelector((state: RootState) => state.auth);
+  const userRole = user?.userInfo?.role;
+
+  const isAdminOrStaff = userRole === "landlord" || userRole === "staff";
+
+  const hasManagementLink = isAdminOrStaff && notification.link && notification.link.trim() !== "";
+
+  const navigate = useNavigate();
+
+  const handleNavigateToManagement = () => {
+    if (notification.link) {
+      navigate(notification.link);
+      onOpenChange(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,12 +171,24 @@ const ModalViewNotification = ({
               </div>
             </div>
           )}
-
-          <div className="pt-4 border-t border-gray-200">
+          
+          <div className="pt-4 border-t border-gray-200 flex justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="h-4 w-4" />
               <span>Được gửi lúc {formatTime(notification.createdAt)}</span>
             </div>
+            {hasManagementLink && (
+              <div className="">
+                <Button
+                  onClick={handleNavigateToManagement}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg"
+                >
+                    <ExternalLink className="h-5 w-5" />
+                    Xem chi tiết tại trang quản lý
+                    <ArrowRight className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
