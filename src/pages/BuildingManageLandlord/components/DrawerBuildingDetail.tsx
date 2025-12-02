@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -7,6 +8,11 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+
 import {
   Building2,
   MapPin,
@@ -14,10 +20,19 @@ import {
   Zap,
   Droplet,
   Calendar,
+  Star,
+  Trash2,
+  MessageCircle,
 } from "lucide-react";
+
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IBuilding } from "@/types/building";
+
+import {
+  useGetBuildingRatingsQuery,
+  useDeleteRatingByLandlordMutation,
+} from "@/services/building-rating/rating.service";
 
 interface DrawerBuildingDetailProps {
   open: boolean;
@@ -26,20 +41,15 @@ interface DrawerBuildingDetailProps {
 }
 
 const getWIndexTypeLabel = (type: string) => {
-  const labels = {
-    byNumber: "Theo chỉ số",
-    byPerson: "Theo đầu người",
-  };
+  const labels = { byNumber: "Theo chỉ số", byPerson: "Theo đầu người" };
   return labels[type as keyof typeof labels] || type;
 };
-const getEIndexTypeLabel = (type: string) => {
-  const labels = {
-    byNumber: "Theo chỉ số",
 
-    included: "Đã bao gồm trong giá thuê",
-  };
+const getEIndexTypeLabel = (type: string) => {
+  const labels = { byNumber: "Theo chỉ số", included: "Đã bao gồm trong giá thuê" };
   return labels[type as keyof typeof labels] || type;
 };
+
 const DrawerBuildingDetail = ({
   open,
   onOpenChange,
@@ -47,6 +57,40 @@ const DrawerBuildingDetail = ({
 }: DrawerBuildingDetailProps) => {
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
+
+  const buildingId = building?._id;
+  const { data: ratingsData, isLoading: loadingRatings, refetch } = useGetBuildingRatingsQuery(
+    { buildingId: buildingId!, limit: 50 },
+    { skip: !open || !buildingId }
+  );
+
+  const [deleteRating] = useDeleteRatingByLandlordMutation();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const ratings = ratingsData?.data?.ratings || [];
+  const totalRatings = ratingsData?.data?.summary?.totalRatings || 0;
+  const averageRating = ratingsData?.data?.summary?.averageRating || 0;
+
+  const handleDeleteRating = async (ratingId: string) => {
+    try {
+      await deleteRating(ratingId).unwrap();
+      toast.success("Đã xóa đánh giá thành công");
+      refetch();
+    } catch (err) {
+      toast.error("Không thể xóa đánh giá. Vui lòng thử lại.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const renderStars = (value: number) => {
+    return [...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${i < value ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+      />
+    ));
+  };
 
   if (!building) return null;
 
@@ -174,6 +218,109 @@ const DrawerBuildingDetail = ({
               </div>
             </div>
           </div>
+
+          {/* === ĐÁNH GIÁ TÒA NHÀ – PHIÊN BẢN GỌN ĐẸP === */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+              <Star className="w-5 h-5" />
+              Đánh giá từ cư dân ({totalRatings})
+            </h3>
+            {averageRating > 0 && (
+              <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-full text-sm">
+                <span className="font-bold">{averageRating.toFixed(1)}</span>
+                <div className="flex">{renderStars(Math.round(averageRating))}</div>
+              </div>
+            )}
+          </div>
+
+          {loadingRatings ? (
+            <div className="py-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-600 border-t-transparent"></div>
+            </div>
+          ) : ratings.length === 0 ? (
+            <div className="py-10 text-center text-muted-foreground">
+              <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Chưa có đánh giá nào</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {ratings.map((r) => (
+                <div
+                  key={r._id}
+                  className="rounded-lg border bg-card p-4 shadow-sm hover:shadow transition-shadow"
+                >
+                  <div className="flex gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={r.user.avatar} />
+                      <AvatarFallback>{r.user.fullName[0]}</AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-sm">{r.user.fullName}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex">{renderStars(r.rating)}</div>
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {r.rating}.0 • {formatDate(r.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Xóa đánh giá?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Đánh giá này sẽ bị xóa vĩnh viễn và không thể khôi phục.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteRating(r._id)}
+                                className="bg-destructive text-destructive-foreground"
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+
+                      {r.comment && (
+                        <p className="text-sm text-foreground leading-relaxed">{r.comment}</p>
+                      )}
+
+                      {r.images && r.images.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {r.images.map((img, i) => (
+                            <img
+                              key={i}
+                              src={img}
+                              alt="Review"
+                              className="h-20 w-20 rounded-md object-cover border"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
           {/* Metadata */}
           <div className="space-y-4">
