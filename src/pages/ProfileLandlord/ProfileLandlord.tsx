@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,8 +22,6 @@ import {
 import {
   User,
   Mail,
-  Phone,
-  Calendar,
   MapPin,
   Shield,
   Save,
@@ -36,6 +33,8 @@ import {
   Building,
   CreditCard,
   UserCheck,
+  Loader2,
+  UploadCloud,
 } from "lucide-react";
 import {
   useGetProfileQuery,
@@ -47,7 +46,6 @@ import {
   useGetWardsQuery,
 } from "@/services/profile/profile.service";
 import { toast } from "sonner";
-import { result } from "lodash";
 
 const   ProfileLandlord = () => {
   const { data, refetch } = useGetProfileQuery();
@@ -174,8 +172,8 @@ const   ProfileLandlord = () => {
 
       toast.success("Cập nhật thông tin thành công!");
       refetch();
-    } catch (err) {
-      toast.error("Cập nhật thất bại, vui lòng thử lại");
+    } catch (err:any) {
+      toast.error(err?.message?.message || "Cập nhật thất bại, vui lòng thử lại");
     }
   };
 
@@ -216,7 +214,7 @@ const   ProfileLandlord = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 md:p-8">
+    <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <Card className="shadow-xl border-0 bg-white/90 backdrop-blur">
@@ -296,15 +294,15 @@ const   ProfileLandlord = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div>
+              <div className="space-y-2">
                 <Label>Số điện thoại</Label>
                 <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Ngày sinh</Label>
                 <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Giới tính</Label>
                 <Select value={gender} onValueChange={setGender}>
                   <SelectTrigger><SelectValue placeholder="Chọn giới tính" /></SelectTrigger>
@@ -328,7 +326,7 @@ const   ProfileLandlord = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-3 gap-3">
-                <div>
+                <div className="space-y-2">
                   <Label>Tỉnh/Thành</Label>
                   <Select value={province} onValueChange={(v) => { setProvince(v); setDistrict(""); setWard(""); }}>
                     <SelectTrigger><SelectValue placeholder="Chọn tỉnh" /></SelectTrigger>
@@ -341,7 +339,7 @@ const   ProfileLandlord = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Quận/Huyện</Label>
                   <Select value={district} onValueChange={(v) => { setDistrict(v); setWard(""); }} disabled={!province}>
                     <SelectTrigger><SelectValue placeholder="Quận/huyện" /></SelectTrigger>
@@ -354,7 +352,7 @@ const   ProfileLandlord = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Phường/Xã</Label>
                   <Select value={ward} onValueChange={setWard} disabled={!district}>
                     <SelectTrigger><SelectValue placeholder="Phường/xã" /></SelectTrigger>
@@ -368,7 +366,7 @@ const   ProfileLandlord = () => {
                   </Select>
                 </div>
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Số nhà, đường...</Label>
                 <Input
                   value={addressDetail}
@@ -397,15 +395,15 @@ const   ProfileLandlord = () => {
             <CardContent>
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-5">
-                  <div>
+                  <div className="space-y-2">
                     <Label className="flex items-center gap-2"><CreditCard className="w-4 h-4" /> Ngân hàng</Label>
                     <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="VD: Vietcombank CN Tân Bình" />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label>Số tài khoản</Label>
                     <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="0123456789" />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label className="flex items-center gap-2"><UserCheck className="w-4 h-4" /> Chủ tài khoản</Label>
                     <Input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="NGUYEN VAN A" />
                   </div>
@@ -445,20 +443,85 @@ const   ProfileLandlord = () => {
       <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tải lên mã QR chuyển khoản</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-purple-600" />
+              Tải lên mã QR chuyển khoản
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-8">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleUploadQr}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            {isUploading && <p className="mt-4 text-center text-blue-600">Đang tải lên...</p>}
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="qr-upload" className="text-base font-medium">
+                Chọn hình ảnh QR Code
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Hỗ trợ định dạng: JPG, PNG, GIF (tối đa 5MB)
+              </p>
+            </div>
+            
+            <div
+              className="relative border-2 border-dashed rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                id="qr-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleUploadQr}
+                className="hidden"
+                disabled={isUploading}
+              />
+              
+              {isUploading ? (
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                  <p className="text-sm font-medium text-blue-600">Đang tải lên...</p>
+                  <p className="text-xs text-muted-foreground">Vui lòng đợi trong giây lát</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <div className="p-4 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                    <UploadCloud className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-700">
+                      Nhấp để chọn hoặc kéo thả hình ảnh vào đây
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Hỗ trợ kéo thả file trực tiếp
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Chọn file
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsQrModalOpen(false)}>Hủy</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsQrModalOpen(false)}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                "Hủy"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

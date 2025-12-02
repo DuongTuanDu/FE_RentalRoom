@@ -256,12 +256,12 @@ const RoomFurnitureLandlord = () => {
                         <div className="flex items-center gap-2">
                           <div>
                             <div className="font-medium">
-                              {roomFurniture.furnitureId.name || "Nội thất"}
+                              {roomFurniture.furnitureId?.name || "Nội thất"}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {roomFurniture.furnitureId.category} •{" "}
+                              {roomFurniture.furnitureId?.category || "Chưa phân loại"} •{" "}
                               {formatPrice(
-                                roomFurniture.furnitureId.price || 0
+                                roomFurniture.furnitureId?.price || 0
                               )}
                             </div>
                           </div>

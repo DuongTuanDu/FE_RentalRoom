@@ -4,6 +4,7 @@ import type {
   GetUserInfoResponse,
   UpdateBankInfoRequest,
   UpdateBankInfoResponse,
+  UpdateUserInfoRequest,
 } from "@/types/profile";
 import { setUserInfo } from "../auth/auth.slice";
 
@@ -45,7 +46,7 @@ export const profileApi = createApi({
         }
       },
     }),
-    updateProfile: builder.mutation({
+    updateProfile: builder.mutation<GetUserInfoResponse, UpdateUserInfoRequest>({
       query: (body) => ({
         url: "/profiles",
         method: "PUT",

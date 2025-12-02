@@ -55,7 +55,7 @@ export const DeleteRoomFurniturePopover = ({
               <span className="font-medium">Phòng:</span> Phòng {roomFurniture.roomId.roomNumber}
             </div>
             <div className="text-sm">
-              <span className="font-medium">Nội thất:</span> {roomFurniture.furnitureId.name}
+              <span className="font-medium">Nội thất:</span> {roomFurniture.furnitureId?.name || "Nội thất"}
             </div>
             <div className="text-sm">
               <span className="font-medium">Số lượng:</span> {roomFurniture.quantity}

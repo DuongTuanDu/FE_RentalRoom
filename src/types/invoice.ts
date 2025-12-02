@@ -189,6 +189,12 @@ export interface ITenantPayInvoiceRequest {
   note: string;
 }
 
+export interface IRequestTransferConfirmation {
+  proofImageUrl: string;
+  amount: number;
+  note: string;
+}
+
 export interface ITenantInvoiceItem {
   _id: string;
   buildingId: {

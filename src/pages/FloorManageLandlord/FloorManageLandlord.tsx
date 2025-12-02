@@ -3,7 +3,7 @@ import {
   Building2,
   Plus,
   Edit,
-  Trash2,
+  // Trash2,
   Layers,
   ChevronLeft,
   ChevronRight,
@@ -122,10 +122,10 @@ const FloorManageLandlord = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteDialog = (floor: IFloor) => {
-    setFloorToDelete(floor);
-    setIsDeleteDialogOpen(true);
-  };
+  // const handleOpenDeleteDialog = (floor: IFloor) => {
+  //   setFloorToDelete(floor);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
   const handleSubmitFloor = async (data: CreateFloorRequest) => {
     try {
@@ -345,7 +345,7 @@ const FloorManageLandlord = () => {
                               </Button>
                               </Permission>
 
-                              <Permission permission="floor:delete">
+                              {/* <Permission permission="floor:delete">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -355,7 +355,7 @@ const FloorManageLandlord = () => {
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
-                              </Permission>
+                              </Permission> */}
                             </div>
                           </TableCell>
                         </TableRow>

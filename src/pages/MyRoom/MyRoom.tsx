@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useGetMyRoomQuery } from "@/services/room/room.service";
-import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IMyRoom, IMyRoomResponse } from "@/types/room";
 import type { IPerson } from "@/types/contract";
@@ -11,30 +10,28 @@ import { Button } from "@/components/ui/button";
 import {
   Building2,
   Home,
-  Ruler,
-  DollarSign,
   Users,
   FileText,
   Zap,
   Droplets,
   Sofa,
-  Image,
   ChevronLeft,
   ChevronRight,
   User,
   Phone,
-  Sparkles,
   Wrench,
   ExternalLink,
+  ImageIcon,
 } from "lucide-react";
 import { CreateMaintenanceModal } from "@/pages/Maintenance/components/CreateMaintenanceModal";
 import { RoommateList } from "./components/RoommateList";
 import { BuildingDetailModal } from "../DetailBuilding/components/DetailBuildingComponent";
 import { LaundryDevicesCard } from "./components/LaundryDevicesCard";
+import { useFormatDateNoHours } from "@/hooks/useFormatDateNoHours";
 
 const MyRoom = () => {
   const { data, isLoading, error } = useGetMyRoomQuery();
-  const formatDate = useFormatDate();
+  const formatDate = useFormatDateNoHours();
   const formatPrice = useFormatPrice();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isCreateMaintenanceOpen, setIsCreateMaintenanceOpen] = useState(false);
@@ -131,8 +128,8 @@ const MyRoom = () => {
         {/* Header with gradient */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary/20 rounded-xl backdrop-blur-sm">
-              <Home className="h-6 w-6 text-primary" />
+            <div className="p-3 bg-slate-900 rounded-xl backdrop-blur-sm">
+              <Home className="h-6 w-6 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">
@@ -152,230 +149,80 @@ const MyRoom = () => {
             {room?.images && room.images.length > 0 && (
               <Card className="border-0 shadow-xl overflow-hidden">
                 <CardContent className="px-6">
-                  <div className="space-y-4">
-                    {/* Main Image */}
-                    <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
-                      <img
-                        src={
-                          room.images?.[currentImageIndex] ||
-                          room.images?.[0] ||
-                          ""
-                        }
-                        alt={`Phòng ${room?.roomNumber || ""} - Ảnh ${
-                          currentImageIndex + 1
-                        }`}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                  {room?.images && room.images.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Main Image */}
+                      <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
+                        <img
+                          src={
+                            room.images?.[currentImageIndex] ||
+                            room.images?.[0] ||
+                            ""
+                          }
+                          alt={`Phòng ${room?.roomNumber || ""} - Ảnh ${
+                            currentImageIndex + 1
+                          }`}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {room.images && room.images.length > 1 && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={prevImage}
+                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                              aria-label="Ảnh trước"
+                            >
+                              <ChevronLeft className="h-6 w-6" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={nextImage}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                              aria-label="Ảnh sau"
+                            >
+                              <ChevronRight className="h-6 w-6" />
+                            </button>
+                            <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
+                              {currentImageIndex + 1}/{room.images.length}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Thumbnails */}
                       {room.images && room.images.length > 1 && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={prevImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                            aria-label="Ảnh trước"
-                          >
-                            <ChevronLeft className="h-6 w-6" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={nextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                            aria-label="Ảnh sau"
-                          >
-                            <ChevronRight className="h-6 w-6" />
-                          </button>
-                          <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
-                            {currentImageIndex + 1}/{room.images.length}
-                          </div>
-                        </>
+                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
+                          {room.images.map((image: string, index: number) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => setCurrentImageIndex(index)}
+                              className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${
+                                currentImageIndex === index
+                                  ? "shadow-lg scale-105"
+                                  : "opacity-50 hover:opacity-100 hover:scale-105 shadow-md"
+                              }`}
+                            >
+                              <img
+                                src={image}
+                                alt={`Thumbnail ${index + 1}`}
+                                className="h-24 w-32 object-cover"
+                              />
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* Thumbnails */}
-                    {room.images && room.images.length > 1 && (
-                      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
-                        {room.images.map((image: string, index: number) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${
-                              currentImageIndex === index
-                                ? "shadow-lg scale-105"
-                                : "opacity-50 hover:opacity-100 hover:scale-105 shadow-md"
-                            }`}
-                          >
-                            <img
-                              src={image}
-                              alt={`Thumbnail ${index + 1}`}
-                              className="h-24 w-32 object-cover"
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {/* Room Information */}
-            <Card className="border-0 shadow-xl py-0">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <Home className="h-5 w-5 text-primary" />
-                  </div>
-                  Thông tin phòng
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 p-5 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-primary/20 rounded-xl group-hover:scale-110 transition-transform">
-                        <Ruler className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Diện tích
-                        </p>
-                        <p className="text-2xl font-bold text-foreground">
-                          {room?.area ?? 0} m²
+                  ) : (
+                    <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
+                      <div className="text-center">
+                        <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">
+                          Chưa có hình ảnh
                         </p>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500/10 to-green-500/5 p-5 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-green-500/20 rounded-xl group-hover:scale-110 transition-transform">
-                        <DollarSign className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Giá thuê
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
-                          {formatPrice(room?.price ?? 0)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 p-5 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform">
-                        <Users className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Số người ở
-                        </p>
-                        <p className="text-2xl font-bold text-foreground">
-                          {room?.currentCount ?? 0}
-                          <span className="text-lg text-muted-foreground">
-                            /{room?.maxTenants ?? 0}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 p-5 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform">
-                        <Sparkles className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Trạng thái
-                        </p>
-                        <div className="mt-1">
-                          {getStatusBadge(room?.status || "available")}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Current Contract */}
-            {room?.currentContract && (
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20 pt-0">
-                <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                    </div>
-                    Hợp đồng hiện tại
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        Số hợp đồng
-                      </p>
-                      <p className="text-lg font-bold">
-                        {room.currentContract.no}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Giá thuê</p>
-                      <p className="text-lg font-bold text-green-600">
-                        {formatPrice(room.currentContract.price)}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        Ngày bắt đầu
-                      </p>
-                      <p className="text-lg font-semibold">
-                        {formatDate(room.currentContract.startDate)}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        Ngày kết thúc
-                      </p>
-                      <p className="text-lg font-semibold">
-                        {formatDate(room.currentContract.endDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {room.currentContract.roommates &&
-                    room.currentContract.roommates.length > 0 && (
-                      <div className="pt-6 border-t border-border/50">
-                        <p className="text-sm font-semibold mb-4 flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          Người ở cùng ({room.currentContract.roommates.length})
-                        </p>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {room.currentContract.roommates.map(
-                            (roommate: IPerson, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 hover:shadow-md transition-all duration-300 border-0"
-                              >
-                                <div className="p-2.5 bg-primary/20 rounded-full">
-                                  <User className="h-4 w-4 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold truncate">
-                                    {roommate.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    CCCD: {roommate.cccd}
-                                  </p>
-                                </div>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -465,13 +312,27 @@ const MyRoom = () => {
           <div className="space-y-8">
             {/* Building Information */}
             <Card className="border-0 shadow-xl bg-gradient-to-br from-primary/5 to-transparent">
-              <CardHeader className="border-b-0">
+              <CardHeader className="border-b-0 flex items-center justify-between">
                 <CardTitle className="flex items-center gap-3 text-lg">
                   <div className="p-2 bg-primary/20 rounded-lg">
                     <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   Thông tin tòa nhà
                 </CardTitle>
+                <div className="flex items-center justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary"
+                    onClick={() =>
+                      room?.building?._id &&
+                      setSelectedBuildingId(room.building._id)
+                    }
+                  >
+                    Xem chi tiết
+                    <ExternalLink className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-around">
@@ -503,20 +364,61 @@ const MyRoom = () => {
                   </div>
                 </div>
               </CardContent>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary "
-                onClick={() =>
-                  room?.building?._id &&
-                  setSelectedBuildingId(room.building._id)
-                }
-              >
-                Xem chi tiết
-                <ExternalLink className="h-4 w-4 ml-1" />
-              </Button>
             </Card>
 
+            {/* Room Information */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader className="border-b-0">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <div className="p-2 bg-primary/20 rounded-lg">
+                    <Home className="h-5 w-5 text-primary" />
+                  </div>
+                  Thông tin phòng
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Diện tích
+                    </p>
+                    <p className="font-bold text-lg">{room?.area ?? 0} m²</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Giá thuê
+                    </p>
+                    <p className="font-bold text-lg">
+                      {formatPrice(room?.price ?? 0)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Số người ở
+                    </p>
+                    <p className="font-bold text-md">
+                      {room?.currentCount ?? 0}
+                      <span className="text-lg text-muted-foreground">
+                        /{room?.maxTenants ?? 0}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Trạng thái
+                    </p>
+                    <p className="font-bold text-lg">
+                      {getStatusBadge(room?.status || "available")}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Utility Indexes */}
             <Card className="border-0 shadow-xl pt-0 pb-5">
               <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
                 <CardTitle>
@@ -565,6 +467,86 @@ const MyRoom = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Current Contract */}
+            {room?.currentContract && (
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20 pt-0">
+                <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    Hợp đồng hiện tại
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-6 space-y-6">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Số hợp đồng
+                      </p>
+                      <p className="text-lg font-bold">
+                        {room.currentContract.no}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Giá thuê</p>
+                      <p className="text-lg font-bold text-green-600">
+                        {formatPrice(room.currentContract.price)}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Ngày bắt đầu
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {formatDate(room.currentContract.startDate)}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Ngày kết thúc
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {formatDate(room.currentContract.endDate)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {room.currentContract.roommates &&
+                    room.currentContract.roommates.length > 0 && (
+                      <div className="pt-6 border-t border-border/50">
+                        <p className="text-sm font-semibold mb-4 flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Người ở cùng ({room.currentContract.roommates.length})
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {room.currentContract.roommates.map(
+                            (roommate: IPerson, index: number) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 hover:shadow-md transition-all duration-300 border-0"
+                              >
+                                <div className="p-2.5 bg-primary/20 rounded-full">
+                                  <User className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold truncate">
+                                    {roommate.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    CCCD: {roommate.cccd}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Contract Roommates */}
             {room?.contractRoommates && room.contractRoommates.length > 0 && (

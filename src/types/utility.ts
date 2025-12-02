@@ -116,10 +116,10 @@ export interface ICreateUtilityBulkRequest {
 }
 
 export interface IUpdateReadingRequest {
-  ePreviousIndex: number;
+  ePreviousIndex?: number;
   eCurrentIndex: number;
   eUnitPrice: number;
-  wPreviousIndex: number;
+  wPreviousIndex?: number;
   wCurrentIndex: number;
   wUnitPrice: number;
   note: string;
