@@ -20,8 +20,6 @@ import {
   MapPin,
   Shield,
   Save,
-  Trash2,
-  Plus,
   Edit,
   X,
   Check,
@@ -30,8 +28,7 @@ import {
   useGetProfileQuery,
   useUpdateProfileMutation,
 } from "@/services/profile/profile.service";
-import { AddAddressModal } from "./components/AddAddressModal";
-import type { UserAddress, UserInfo } from "@/types/profile";
+import type { UserInfo } from "@/types/profile";
 import { toast } from "sonner";
 
 const Profile = () => {
@@ -39,14 +36,9 @@ const Profile = () => {
   const userInfo = data?.user;
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
 
-  // State for addresses
-  const [addresses, setAddresses] = useState<UserAddress[]>([]);
-  const [originalAddresses, setOriginalAddresses] = useState<UserAddress[]>([]); // THÊM STATE NÀY
-  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
-    null
-  );
+  // State for address (now a single string)
+  const [address, setAddress] = useState<string>("");
+  const [originalAddress, setOriginalAddress] = useState<string>("");
   const [isEditingFullName, setIsEditingFullName] = useState(false);
   const [tempFullName, setTempFullName] = useState("");
 
@@ -80,18 +72,30 @@ const Profile = () => {
       setFormData(initialData);
       setOriginalData(initialData);
 
-      // Initialize addresses
-      if (userInfo.userInfo.address && userInfo.userInfo.address.length > 0) {
-        const addressesWithId = userInfo.userInfo.address.map(
-          (addr: any, index: number) => ({
-            ...addr,
-            id: addr._id || `${index}-${Date.now()}`,
-          })
-        );
-        setAddresses(addressesWithId);
-        setOriginalAddresses([...addressesWithId]); // LƯU ĐỊA CHỈ GỐC
-        setSelectedAddressId(addressesWithId[0].id);
+      // Initialize address (now a string)
+      const addressValue = userInfo.userInfo.address;
+      if (typeof addressValue === "string") {
+        setAddress(addressValue);
+        setOriginalAddress(addressValue);
+      } else if (Array.isArray(addressValue)) {
+        // Handle legacy array format - convert to string
+        const addressArray = addressValue as any[];
+        if (addressArray.length > 0) {
+          const firstAddr = addressArray[0] as any;
+          const addressString = `${firstAddr.address || ""}, ${
+            firstAddr.wardName || ""
+          }, ${firstAddr.districtName || ""}, ${firstAddr.provinceName || ""}`;
+          setAddress(addressString);
+          setOriginalAddress(addressString);
+        } else {
+          setAddress("");
+          setOriginalAddress("");
+        }
+      } else {
+        setAddress("");
+        setOriginalAddress("");
       }
+
     }
   }, [userInfo]);
 
@@ -116,9 +120,8 @@ const Profile = () => {
         formData[key as keyof UserInfo] !== originalData[key as keyof UserInfo]
     );
 
-    // Kiểm tra thay đổi trong addresses
-    const hasAddressChanges =
-      JSON.stringify(addresses) !== JSON.stringify(originalAddresses);
+    // Kiểm tra thay đổi trong address
+    const hasAddressChanges = address !== originalAddress;
 
     return hasFormChanges || hasAddressChanges;
   };
@@ -127,75 +130,36 @@ const Profile = () => {
     try {
       const payload = {
         ...formData,
-        address: addresses.map((addr) => ({
-          address: addr.address,
-          provinceName: addr.provinceName,
-          districtName: addr.districtName,
-          wardName: addr.wardName,
-        })),
+        address: address,
       };
 
       const response = await updateProfile(payload).unwrap();
       if (response.user) {
-        // Cập nhật originalData và originalAddresses sau khi lưu thành công
         setOriginalData(formData);
-        setOriginalAddresses([...addresses]);
-
+        setOriginalAddress(address);
         toast.success("Cập nhật thông tin thành công!", {
           description: "Thông tin cá nhân của bạn đã được cập nhật.",
         });
       }
     } catch (error) {
       console.log("error", error);
-    }
-  };
-
-  const handleAddAddress = (
-    newAddress: Omit<UserAddress, "_id"> & { _id?: string }
-  ) => {
-    const addressWithId: UserAddress = {
-      ...newAddress,
-      _id: newAddress._id || Date.now().toString(),
-    };
-    setAddresses((prev) => [...prev, addressWithId]);
-    setSelectedAddressId(addressWithId._id || "");
-  };
-
-  const handleEditAddress = (address: UserAddress) => {
-    setEditingAddress(address);
-    setShowAddModal(true);
-  };
-
-  const handleUpdateAddress = (updatedAddress: UserAddress) => {
-    setAddresses((prev) =>
-      prev.map((addr) =>
-        addr._id === updatedAddress._id ? updatedAddress : addr
-      )
-    );
-  };
-
-  const handleDeleteAddress = (addressId: string) => {
-    if (window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-      setAddresses((prev) => prev.filter((addr) => addr._id !== addressId));
-      if (selectedAddressId === addressId && addresses.length > 1) {
-        const remainingAddresses = addresses.filter(
-          (addr) => addr._id !== addressId
-        );
-        setSelectedAddressId(remainingAddresses[0]?._id || "");
-      } else if (addresses.length === 1) {
-        setSelectedAddressId("");
-      }
+      toast.error("Cập nhật thông tin thất bại!", {
+        description: "Vui lòng thử lại sau.",
+      });
     }
   };
 
   const renderField = (
-    field: keyof UserInfo,
+    field: keyof UserInfo | "address",
     label: string,
     icon: React.ReactNode,
     placeholder: string,
     type: string = "text"
   ) => {
-    const value = formData[field] as string;
+    const value =
+      field === "address"
+        ? address
+        : (formData[field as keyof UserInfo] as string);
 
     return (
       <div className="flex items-start gap-3">
@@ -205,7 +169,13 @@ const Profile = () => {
           <Input
             type={type}
             value={value}
-            onChange={(e) => handleChange(field, e.target.value)}
+            onChange={(e) => {
+              if (field === "address") {
+                setAddress(e.target.value);
+              } else {
+                handleChange(field as keyof UserInfo, e.target.value);
+              }
+            }}
             placeholder={placeholder}
             className="max-w-sm"
           />
@@ -221,10 +191,6 @@ const Profile = () => {
       </div>
     );
   }
-
-  const selectedAddress = addresses.find(
-    (addr) => addr._id === selectedAddressId
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
@@ -326,7 +292,7 @@ const Profile = () => {
 
             <Separator className="my-6" />
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-6">
               <Card className="border border-gray-200">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -334,20 +300,22 @@ const Profile = () => {
                     Thông Tin Cá Nhân
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 grid grid-cols-1 md:grid-cols-2">
                   {renderField(
                     "phoneNumber",
                     "Số điện thoại",
                     <Phone className="w-5 h-5" />,
                     "Nhập số điện thoại"
                   )}
-                  {renderField(
-                    "dob",
-                    "Ngày sinh",
-                    <Calendar className="w-5 h-5" />,
-                    "Chọn ngày sinh",
-                    "date"
-                  )}
+                  <div className="!mt-0">
+                    {renderField(
+                      "dob",
+                      "Ngày sinh",
+                      <Calendar className="w-5 h-5" />,
+                      "Chọn ngày sinh",
+                      "date"
+                    )}
+                  </div>
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 text-gray-400">
                       <User className="w-5 h-5" />
@@ -369,104 +337,11 @@ const Profile = () => {
                       </Select>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      Địa Chỉ
-                    </CardTitle>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingAddress(null);
-                        setShowAddModal(true);
-                      }}
-                      variant={"outline"}
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Thêm mới
-                    </Button>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {addresses.length > 0 ? (
-                    <>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-2">
-                          Chọn địa chỉ hiển thị
-                        </p>
-                        <Select
-                          value={selectedAddressId}
-                          onValueChange={setSelectedAddressId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn địa chỉ" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {addresses.map((addr) => (
-                              <SelectItem key={addr._id} value={addr._id || ""}>
-                                {addr.address}, {addr.wardName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {selectedAddress && (
-                        <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50">
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-start gap-2">
-                              <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="font-semibold text-gray-900">
-                                  {selectedAddress.address}
-                                </p>
-                                <p className="text-gray-600">
-                                  {selectedAddress.wardName},{" "}
-                                  {selectedAddress.districtName}
-                                </p>
-                                <p className="text-gray-600">
-                                  {selectedAddress.provinceName}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 mt-4 pt-4 border-t">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditAddress(selectedAddress)}
-                              className="flex-1"
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Sửa
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                handleDeleteAddress(selectedAddress._id || "")
-                              }
-                              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4 mr-1" />
-                              Xóa
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="mb-2">Chưa có địa chỉ nào</p>
-                    </div>
+                  {renderField(
+                    "address",
+                    "Địa chỉ",
+                    <MapPin className="w-5 h-5" />,
+                    "Nhập địa chỉ của bạn"
                   )}
                 </CardContent>
               </Card>
@@ -474,16 +349,6 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
-
-      <AddAddressModal
-        open={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setEditingAddress(null);
-        }}
-        onSave={editingAddress ? handleUpdateAddress : handleAddAddress}
-        editAddress={editingAddress}
-      />
     </div>
   );
 };

@@ -374,9 +374,6 @@ export const GenerateMonthlyInvoiceDialog = ({
                           <TableHead className="text-right">
                             Tổng cộng
                           </TableHead>
-                          <TableHead className="text-center">
-                            Trạng thái
-                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -408,23 +405,6 @@ export const GenerateMonthlyInvoiceDialog = ({
                                 reading.eAmount + reading.wAmount
                               ).toLocaleString("vi-VN")}{" "}
                               đ
-                            </TableCell>
-                            <TableCell>
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${
-                                  reading.status === "confirmed"
-                                    ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
-                                    : reading.status === "billed"
-                                    ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                {reading.status === "confirmed"
-                                  ? "Đã xác nhận"
-                                  : reading.status === "billed"
-                                  ? "Đã xuất hóa đơn"
-                                  : "Nháp"}
-                              </span>
                             </TableCell>
                           </TableRow>
                         ))}

@@ -271,26 +271,25 @@ export const ModalBuildingFurniture = ({
                   </p>
                 )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">
-                Trạng thái <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={statusValue}
-                onValueChange={(value) =>
-                  setValue("status", value as "active" | "inactive")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Đang hoạt động</SelectItem>
-                  <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="status">
+                  Trạng thái <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={statusValue}
+                  onValueChange={(value) =>
+                    setValue("status", value as "active" | "inactive")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Đang hoạt động</SelectItem>
+                    <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">

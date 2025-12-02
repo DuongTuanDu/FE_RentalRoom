@@ -15,7 +15,7 @@ export interface UserInfo {
   phoneNumber: string;
   dob: string;
   gender: "male" | "female" | "other" | "";
-  address?: UserAddress[];
+  address?: string;
   bankInfo?:{
     bankName: string;
     accountNumber: string;
@@ -49,4 +49,12 @@ export interface UpdateBankInfoRequest {
 export interface UpdateBankInfoResponse {
   message: string;
   bankInfo: UpdateBankInfoRequest;
+}
+
+export interface UpdateUserInfoRequest {
+  fullName: string;
+  phoneNumber: string;
+  dob: string;
+  gender: "male" | "female" | "other" | "";
+  address: string;
 }

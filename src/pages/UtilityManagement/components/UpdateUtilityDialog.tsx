@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Droplets, Loader2, Zap } from "lucide-react";
 import { useUpdateUtilityReadingMutation } from "@/services/utility/utility.service";
 import { toast } from "sonner";
-import type { IUtilityItem } from "@/types/utility";
+import type { IUpdateReadingRequest, IUtilityItem } from "@/types/utility";
 import { Textarea } from "@/components/ui/textarea";
 
 interface UpdateUtilityDialogProps {
@@ -94,17 +94,28 @@ export const UpdateUtilityDialog = ({
     }
 
     try {
+      // Chỉ gửi ePreviousIndex và wPreviousIndex nếu có thay đổi
+      const payload: IUpdateReadingRequest = {
+        eCurrentIndex: eCurrentIndexNum,
+        eUnitPrice: eUnitPriceNum,
+        wCurrentIndex: wCurrentIndexNum,
+        wUnitPrice: wUnitPriceNum,
+        note: formData.note,
+      };
+
+      // Kiểm tra nếu ePreviousIndex thay đổi
+      if (ePreviousIndexNum !== utility.ePreviousIndex) {
+        payload.ePreviousIndex = ePreviousIndexNum;
+      }
+
+      // Kiểm tra nếu wPreviousIndex thay đổi
+      if (wPreviousIndexNum !== utility.wPreviousIndex) {
+        payload.wPreviousIndex = wPreviousIndexNum;
+      }
+
       await updateUtilityReading({
         id: utility._id,
-        data: {
-          ePreviousIndex: ePreviousIndexNum,
-          eCurrentIndex: eCurrentIndexNum,
-          eUnitPrice: eUnitPriceNum,
-          wPreviousIndex: wPreviousIndexNum,
-          wCurrentIndex: wCurrentIndexNum,
-          wUnitPrice: wUnitPriceNum,
-          note: formData.note,
-        },
+        data: payload,
       }).unwrap();
 
       onOpenChange(false);

@@ -94,12 +94,12 @@ const menuItems = [
       },
     ],
   },
-  {
-    title: "Danh sách người thuê",
-    icon: Users,
-    staffAccess: true,
-    path: "/landlord/tenants",
-  },
+  // {
+  //   title: "Danh sách người thuê",
+  //   icon: Users,
+  //   staffAccess: true,
+  //   path: "/landlord/tenants",
+  // },
   {
     title: "Tài chính",
     icon: DollarSign,
