@@ -15,15 +15,17 @@ import {
   Zap,
   Droplets,
   Sofa,
-  Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
   User,
   Phone,
   Wrench,
+  ExternalLink,
+  ImageIcon,
 } from "lucide-react";
 import { CreateMaintenanceModal } from "@/pages/Maintenance/components/CreateMaintenanceModal";
 import { RoommateList } from "./components/RoommateList";
+import { BuildingDetailModal } from "../DetailBuilding/components/DetailBuildingComponent";
 import { LaundryDevicesCard } from "./components/LaundryDevicesCard";
 import { useFormatDateNoHours } from "@/hooks/useFormatDateNoHours";
 
@@ -34,6 +36,7 @@ const MyRoom = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isCreateMaintenanceOpen, setIsCreateMaintenanceOpen] = useState(false);
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<string>("");
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
 
   if (isLoading) {
     return (
@@ -66,7 +69,7 @@ const MyRoom = () => {
   }
 
   const room = data?.room;
-
+  console.log("room", room);
   if (!room) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -143,84 +146,86 @@ const MyRoom = () => {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Image Gallery */}
-            <Card className="border-0 shadow-xl overflow-hidden">
-              <CardContent className="px-6">
-                {room?.images && room.images.length > 0 ? (
-                  <div className="space-y-4">
-                    {/* Main Image */}
-                    <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
-                      <img
-                        src={
-                          room.images?.[currentImageIndex] ||
-                          room.images?.[0] ||
-                          ""
-                        }
-                        alt={`Phòng ${room?.roomNumber || ""} - Ảnh ${
-                          currentImageIndex + 1
-                        }`}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+            {room?.images && room.images.length > 0 && (
+              <Card className="border-0 shadow-xl overflow-hidden">
+                <CardContent className="px-6">
+                  {room?.images && room.images.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Main Image */}
+                      <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
+                        <img
+                          src={
+                            room.images?.[currentImageIndex] ||
+                            room.images?.[0] ||
+                            ""
+                          }
+                          alt={`Phòng ${room?.roomNumber || ""} - Ảnh ${
+                            currentImageIndex + 1
+                          }`}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {room.images && room.images.length > 1 && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={prevImage}
+                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                              aria-label="Ảnh trước"
+                            >
+                              <ChevronLeft className="h-6 w-6" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={nextImage}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                              aria-label="Ảnh sau"
+                            >
+                              <ChevronRight className="h-6 w-6" />
+                            </button>
+                            <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
+                              {currentImageIndex + 1}/{room.images.length}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Thumbnails */}
                       {room.images && room.images.length > 1 && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={prevImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                            aria-label="Ảnh trước"
-                          >
-                            <ChevronLeft className="h-6 w-6" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={nextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                            aria-label="Ảnh sau"
-                          >
-                            <ChevronRight className="h-6 w-6" />
-                          </button>
-                          <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
-                            {currentImageIndex + 1}/{room.images.length}
-                          </div>
-                        </>
+                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
+                          {room.images.map((image: string, index: number) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => setCurrentImageIndex(index)}
+                              className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${
+                                currentImageIndex === index
+                                  ? "shadow-lg scale-105"
+                                  : "opacity-50 hover:opacity-100 hover:scale-105 shadow-md"
+                              }`}
+                            >
+                              <img
+                                src={image}
+                                alt={`Thumbnail ${index + 1}`}
+                                className="h-24 w-32 object-cover"
+                              />
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* Thumbnails */}
-                    {room.images && room.images.length > 1 && (
-                      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
-                        {room.images.map((image: string, index: number) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${
-                              currentImageIndex === index
-                                ? "shadow-lg scale-105"
-                                : "opacity-50 hover:opacity-100 hover:scale-105 shadow-md"
-                            }`}
-                          >
-                            <img
-                              src={image}
-                              alt={`Thumbnail ${index + 1}`}
-                              className="h-24 w-32 object-cover"
-                            />
-                          </button>
-                        ))}
+                  ) : (
+                    <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
+                      <div className="text-center">
+                        <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">
+                          Chưa có hình ảnh
+                        </p>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
-                    <div className="text-center">
-                      <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-sm text-muted-foreground">
-                        Chưa có hình ảnh
-                      </p>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Roommates */}
             {room?._id && (
@@ -307,13 +312,27 @@ const MyRoom = () => {
           <div className="space-y-8">
             {/* Building Information */}
             <Card className="border-0 shadow-xl bg-gradient-to-br from-primary/5 to-transparent">
-              <CardHeader className="border-b-0">
+              <CardHeader className="border-b-0 flex items-center justify-between">
                 <CardTitle className="flex items-center gap-3 text-lg">
                   <div className="p-2 bg-primary/20 rounded-lg">
                     <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   Thông tin tòa nhà
                 </CardTitle>
+                <div className="flex items-center justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary"
+                    onClick={() =>
+                      room?.building?._id &&
+                      setSelectedBuildingId(room.building._id)
+                    }
+                  >
+                    Xem chi tiết
+                    <ExternalLink className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-around">
@@ -321,8 +340,8 @@ const MyRoom = () => {
                     <p className="text-sm text-muted-foreground mb-2">
                       Tên tòa nhà
                     </p>
-                    <p className="font-bold text-lg">
-                      {room?.building?.name || "N/A"}
+                    <p className="font-bold text-lg text-primary">
+                      {room?.building?.name || "Chưa có thông tin"}
                     </p>
                   </div>
 
@@ -410,7 +429,7 @@ const MyRoom = () => {
                     <div>
                       <div className="text-lg">Chỉ số điện nước</div>
                       <p className="text-sm text-gray-400 font-normal">
-                        Chỉ số bắt đầu khi nhận phòng
+                        Chỉ số hiện tại của phòng, cập nhật hàng tháng
                       </p>
                     </div>
                   </div>
@@ -589,6 +608,14 @@ const MyRoom = () => {
           defaultFurnitureId={selectedFurnitureId}
         />
       </div>
+
+      {selectedBuildingId && (
+        <BuildingDetailModal
+          buildingId={selectedBuildingId}
+          open={!!selectedBuildingId}
+          onOpenChange={(open) => !open && setSelectedBuildingId("")}
+        />
+      )}
     </div>
   );
 };

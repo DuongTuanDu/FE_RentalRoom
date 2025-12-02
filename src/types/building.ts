@@ -9,6 +9,7 @@ export interface IBuilding {
     userInfo: {
       _id: string;
       fullName: string;
+      phoneNumber: string;
     };
   };
   description?: string;

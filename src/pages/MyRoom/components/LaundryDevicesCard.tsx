@@ -286,15 +286,6 @@ export const LaundryDevicesCard = () => {
                         </span>
                         <span className="font-semibold">Tầng {device.floorLevel}</span>
                       </div>
-                      {device.power && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground flex items-center gap-2">
-                            <Zap className="h-4 w-4" />
-                            <span className="font-medium">Công suất</span>
-                          </span>
-                          <span className="font-semibold">{device.power}W</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
