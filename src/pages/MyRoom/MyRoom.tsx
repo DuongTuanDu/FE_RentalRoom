@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { CreateMaintenanceModal } from "@/pages/Maintenance/components/CreateMaintenanceModal";
 import { RoommateList } from "./components/RoommateList";
+import { LaundryDevicesCard } from "./components/LaundryDevicesCard";
 
 const MyRoom = () => {
   const { data, isLoading, error } = useGetMyRoomQuery();
@@ -462,6 +463,9 @@ const MyRoom = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Laundry Devices */}
+            <LaundryDevicesCard />
           </div>
 
           {/* Right Column - Sidebar */}
