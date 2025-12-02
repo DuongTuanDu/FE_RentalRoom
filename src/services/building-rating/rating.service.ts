@@ -1,18 +1,21 @@
 // src/services/rating/rating.service.ts
+
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
 
 import type {
-    GetRatingsResidentResponse,
+  GetRatingsResidentResponse,
   RatingDetailResponse,
+  GetLandlordRatingsResponse,
 } from "@/types/rating";
 
 export const ratingApi = createApi({
   reducerPath: "ratingApi",
   baseQuery,
-  tagTypes: ["Ratings", "BuildingRatings", "ManagedRatings"], 
-  endpoints: (builder) => ({
+  tagTypes: ["Ratings", "BuildingRatings", "ManagedRatings"],
 
+  endpoints: (builder) => ({
+  
     createOrUpdateRating: builder.mutation<RatingDetailResponse, FormData>({
       query: (formData) => ({
         url: "/ratings",
@@ -44,14 +47,29 @@ export const ratingApi = createApi({
     }),
 
 
-    // getManagedRatings: builder.query<GetRatingsResponse, { page?: number; limit?: number }>({
-    //   query: ({ page = 1, limit = 20 }) => ({
-    //     url: "/landlords/ratings",
-    //     params: { page, limit },
-    //   }),
-    //   providesTags: (result) =>[]
-       
-    // }),
+    getManagedRatings: builder.query<
+      GetLandlordRatingsResponse,
+      { buildingId?: string; page?: number; limit?: number }
+    >({
+      query: ({ buildingId, page = 1, limit = 20 }) => ({
+        url: "/landlords/ratings",
+        params: {
+          ...(buildingId && { buildingId }),
+          page,
+          limit,
+        },
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.ratings.map(({ _id }) => ({
+                type: "ManagedRatings" as const,
+                id: _id,
+              })),
+              { type: "ManagedRatings", id: "LIST" },
+            ]
+          : [{ type: "ManagedRatings", id: "LIST" }],
+    }),
 
     getRatingDetailByLandlord: builder.query<RatingDetailResponse, string>({
       query: (ratingId) => ({
@@ -66,7 +84,11 @@ export const ratingApi = createApi({
         url: `/landlords/ratings/${ratingId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Ratings", "ManagedRatings", "BuildingRatings"],
+      invalidatesTags: (result, error, ratingId) => [
+        { type: "ManagedRatings", id: ratingId },
+        { type: "ManagedRatings", id: "LIST" },
+        "BuildingRatings",
+      ],
     }),
   }),
 });
@@ -75,9 +97,8 @@ export const {
   useCreateOrUpdateRatingMutation,
   useGetBuildingRatingsQuery,
   useDeleteMyRatingMutation,
-
+  useGetManagedRatingsQuery,
+  useLazyGetManagedRatingsQuery,
   useGetRatingDetailByLandlordQuery,
   useDeleteRatingByLandlordMutation,
-
-  useLazyGetBuildingRatingsQuery,
 } = ratingApi;
