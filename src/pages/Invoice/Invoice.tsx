@@ -16,6 +16,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  Upload,
 } from "lucide-react";
 import _ from "lodash";
 import { toast } from "sonner";
@@ -44,6 +45,8 @@ import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { ITenantInvoiceItem, IInvoicePaymentInfoResponse } from "@/types/invoice";
 import { TenantInvoiceDetailSheet } from "./components/TenantInvoiceDetailSheet";
 import { TenantPayInvoiceDialog, PaymentInfoDialog } from "./components/TenantPayInvoiceDialog";
+import { RequestTransferConfirmationDialog } from "./components/RequestTransferConfirmationDialog";
+import { useGetTenantInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
 import {
   Tooltip,
   TooltipContent,
@@ -74,6 +77,8 @@ const Invoice = () => {
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<IInvoicePaymentInfoResponse | null>(null);
+  const [isRequestTransferDialogOpen, setIsRequestTransferDialogOpen] = useState(false);
+  const [requestTransferInvoiceId, setRequestTransferInvoiceId] = useState<string | null>(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -179,6 +184,11 @@ const Invoice = () => {
   const handleOpenPayDialog = (invoiceId: string) => {
     setPayingInvoiceId(invoiceId);
     setIsPayDialogOpen(true);
+  };
+
+  const handleOpenRequestTransferDialog = (invoiceId: string) => {
+    setRequestTransferInvoiceId(invoiceId);
+    setIsRequestTransferDialogOpen(true);
   };
 
   const handlePayInvoice = async (data: {
@@ -572,36 +582,66 @@ const Invoice = () => {
                         <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenDetailSheet(invoice._id)}
-                              title="Xem chi tiết"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleOpenDetailSheet(invoice._id)}
+                                    title="Xem chi tiết"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Xem chi tiết</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             {invoice.status !== "paid" &&
                               invoice.status !== "cancelled" && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleOpenPayDialog(invoice._id)
-                                        }
-                                        disabled={isPaying}
-                                        className="gap-2"
-                                      >
-                                        <CreditCard className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Thanh toán</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                <>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleOpenPayDialog(invoice._id)
+                                          }
+                                          disabled={isPaying}
+                                          className="gap-2"
+                                        >
+                                          <CreditCard className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Thanh toán</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleOpenRequestTransferDialog(invoice._id)
+                                          }
+                                          className="gap-2"
+                                        >
+                                          <Upload className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Gửi yêu cầu xác nhận chuyển khoản</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </>
                               )}
                           </div>
                         </TableCell>
@@ -701,8 +741,41 @@ const Invoice = () => {
             paymentInfo={paymentInfo}
           />
         )}
+
+        {/* Request Transfer Confirmation Dialog */}
+        <RequestTransferConfirmationDialogWrapper
+          open={isRequestTransferDialogOpen}
+          onOpenChange={(open) => {
+            setIsRequestTransferDialogOpen(open);
+            if (!open) setRequestTransferInvoiceId(null);
+          }}
+          invoiceId={requestTransferInvoiceId}
+        />
       </div>
     </div>
+  );
+};
+
+// Wrapper component to handle invoice detail query
+const RequestTransferConfirmationDialogWrapper = ({
+  open,
+  onOpenChange,
+  invoiceId,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invoiceId: string | null;
+}) => {
+  const { data: invoice } = useGetTenantInvoiceDetailsQuery(invoiceId || "", {
+    skip: !invoiceId || !open,
+  });
+
+  return (
+    <RequestTransferConfirmationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      invoice={invoice || null}
+    />
   );
 };
 

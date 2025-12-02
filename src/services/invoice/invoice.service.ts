@@ -12,6 +12,7 @@ import type {
   IUpdateInvoiceRequest,
   ISendDraftInvoiceRequest,
   IInvoicePaymentInfoResponse,
+  IRequestTransferConfirmation,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -190,6 +191,14 @@ export const invoiceApi = createApi({
         data,
       }),
       invalidatesTags: ["TenantInvoice"],
+    }),
+    requestTransferConfirmation: builder.mutation<IInvoicePaymentInfoResponse, { id: string; data: IRequestTransferConfirmation }>({
+      query: ({ id, data }) => ({ // Người thuê gửi yêu cầu xác nhận đã chuyển khoản
+        url: `/invoices/${id}/request-transfer-confirmation`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["TenantInvoice"],
     })
   }),
 });
@@ -208,5 +217,6 @@ export const {
   // Tenant
   useGetTenantInvoicesQuery,
   useGetTenantInvoiceDetailsQuery,
-  usePayTenantInvoiceMutation
+  usePayTenantInvoiceMutation,
+  useRequestTransferConfirmationMutation
 } = invoiceApi;
