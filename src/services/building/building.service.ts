@@ -4,6 +4,7 @@ import type {
   CreateBuildingRequest,
   CreateBuildingResponse,
   CreateQuickBuildingRequest,
+  IBuilding,
   IBuildingResponse,
 } from "@/types/building";
 
@@ -39,6 +40,14 @@ export const buildingApi = createApi({
         url: "/landlords/buildings",
         method: "GET",
         params: { page, limit, q, ...(status ? { status } : {}) },
+      }),
+      providesTags: ["Building"],
+    }),
+
+    getBuildingById: builder.query<IBuilding, string>({
+      query: (buildingId) => ({
+        url: `/landlords/buildings/${buildingId}`,
+        method: "GET",
       }),
       providesTags: ["Building"],
     }),
@@ -116,6 +125,7 @@ export const buildingApi = createApi({
 
 export const {
   useGetBuildingsQuery,
+  useGetBuildingByIdQuery,
   useCreateBuildingMutation,
   useUpdateBuildingMutation,
   useDeleteBuildingMutation,

@@ -18,16 +18,18 @@ import {
   Zap,
   Droplets,
   Sofa,
-  Image as ImageIcon,
+  Image,
   ChevronLeft,
   ChevronRight,
   User,
   Phone,
   Sparkles,
   Wrench,
+  ExternalLink,
 } from "lucide-react";
 import { CreateMaintenanceModal } from "@/pages/Maintenance/components/CreateMaintenanceModal";
 import { RoommateList } from "./components/RoommateList";
+import { BuildingDetailModal } from "../DetailBuilding/components/DetailBuildingComponent";
 import { LaundryDevicesCard } from "./components/LaundryDevicesCard";
 
 const MyRoom = () => {
@@ -37,6 +39,7 @@ const MyRoom = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isCreateMaintenanceOpen, setIsCreateMaintenanceOpen] = useState(false);
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<string>("");
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
 
   if (isLoading) {
     return (
@@ -69,7 +72,7 @@ const MyRoom = () => {
   }
 
   const room = data?.room;
-
+  console.log("room", room);
   if (!room) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -146,9 +149,9 @@ const MyRoom = () => {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Image Gallery */}
-            <Card className="border-0 shadow-xl overflow-hidden">
-              <CardContent className="px-6">
-                {room?.images && room.images.length > 0 ? (
+            {room?.images && room.images.length > 0 && (
+              <Card className="border-0 shadow-xl overflow-hidden">
+                <CardContent className="px-6">
                   <div className="space-y-4">
                     {/* Main Image */}
                     <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
@@ -212,19 +215,9 @@ const MyRoom = () => {
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
-                    <div className="text-center">
-                      <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
-                      <p className="text-sm text-muted-foreground">
-                        Chưa có hình ảnh
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
+                </CardContent>
+              </Card>
+            )}
             {/* Room Information */}
             <Card className="border-0 shadow-xl py-0">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
@@ -486,8 +479,8 @@ const MyRoom = () => {
                     <p className="text-sm text-muted-foreground mb-2">
                       Tên tòa nhà
                     </p>
-                    <p className="font-bold text-lg">
-                      {room?.building?.name || "N/A"}
+                    <p className="font-bold text-lg text-primary">
+                      {room?.building?.name || "Chưa có thông tin"}
                     </p>
                   </div>
 
@@ -510,9 +503,20 @@ const MyRoom = () => {
                   </div>
                 </div>
               </CardContent>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary "
+                onClick={() =>
+                  room?.building?._id &&
+                  setSelectedBuildingId(room.building._id)
+                }
+              >
+                Xem chi tiết
+                <ExternalLink className="h-4 w-4 ml-1" />
+              </Button>
             </Card>
 
-            {/* Utility Indexes */}
             <Card className="border-0 shadow-xl pt-0 pb-5">
               <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
                 <CardTitle>
@@ -523,7 +527,7 @@ const MyRoom = () => {
                     <div>
                       <div className="text-lg">Chỉ số điện nước</div>
                       <p className="text-sm text-gray-400 font-normal">
-                        Chỉ số bắt đầu khi nhận phòng
+                        Chỉ số hiện tại của phòng, cập nhật hàng tháng
                       </p>
                     </div>
                   </div>
@@ -622,6 +626,14 @@ const MyRoom = () => {
           defaultFurnitureId={selectedFurnitureId}
         />
       </div>
+
+      {selectedBuildingId && (
+        <BuildingDetailModal
+          buildingId={selectedBuildingId}
+          open={!!selectedBuildingId}
+          onOpenChange={(open) => !open && setSelectedBuildingId("")}
+        />
+      )}
     </div>
   );
 };

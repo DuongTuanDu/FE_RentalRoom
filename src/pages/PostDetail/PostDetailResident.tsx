@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetPostDetailsResidentsQuery } from "@/services/post/post.service";
+import { useGetBuildingRatingsQuery } from "@/services/building-rating/rating.service";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -27,6 +28,9 @@ import {
   Wifi,
   User,
   Phone,
+  ExternalLink,
+  Zap,
+  Droplets,
 } from "lucide-react";
 import ImageGallery from "./components/ImageGallery";
 import { useFormatDate } from "@/hooks/useFormatDate";
@@ -34,6 +38,7 @@ import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IGetPostResidentDetailResponse } from "@/types/post";
 import CreateContact from "./components/CreateContact";
 import BookingAppointment from "./components/BookingAppointment";
+import { BuildingDetailModal } from "../DetailBuilding/components/DetailBuildingComponent";
 
 const roomStatusToBadge: Record<
   string,
@@ -57,30 +62,34 @@ const PostDetailResident = () => {
     skip: !id,
   });
 
-  const formatDate = useFormatDate();
-  const formatPrice = useFormatPrice();
-
   const post = data?.data as IGetPostResidentDetailResponse["data"] | undefined;
   const building = post?.buildingId;
-  const rooms = post?.rooms ?? [];
+  const buildingId = typeof building === "object" ? building?._id : undefined;
+
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const handleContactCreate = () => {
-    setIsContactModalOpen(true);
-  };
+  const formatDate = useFormatDate();
+  const formatPrice = useFormatPrice();
 
-  const handleBooking = () => {
-    setIsBookingModalOpen(true);
-  };
+  const {
+    data: ratingData,
+  } = useGetBuildingRatingsQuery(
+    { buildingId: buildingId!, limit: 1 },
+    { skip: !buildingId }
+  );
+
+  const ratings = ratingData?.data?.ratings || [];
+  const totalRatings = ratingData?.data?.summary?.totalRatings || 0;
+  const averageRating = ratingData?.data?.summary?.averageRating || 0;
+
+  const handleContactCreate = () => setIsContactModalOpen(true);
+  const handleBooking = () => setIsBookingModalOpen(true);
 
   if (isLoading) {
     return (
       <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <div className="h-9 w-40 rounded bg-muted" />
-          <div className="h-9 w-28 rounded bg-muted" />
-        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2">
             <CardContent className="p-0">
@@ -91,10 +100,11 @@ const PostDetailResident = () => {
           </Card>
           <Card>
             <CardContent className="p-6 space-y-4">
-              <div className="h-6 w-3/4 bg-muted rounded" />
-              <div className="h-4 w-1/2 bg-muted rounded" />
-              <div className="h-4 w-2/3 bg-muted rounded" />
-              <div className="h-10 w-full bg-muted rounded" />
+              <div className="space-y-3">
+                <div className="h-8 w-4/5 bg-muted rounded" />
+                <div className="h-5 w-3/5 bg-muted rounded" />
+                <div className="h-10 w-full bg-muted rounded mt-6" />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -105,22 +115,22 @@ const PostDetailResident = () => {
   if (isError || !post) {
     return (
       <div className="container mx-auto py-10">
-        <div className="max-w-xl mx-auto text-center space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
-            <Info className="h-6 w-6 text-rose-500" />
+        <div className="max-w-xl mx-auto text-center space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center">
+            <Info className="h-8 w-8 text-rose-500" />
           </div>
-          <h2 className="text-xl font-semibold">
-            Không thể tải chi tiết bài đăng
-          </h2>
-          <p className="text-muted-foreground">
-            Vui lòng kiểm tra đường dẫn hoặc thử tải lại trang.
-          </p>
-          <div className="flex gap-2 justify-center">
+          <div>
+            <h2 className="text-2xl font-bold">Không tìm thấy bài đăng</h2>
+            <p className="text-muted-foreground mt-2">
+              Bài đăng có thể đã bị xóa hoặc đường dẫn không đúng.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => navigate(-1)}>
               <ChevronLeft className="h-4 w-4 mr-2" />
               Quay lại
             </Button>
-            <Button onClick={() => window.location.reload()}>Tải lại</Button>
+            <Button onClick={() => navigate("/")}>Về trang chủ</Button>
           </div>
         </div>
       </div>
@@ -128,204 +138,228 @@ const PostDetailResident = () => {
   }
 
   return (
-    <div className="container mx-auto space-y-6 py-8">
-      {/* Top bar */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-          <ChevronLeft className="h-4 w-4" />
-          Quay lại
-        </Button>
-      </div>
+    <div className="container mx-auto space-y-8 py-8">
+      {/* Back Button */}
+      <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+        <ChevronLeft className="h-4 w-4" />
+        Quay lại
+      </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Gallery */}
-        <Card className="lg:col-span-2 overflow-hidden py-0">
+        <Card className="lg:col-span-2 overflow-hidden">
           <CardContent className="p-0">
             <ImageGallery images={post.images || []} title={post.title} />
           </CardContent>
         </Card>
 
-        {/* Summary */}
+        {/* Sidebar Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{post.title}</CardTitle>
+            <CardTitle className="text-2xl line-clamp-2">{post.title}</CardTitle>
             <CardDescription className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span className="truncate">{post.address}</span>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-                <span className="text-lg font-bold text-green-700">
+          <CardContent className="space-y-5">
+            {/* Giá & Diện tích */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <span className="text-xl font-bold text-green-700">
                   {formatPrice(post.priceMin)} - {formatPrice(post.priceMax)}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Square className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-700">
+              <div className="flex items-center gap-3">
+                <Square className="h-5 w-5 text-blue-600" />
+                <span className="text-lg text-blue-700">
                   {post.areaMin} - {post.areaMax} m²
                 </span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
+            {/* Chủ nhà */}
+            <div className="space-y-3 py-3 border-t">
+              <div className="flex items-center gap-3">
                 <User className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {post.landlordId?.fullName || "Chủ bài đăng"}
+                <span className="font-medium">
+                  {post.landlordId?.fullName || "Chủ trọ"}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <button
-                  type="button"
-                  onClick={() =>
-                    post.landlordId?.phoneNumber &&
-                    window.open(`tel:${post.landlordId.phoneNumber}`)
-                  }
-                  className="text-sm text-blue-600 hover:underline"
-                  aria-label="Gọi người đăng"
-                  title="Gọi người đăng"
-                >
-                  {post.landlordId?.phoneNumber || "Chưa cập nhật"}
-                </button>
-              </div>
+              {post.landlordId?.phoneNumber && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4" />
+                  <a
+                    href={`tel:${post.landlordId.phoneNumber}`}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    {post.landlordId.phoneNumber}
+                  </a>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Đăng ngày {formatDate(post.createdAt)}</span>
+              Đăng ngày {formatDate(post.createdAt)}
             </div>
 
-            <div className="flex gap-2 pt-1">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Share2 className="h-4 w-4" /> Chia sẻ
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" /> Chia sẻ
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Heart className="h-4 w-4" /> Lưu
+              <Button variant="outline" size="sm">
+                <Heart className="h-4 w-4 mr-2" /> Lưu tin
               </Button>
             </div>
 
-            <div className="h-px bg-border" />
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 <span>An ninh tốt</span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2">
                 <Wifi className="h-4 w-4 text-sky-600" />
-                <span>Internet nhanh</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Star className="h-4 w-4 text-amber-500" />
-                <span>Vị trí thuận tiện</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <DoorOpen className="h-4 w-4 text-indigo-600" />
-                <span>{rooms.length || 0}+ phòng</span>
+                <span>Wifi mạnh</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Button className="bg-[#4C9288]" onClick={() => handleBooking()}>
-                Đặt lịch xem phòng ngay
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t">
+              <Button className="bg-[#4C9288] hover:bg-[#4C9288]/90" onClick={handleBooking}>
+                Đặt lịch xem phòng
               </Button>
               <Button onClick={handleContactCreate}>
-                Yêu cầu tạo hợp đồng
+                Liên hệ ngay
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Description */}
       <Card>
         <CardHeader>
-          <CardTitle>Mô tả</CardTitle>
-          <CardDescription>Thông tin chi tiết về bài đăng</CardDescription>
+          <CardTitle>Mô tả chi tiết</CardTitle>
         </CardHeader>
         <CardContent>
           {post.description ? (
             <div
-              className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
-              dangerouslySetInnerHTML={{
-                __html: post.description,
-              }}
+              className="prose prose-sm max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: post.description }}
             />
           ) : (
-            <p className="text-muted-foreground">Chưa có mô tả.</p>
+            <p className="text-muted-foreground">Chưa có mô tả chi tiết.</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Building */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Tòa nhà
-          </CardTitle>
-          <CardDescription>Thông tin tòa nhà nơi đặt phòng</CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Building2 className="h-6 w-6 text-primary" />
+              <CardTitle>Thông tin tòa nhà</CardTitle>
+            </div>
+            {buildingId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary hover:bg-primary/10"
+                onClick={() => setSelectedBuildingId(buildingId)}
+              >
+                Xem chi tiết
+                <ExternalLink className="h-4 w-4 ml-1" />
+              </Button>
+            )}
+          </div>
+          <CardDescription>Xem thông tin và đánh giá từ cư dân</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-6">
           {building ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Tên tòa nhà</p>
-                  <p className="font-medium">{building.name}</p>
+              <div className="flex items-center justify-between gap-6">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tên trọ/tòa nhà</p>
+                    <p className="font-medium">{building.name}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Địa chỉ</p>
-                  <p className="font-medium">{building.address}</p>
+
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Địa chỉ</p>
+                    <p className="font-medium">{building.address}</p>
+                  </div>
                 </div>
+
+                {averageRating !== undefined && averageRating > 0 ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                    <span className="font-medium">
+                      {averageRating.toFixed(1)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ({totalRatings} đánh giá)
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground italic">
+                    Chưa có đánh giá
+                  </span>
+                )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Điện</p>
-                  <p className="font-medium">
-                    {building.eIndexType === "included"
-                      ? "Đã bao gồm"
-                      : `${building.ePrice?.toLocaleString()} đ / ${
-                          building.eIndexType === "byNumber" ? "kWh" : "người"
-                        }`}
-                  </p>
+
+
+              <div className="grid gap-6 pt-4 border-t border-border/60">
+                <div className="flex items-start gap-3">
+                  <Zap className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Giá điện</p>
+                    <p className="font-medium">
+                      {building.eIndexType === "included"
+                        ? "Đã bao gồm"
+                        : building.ePrice
+                        ? `${formatPrice(building.ePrice)} ₫/${building.eIndexType === "byNumber" ? "kWh" : "người/tháng"}`
+                        : "Chưa cập nhật"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Nước</p>
-                  <p className="font-medium">
-                    {building.wIndexType === "included"
-                      ? "Đã bao gồm"
-                      : `${building.wPrice?.toLocaleString()} đ / ${
-                          building.wIndexType === "byNumber" ? "m³" : "người"
-                        }`}
-                  </p>
+
+                <div className="flex items-start gap-3">
+                  <Droplets className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Giá nước</p>
+                    <p className="font-medium">
+                      {building.wIndexType === "included"
+                        ? "Đã bao gồm"
+                        : building.wPrice
+                        ? `${formatPrice(building.wPrice)} ₫/${building.wIndexType === "byNumber" ? "m³" : "người/tháng"}`
+                        : "Chưa cập nhật"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </>
           ) : (
             <p className="text-muted-foreground">Không có thông tin tòa nhà.</p>
           )}
-        </CardContent>
+        </CardContent>  
       </Card>
 
-      {/* Rooms */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DoorOpen className="h-5 w-5" />
-            Phòng trống
+            Phòng đang trống ({post.rooms?.length || 0})
           </CardTitle>
-          <CardDescription>Danh sách phòng thuộc bài đăng</CardDescription>
         </CardHeader>
         <CardContent>
-          {rooms.length ? (
+          {post.rooms && post.rooms.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {rooms.map((room) => {
-                const rm = roomStatusToBadge[room.status] ?? {
+              {post.rooms.map((room) => {
+                const badge = roomStatusToBadge[room.status] || {
                   bg: "bg-gray-100",
                   text: "text-gray-800",
                   label: room.status,
@@ -333,25 +367,23 @@ const PostDetailResident = () => {
                 return (
                   <div
                     key={room._id}
-                    className="shadow-xl hover:shadow-2xl rounded-lg p-4 transition"
+                    className="p-5 rounded-xl border bg-card hover:shadow-lg transition-shadow"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="font-semibold">
-                        Phòng {room.roomNumber}
-                      </div>
-                      <Badge className={`${rm.bg} ${rm.text}`}>
-                        {rm.label}
+                    <div className="flex justify-between items-start mb-3">
+                      <h4 className="font-bold text-lg">Phòng {room.roomNumber}</h4>
+                      <Badge className={`${badge.bg} ${badge.text}`}>
+                        {badge.label}
                       </Badge>
                     </div>
-                    <div className="mt-2 space-y-1">
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <Square className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">{room.area} m²</span>
+                        <span>{room.area} m²</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-700">
-                          {formatPrice(room.price)}
+                        <span className="font-semibold text-green-700">
+                          {formatPrice(room.price)} / tháng
                         </span>
                       </div>
                     </div>
@@ -360,30 +392,43 @@ const PostDetailResident = () => {
               })}
             </div>
           ) : (
-            <p className="text-muted-foreground">Chưa có phòng nào.</p>
+            <p className="text-center text-muted-foreground py-8">
+              Hiện tại chưa có phòng trống nào.
+            </p>
           )}
         </CardContent>
       </Card>
 
+      {/* Modal liên hệ */}
       <CreateContact
         open={isContactModalOpen}
         onOpenChange={setIsContactModalOpen}
         postId={post._id}
-        buildingId={typeof building === "object" ? building?._id : ""}
-        buildingName={typeof building === "object" ? building?.name : ""}
+        buildingId={buildingId || ""}
+        buildingName={typeof building === "object" ? building.name : ""}
         postTitle={post.title}
-        rooms={rooms}
+        rooms={post.rooms || []}
       />
 
+      {/* Modal đặt lịch */}
       <BookingAppointment
         open={isBookingModalOpen}
         onOpenChange={setIsBookingModalOpen}
         postId={post._id}
-        buildingId={typeof building === "object" ? building?._id : ""}
-        buildingName={typeof building === "object" ? building?.name : ""}
+        buildingId={buildingId || ""}
+        buildingName={typeof building === "object" ? building.name : ""}
         postTitle={post.title}
         address={post.address}
       />
+
+      {/* Modal chi tiết tòa nhà */}
+      {selectedBuildingId && (
+        <BuildingDetailModal
+          buildingId={selectedBuildingId}
+          open={!!selectedBuildingId}
+          onOpenChange={(open) => !open && setSelectedBuildingId("")}
+        />
+      )}
     </div>
   );
 };
