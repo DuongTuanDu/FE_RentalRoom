@@ -37,7 +37,7 @@ export interface InvoiceItem {
   currency: "VND" | string;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
   paymentMethod: "cash" | "online_gateway" | null;
   emailStatus: "pending" | "sent" | "failed" | null;
   isDeleted: boolean;
@@ -165,7 +165,7 @@ export interface InvoiceDetailResponse {
     currency: "VND" | string;
     issuedAt: string;
     dueDate: string;
-    status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+    status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
     paymentMethod: "cash" | "online_gateway" | null;
     emailStatus: "pending" | "sent" | "failed";
     createdBy: string;
@@ -180,6 +180,10 @@ export interface InvoiceDetailResponse {
     createdAt: string;
     updatedAt: string;
     __v: number;
+    emailSentAt?: string;
+    paymentNote?: string;
+    transferProofImageUrl?: string;
+    transferRequestedAt?: string;
     note: string;
   };
 }
@@ -213,7 +217,7 @@ export interface ITenantInvoiceItem {
   totalAmount: number;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
   createdAt: string;
   updatedAt: string;
   paidAt?: string;
@@ -267,7 +271,7 @@ export interface ITenantInvoiceDetailResponse {
   currency: string;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
   paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
   emailStatus: "pending" | "sent" | "failed";
   createdBy: string;
@@ -284,8 +288,9 @@ export interface ITenantInvoiceDetailResponse {
   __v: number;
   emailLastError: string | null;
   emailSentAt: string | null;
-  sentAt: string | null;
   paidAt: string | null;
+    transferProofImageUrl?: string;
+    transferRequestedAt?: string;
   paymentNote?: string;
 }
 

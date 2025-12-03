@@ -8,7 +8,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   FileText,
   Building2,
@@ -18,7 +17,10 @@ import {
   Mail,
   CreditCard,
   Clock,
-  Edit,
+  Receipt,
+  UserCheck,
+  Trash2,
+  Send,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
@@ -28,21 +30,20 @@ interface InvoiceDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string | null;
-  onUpdateClick?: (invoiceId: string) => void;
 }
 
 export const InvoiceDetailSheet = ({
   open,
   onOpenChange,
   invoiceId,
-  onUpdateClick,
 }: InvoiceDetailSheetProps) => {
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
-  const { data: invoice, isLoading, isError } = useGetInvoiceDetailsQuery(
-    invoiceId || "",
-    { skip: !invoiceId || !open }
-  );
+  const {
+    data: invoice,
+    isLoading,
+    isError,
+  } = useGetInvoiceDetailsQuery(invoiceId || "", { skip: !invoiceId || !open });
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -57,6 +58,10 @@ export const InvoiceDetailSheet = ({
       paid: {
         label: "Đã thanh toán",
         className: "bg-green-100 text-green-800 border-green-200",
+      },
+      transfer_pending: {
+        label: "Chờ xác nhận chuyển khoản",
+        className: "bg-orange-100 text-orange-800 border-orange-200",
       },
       overdue: {
         label: "Quá hạn",
@@ -100,6 +105,15 @@ export const InvoiceDetailSheet = ({
     );
   };
 
+  const getPaymentMethodLabel = (method: string | null) => {
+    const methodMap: Record<string, string> = {
+      cash: "Tiền mặt",
+      bank_transfer: "Chuyển khoản ngân hàng",
+      online_gateway: "Cổng thanh toán trực tuyến",
+    };
+    return method ? methodMap[method] || method : "N/A";
+  };
+
   if (isLoading) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -122,9 +136,7 @@ export const InvoiceDetailSheet = ({
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto pl-2 sm:pl-4">
           <SheetHeader className="space-y-4 pb-6">
             <SheetTitle>Chi tiết hóa đơn</SheetTitle>
-            <SheetDescription>
-              Không thể tải thông tin hóa đơn
-            </SheetDescription>
+            <SheetDescription>Không thể tải thông tin hóa đơn</SheetDescription>
           </SheetHeader>
           <div className="flex justify-center items-center py-12">
             <p className="text-muted-foreground">
@@ -148,25 +160,23 @@ export const InvoiceDetailSheet = ({
                 <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <SheetTitle className="text-2xl font-bold">
-                  Hóa đơn
-                </SheetTitle>
-                <SheetDescription className="flex items-center gap-2 mt-1">
-                  {getStatusBadge(invoiceData.status)}
-                  {getEmailStatusBadge(invoiceData.emailStatus)}
+                <SheetTitle className="text-2xl font-bold">Hóa đơn</SheetTitle>
+                <SheetDescription className="flex flex-col gap-2 mt-1">
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(invoiceData.status)}
+                    {/* {getEmailStatusBadge(invoiceData.emailStatus)} */}
+                    {invoiceData.invoiceNumber && (
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <Receipt className="w-4 h-4" />
+                        <span className="font-medium">
+                          Số hóa đơn: {invoiceData.invoiceNumber}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </SheetDescription>
               </div>
             </div>
-            {onUpdateClick && invoiceId && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onUpdateClick(invoiceId)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Cập nhật
-              </Button>
-            )}
           </div>
         </SheetHeader>
 
@@ -450,7 +460,9 @@ export const InvoiceDetailSheet = ({
                       Còn lại
                     </label>
                     <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
-                      {formatPrice(invoiceData.totalAmount - invoiceData.paidAmount)}
+                      {formatPrice(
+                        invoiceData.totalAmount - invoiceData.paidAmount
+                      )}
                     </p>
                   </div>
                 </>
@@ -459,21 +471,93 @@ export const InvoiceDetailSheet = ({
           </Card>
 
           {/* Thông tin thanh toán */}
-          {invoiceData.status === "paid" && invoiceData.paymentMethod && (
+          {(invoiceData.status === "paid" ||
+            invoiceData.status === "transfer_pending") &&
+            invoiceData.paymentMethod && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <CreditCard className="w-4 h-4" />
+                  Thông tin thanh toán
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+                  <div>
+                    <label className="text-sm text-slate-600 dark:text-slate-400">
+                      Phương thức thanh toán
+                    </label>
+                    <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                      {getPaymentMethodLabel(invoiceData.paymentMethod)}
+                    </p>
+                  </div>
+                  {invoiceData.paymentNote && (
+                    <>
+                      <Separator />
+                      <div>
+                        <label className="text-sm text-slate-600 dark:text-slate-400">
+                          Ghi chú thanh toán
+                        </label>
+                        <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1 whitespace-pre-wrap">
+                          {invoiceData.paymentNote}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+          {/* Thông tin chuyển khoản */}
+          {invoiceData.status === "transfer_pending" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                <CreditCard className="w-4 h-4" />
-                Thông tin thanh toán
+                <Send className="w-4 h-4" />
+                Thông tin yêu cầu chuyển khoản
               </div>
               <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
-                <div>
-                  <label className="text-sm text-slate-600 dark:text-slate-400">
-                    Phương thức thanh toán
-                  </label>
-                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                    {invoiceData.paymentMethod}
-                  </p>
-                </div>
+                {invoiceData.transferRequestedAt && (
+                  <div>
+                    <label className="text-sm text-slate-600 dark:text-slate-400">
+                      Thời gian yêu cầu
+                    </label>
+                    <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                      {formatDate(invoiceData.transferRequestedAt)}
+                    </p>
+                  </div>
+                )}
+                {invoiceData.transferProofImageUrl && (
+                  <>
+                    {invoiceData.transferRequestedAt && <Separator />}
+                    <div>
+                      <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">
+                        Ảnh chứng từ chuyển khoản
+                      </label>
+                      <div className="mt-2">
+                        <div className="relative group inline-block">
+                          <div className="aspect-square relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 max-w-xs">
+                            <img
+                              src={invoiceData.transferProofImageUrl}
+                              alt="Ảnh chứng từ chuyển khoản"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  window.open(
+                                    invoiceData.transferProofImageUrl,
+                                    "_blank"
+                                  )
+                                }
+                                className="text-white text-sm font-medium px-3 py-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                              >
+                                Xem ảnh
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -494,6 +578,19 @@ export const InvoiceDetailSheet = ({
                     {getEmailStatusBadge(invoiceData.emailStatus)}
                   </p>
                 </div>
+                {invoiceData.emailSentAt && (
+                  <>
+                    <Separator />
+                    <div>
+                      <label className="text-sm text-slate-600 dark:text-slate-400">
+                        Thời gian gửi email
+                      </label>
+                      <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                        {formatDate(invoiceData.emailSentAt)}
+                      </p>
+                    </div>
+                  </>
+                )}
                 {invoiceData.reminders && invoiceData.reminders.length > 0 && (
                   <>
                     <Separator />
@@ -505,8 +602,8 @@ export const InvoiceDetailSheet = ({
                         {invoiceData.reminders.map((reminder, idx) => (
                           <div key={idx} className="text-sm">
                             <p className="text-slate-700 dark:text-slate-300">
-                              {formatDate(reminder.sentAt)} - {reminder.channel} -{" "}
-                              {reminder.status}
+                              {formatDate(reminder.sentAt)} - {reminder.channel}{" "}
+                              - {reminder.status}
                             </p>
                             {reminder.note && (
                               <p className="text-red-600 dark:text-red-400 text-xs mt-1">
@@ -545,6 +642,20 @@ export const InvoiceDetailSheet = ({
               Thông tin hệ thống
             </div>
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+              {invoiceData.createdBy && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                      <UserCheck className="w-4 h-4" />
+                      Người tạo
+                    </label>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {invoiceData.createdBy}
+                    </p>
+                  </div>
+                  <Separator />
+                </>
+              )}
               <div className="flex justify-between items-center">
                 <label className="text-sm text-slate-600 dark:text-slate-400">
                   Ngày tạo
@@ -562,6 +673,36 @@ export const InvoiceDetailSheet = ({
                   {formatDate(invoiceData.updatedAt)}
                 </p>
               </div>
+              {invoiceData.isDeleted && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      Trạng thái
+                    </label>
+                    <Badge
+                      variant="outline"
+                      className="bg-red-100 text-red-800 border-red-200"
+                    >
+                      Đã xóa
+                    </Badge>
+                  </div>
+                  {invoiceData.deletedAt && (
+                    <>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm text-slate-600 dark:text-slate-400">
+                          Ngày xóa
+                        </label>
+                        <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                          {formatDate(invoiceData.deletedAt)}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -569,4 +710,3 @@ export const InvoiceDetailSheet = ({
     </Sheet>
   );
 };
-

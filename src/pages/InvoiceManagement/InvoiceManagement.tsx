@@ -13,6 +13,7 @@ import {
   FileText,
   Loader2,
   Edit,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -66,7 +67,10 @@ import type {
 } from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
-import { PayInvoiceDialog, PaymentInfoDialog } from "./components/PayInvoiceDialog";
+import {
+  PayInvoiceDialog,
+  PaymentInfoDialog,
+} from "./components/PayInvoiceDialog";
 import { GenerateMonthlyInvoiceDialog } from "./components/GenerateMonthlyInvoiceDialog";
 import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialog";
@@ -97,7 +101,8 @@ const InvoiceManagement = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
-  const [paymentInfo, setPaymentInfo] = useState<IInvoicePaymentInfoResponse | null>(null);
+  const [paymentInfo, setPaymentInfo] =
+    useState<IInvoicePaymentInfoResponse | null>(null);
   const [isGenerateMonthlyDialogOpen, setIsGenerateMonthlyDialogOpen] =
     useState(false);
   const [isGenerateInvoiceDialogOpen, setIsGenerateInvoiceDialogOpen] =
@@ -191,6 +196,11 @@ const InvoiceManagement = () => {
         label: "Đã thanh toán",
         className: "bg-green-100 text-green-800 border-green-200",
       },
+      transfer_pending: {
+        label: "Chờ chuyển tiền",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        icon: Clock,
+      },
       overdue: {
         label: "Quá hạn",
         className: "bg-red-100 text-red-800 border-red-200",
@@ -224,7 +234,7 @@ const InvoiceManagement = () => {
 
     try {
       const response = await payInvoice(payingInvoiceId).unwrap();
-      
+
       // Check if response has payment info
       if (response && response.bankInfo) {
         setPaymentInfo(response);
@@ -259,7 +269,6 @@ const InvoiceManagement = () => {
         extraItems: data.extraItems || [],
       }).unwrap();
 
-      // Kiểm tra nếu có lỗi trong response (một số API trả về 200 nhưng có failCount > 0)
       const responseData = response as any;
       if (
         responseData &&
@@ -649,26 +658,26 @@ const InvoiceManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
-                                {invoice.status === "sent" && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() =>
-                                          handleOpenPayDialog(invoice._id)
-                                        }
-                                        disabled={isPaying}
-                                      >
-                                        <CreditCard className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Thanh toán</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                {invoice.status === "sent" || invoice.status === "transfer_pending" && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() =>
+                                            handleOpenPayDialog(invoice._id)
+                                          }
+                                          disabled={isPaying}
+                                        >
+                                          <CreditCard className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Thanh toán</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 )}
                                 {invoice.status === "draft" && (
                                   <Popover
@@ -830,10 +839,6 @@ const InvoiceManagement = () => {
           if (!open) setSelectedInvoiceId(null);
         }}
         invoiceId={selectedInvoiceId}
-        onUpdateClick={(invoiceId) => {
-          setUpdatingInvoiceId(invoiceId);
-          setIsUpdateDialogOpen(true);
-        }}
       />
 
       {/* Pay Invoice Dialog */}
@@ -851,7 +856,7 @@ const InvoiceManagement = () => {
         isLoading={isPaying}
         paymentInfo={paymentInfo}
       />
-      
+
       {/* Payment Info Dialog - Show when paymentInfo is available */}
       {paymentInfo && (
         <PaymentInfoDialog

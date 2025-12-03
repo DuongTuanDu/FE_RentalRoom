@@ -42,9 +42,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
-import type { ITenantInvoiceItem, IInvoicePaymentInfoResponse } from "@/types/invoice";
+import type {
+  ITenantInvoiceItem,
+  IInvoicePaymentInfoResponse,
+} from "@/types/invoice";
 import { TenantInvoiceDetailSheet } from "./components/TenantInvoiceDetailSheet";
-import { TenantPayInvoiceDialog, PaymentInfoDialog } from "./components/TenantPayInvoiceDialog";
+import {
+  TenantPayInvoiceDialog,
+  PaymentInfoDialog,
+} from "./components/TenantPayInvoiceDialog";
 import { RequestTransferConfirmationDialog } from "./components/RequestTransferConfirmationDialog";
 import { useGetTenantInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
 import {
@@ -76,9 +82,13 @@ const Invoice = () => {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
-  const [paymentInfo, setPaymentInfo] = useState<IInvoicePaymentInfoResponse | null>(null);
-  const [isRequestTransferDialogOpen, setIsRequestTransferDialogOpen] = useState(false);
-  const [requestTransferInvoiceId, setRequestTransferInvoiceId] = useState<string | null>(null);
+  const [paymentInfo, setPaymentInfo] =
+    useState<IInvoicePaymentInfoResponse | null>(null);
+  const [isRequestTransferDialogOpen, setIsRequestTransferDialogOpen] =
+    useState(false);
+  const [requestTransferInvoiceId, setRequestTransferInvoiceId] = useState<
+    string | null
+  >(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -154,6 +164,11 @@ const Invoice = () => {
         className: "bg-green-100 text-green-800 border-green-200",
         icon: CheckCircle,
       },
+      transfer_pending: {
+        label: "Chờ chuyển tiền",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        icon: Clock,
+      },
       overdue: {
         label: "Quá hạn",
         className: "bg-red-100 text-red-800 border-red-200",
@@ -202,9 +217,14 @@ const Invoice = () => {
         id: payingInvoiceId,
         data,
       }).unwrap();
-      
+
       // Check if response has payment info (for bank_transfer or online_gateway)
-      if (response && response.bankInfo && (data.paymentMethod === "bank_transfer" || data.paymentMethod === "online_gateway")) {
+      if (
+        response &&
+        response.bankInfo &&
+        (data.paymentMethod === "bank_transfer" ||
+          data.paymentMethod === "online_gateway")
+      ) {
         setPaymentInfo(response);
         // Keep dialog open to show payment info
       } else {
@@ -241,19 +261,36 @@ const Invoice = () => {
     }
 
     const items = allInvoicesData.items;
-    const paid = items.filter((inv: ITenantInvoiceItem) => inv.status === "paid").length;
-    const pending = items.filter(
-      (inv: ITenantInvoiceItem) => inv.status === "sent" || inv.status === "draft"
+    const paid = items.filter(
+      (inv: ITenantInvoiceItem) => inv.status === "paid"
     ).length;
-    const overdue = items.filter((inv: ITenantInvoiceItem) => inv.status === "overdue").length;
+    const pending = items.filter(
+      (inv: ITenantInvoiceItem) =>
+        inv.status === "sent" || inv.status === "draft" || inv.status === "transfer_pending"
+    ).length;
+    const overdue = items.filter(
+      (inv: ITenantInvoiceItem) => inv.status === "overdue"
+    ).length;
 
-    const totalAmount = items.reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
+    const totalAmount = items.reduce(
+      (sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount,
+      0
+    );
     const paidAmount = items
       .filter((inv: ITenantInvoiceItem) => inv.status === "paid")
-      .reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
+      .reduce(
+        (sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount,
+        0
+      );
     const pendingAmount = items
-      .filter((inv: ITenantInvoiceItem) => inv.status === "sent" || inv.status === "overdue")
-      .reduce((sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount, 0);
+      .filter(
+        (inv: ITenantInvoiceItem) =>
+          inv.status === "sent" || inv.status === "overdue" || inv.status === "transfer_pending"
+      )
+      .reduce(
+        (sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount,
+        0
+      );
 
     return {
       total: items.length,
@@ -536,117 +573,130 @@ const Invoice = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    invoicesData.items.map((invoice: ITenantInvoiceItem, idx: number) => (
-                      <TableRow key={invoice._id} className="hover:bg-slate-50">
-                        <TableCell>
-                          {(currentPage - 1) * pageLimit + idx + 1}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {invoice.invoiceNumber}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span>{invoice.buildingId?.name || "N/A"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <DoorOpen className="h-4 w-4 text-muted-foreground" />
-                            <span>{invoice.roomId?.roomNumber || "N/A"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {invoice.periodMonth}/{invoice.periodYear}
+                    invoicesData.items.map(
+                      (invoice: ITenantInvoiceItem, idx: number) => (
+                        <TableRow
+                          key={invoice._id}
+                          className="hover:bg-slate-50"
+                        >
+                          <TableCell>
+                            {(currentPage - 1) * pageLimit + idx + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {invoice.invoiceNumber}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span>{invoice.buildingId?.name || "N/A"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <DoorOpen className="h-4 w-4 text-muted-foreground" />
+                              <span>{invoice.roomId?.roomNumber || "N/A"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>
+                                {invoice.periodMonth}/{invoice.periodYear}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            {formatPrice(invoice.totalAmount)}
+                          </TableCell>
+                          <TableCell>{formatDate(invoice.issuedAt)}</TableCell>
+                          <TableCell>
+                            <span
+                              className={
+                                invoice.status === "overdue"
+                                  ? "text-red-600 font-medium"
+                                  : ""
+                              }
+                            >
+                              {formatDate(invoice.dueDate)}
                             </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-semibold">
-                          {formatPrice(invoice.totalAmount)}
-                        </TableCell>
-                        <TableCell>{formatDate(invoice.issuedAt)}</TableCell>
-                        <TableCell>
-                          <span
-                            className={
-                              invoice.status === "overdue"
-                                ? "text-red-600 font-medium"
-                                : ""
-                            }
-                          >
-                            {formatDate(invoice.dueDate)}
-                          </span>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleOpenDetailSheet(invoice._id)}
-                                    title="Xem chi tiết"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Xem chi tiết</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            {invoice.status !== "paid" &&
-                              invoice.status !== "cancelled" && (
-                                <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="default"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleOpenPayDialog(invoice._id)
-                                          }
-                                          disabled={isPaying}
-                                          className="gap-2"
-                                        >
-                                          <CreditCard className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Thanh toán</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleOpenRequestTransferDialog(invoice._id)
-                                          }
-                                          className="gap-2"
-                                        >
-                                          <Upload className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Gửi yêu cầu xác nhận chuyển khoản</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </>
-                              )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(invoice.status)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() =>
+                                        handleOpenDetailSheet(invoice._id)
+                                      }
+                                      title="Xem chi tiết"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Xem chi tiết</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              {invoice.status !== "paid" &&
+                                invoice.status !== "cancelled" && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleOpenPayDialog(invoice._id)
+                                            }
+                                            disabled={isPaying}
+                                            className="gap-2"
+                                          >
+                                            <CreditCard className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Thanh toán</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleOpenRequestTransferDialog(
+                                                invoice._id
+                                              )
+                                            }
+                                            className="gap-2"
+                                          >
+                                            <Upload className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>
+                                            Gửi yêu cầu xác nhận chuyển khoản
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
+                                )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )
                   )}
                 </TableBody>
               </Table>
@@ -726,7 +776,7 @@ const Invoice = () => {
           isLoading={isPaying}
           paymentInfo={paymentInfo}
         />
-        
+
         {/* Payment Info Dialog - Show when paymentInfo is available */}
         {paymentInfo && (
           <PaymentInfoDialog

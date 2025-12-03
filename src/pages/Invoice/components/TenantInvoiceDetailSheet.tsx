@@ -16,6 +16,8 @@ import {
   CreditCard,
   Clock,
   DoorOpen,
+  Send,
+  Mail,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
@@ -34,10 +36,13 @@ export const TenantInvoiceDetailSheet = ({
 }: TenantInvoiceDetailSheetProps) => {
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
-  const { data: invoice, isLoading, isError } = useGetTenantInvoiceDetailsQuery(
-    invoiceId || "",
-    { skip: !invoiceId || !open }
-  );
+  const {
+    data: invoice,
+    isLoading,
+    isError,
+  } = useGetTenantInvoiceDetailsQuery(invoiceId || "", {
+    skip: !invoiceId || !open,
+  });
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -53,6 +58,10 @@ export const TenantInvoiceDetailSheet = ({
         label: "Đã thanh toán",
         className: "bg-green-100 text-green-800 border-green-200",
       },
+      transfer_pending: {
+        label: "Chờ xác nhận chuyển khoản",
+        className: "bg-orange-100 text-orange-800 border-orange-200",
+      },
       overdue: {
         label: "Quá hạn",
         className: "bg-red-100 text-red-800 border-red-200",
@@ -64,6 +73,30 @@ export const TenantInvoiceDetailSheet = ({
     };
     const config =
       statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
+    return (
+      <Badge className={config.className} variant="outline">
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getEmailStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: {
+        label: "Chờ gửi",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      },
+      sent: {
+        label: "Đã gửi",
+        className: "bg-green-100 text-green-800 border-green-200",
+      },
+      failed: {
+        label: "Gửi thất bại",
+        className: "bg-red-100 text-red-800 border-red-200",
+      },
+    };
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return (
       <Badge className={config.className} variant="outline">
         {config.label}
@@ -104,9 +137,7 @@ export const TenantInvoiceDetailSheet = ({
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto pl-2 sm:pl-4">
           <SheetHeader className="space-y-4 pb-6">
             <SheetTitle>Chi tiết hóa đơn</SheetTitle>
-            <SheetDescription>
-              Không thể tải thông tin hóa đơn
-            </SheetDescription>
+            <SheetDescription>Không thể tải thông tin hóa đơn</SheetDescription>
           </SheetHeader>
           <div className="flex justify-center items-center py-12">
             <p className="text-muted-foreground">
@@ -128,9 +159,7 @@ export const TenantInvoiceDetailSheet = ({
                 <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <SheetTitle className="text-2xl font-bold">
-                  Hóa đơn
-                </SheetTitle>
+                <SheetTitle className="text-2xl font-bold">Hóa đơn</SheetTitle>
                 <SheetDescription className="flex items-center gap-2 mt-1">
                   {getStatusBadge(invoice.status)}
                 </SheetDescription>
@@ -161,11 +190,15 @@ export const TenantInvoiceDetailSheet = ({
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Ngày phát hành</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ngày phát hành
+                  </p>
                   <p className="font-medium">{formatDate(invoice.issuedAt)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Hạn thanh toán</p>
+                  <p className="text-sm text-muted-foreground">
+                    Hạn thanh toán
+                  </p>
                   <p
                     className={`font-medium ${
                       invoice.status === "overdue"
@@ -222,13 +255,96 @@ export const TenantInvoiceDetailSheet = ({
             </CardContent>
           </Card>
 
+          {/* Thông tin hợp đồng */}
+          {invoice.contractId && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <FileText className="w-4 h-4" />
+                Thông tin hợp đồng
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+                <div>
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Số hợp đồng
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    {invoice.contractId?.contract?.no || "N/A"}
+                  </p>
+                </div>
+                <Separator />
+                <div>
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Ngày bắt đầu
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    {invoice.contractId?.contract?.startDate
+                      ? formatDate(invoice.contractId.contract.startDate)
+                      : "N/A"}
+                  </p>
+                </div>
+                <Separator />
+                <div>
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Ngày kết thúc
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    {invoice.contractId?.contract?.endDate
+                      ? formatDate(invoice.contractId.contract.endDate)
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chi tiết hóa đơn */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <DollarSign className="w-4 h-4" />
+              Chi tiết hóa đơn
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Kỳ thanh toán</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Tháng/Năm
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
+                    {invoice.periodMonth}/{invoice.periodYear}
+                  </p>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Ngày phát hành
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
+                    {formatDate(invoice.issuedAt)}
+                  </p>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Hạn thanh toán
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
+                    {formatDate(invoice.dueDate)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Chi tiết hạng mục */}
           {invoice.items && invoice.items.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Chi tiết hạng mục
+                  <FileText className="h-5 w-5" />
+                  Danh sách khoản thu
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -293,7 +409,9 @@ export const TenantInvoiceDetailSheet = ({
                 <span className="text-slate-600 dark:text-slate-400">
                   Tạm tính:
                 </span>
-                <span className="font-medium">{formatPrice(invoice.subtotal)}</span>
+                <span className="font-medium">
+                  {formatPrice(invoice.subtotal)}
+                </span>
               </div>
               {invoice.discountAmount > 0 && (
                 <div className="flex justify-between items-center">
@@ -347,7 +465,8 @@ export const TenantInvoiceDetailSheet = ({
           </Card>
 
           {/* Thông tin thanh toán */}
-          {invoice.status === "paid" && (
+          {(invoice.status === "paid" ||
+            invoice.status === "transfer_pending") && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -371,7 +490,9 @@ export const TenantInvoiceDetailSheet = ({
                         <Clock className="h-4 w-4" />
                         Ngày thanh toán
                       </p>
-                      <p className="font-medium">{formatDate(invoice.paidAt)}</p>
+                      <p className="font-medium">
+                        {formatDate(invoice.paidAt)}
+                      </p>
                     </div>
                   )}
                   {invoice.paymentNote && (
@@ -384,9 +505,123 @@ export const TenantInvoiceDetailSheet = ({
               </CardContent>
             </Card>
           )}
+
+          {/* Thông tin chuyển khoản */}
+          {invoice.status === "transfer_pending" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <Send className="w-4 h-4" />
+                Thông tin yêu cầu chuyển khoản
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+                {invoice.transferRequestedAt && (
+                  <div>
+                    <label className="text-sm text-slate-600 dark:text-slate-400">
+                      Thời gian yêu cầu
+                    </label>
+                    <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                      {formatDate(invoice.transferRequestedAt)}
+                    </p>
+                  </div>
+                )}
+                {invoice.transferProofImageUrl && (
+                  <>
+                    {invoice.transferRequestedAt && <Separator />}
+                    <div>
+                      <label className="text-sm text-slate-600 dark:text-slate-400 mb-2 block">
+                        Ảnh chứng từ chuyển khoản
+                      </label>
+                      <div className="mt-2">
+                        <div className="relative group inline-block">
+                          <div className="aspect-square relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 max-w-xs">
+                            <img
+                              src={invoice.transferProofImageUrl}
+                              alt="Ảnh chứng từ chuyển khoản"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  window.open(
+                                    invoice.transferProofImageUrl,
+                                    "_blank"
+                                  )
+                                }
+                                className="text-white text-sm font-medium px-3 py-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                              >
+                                Xem ảnh
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Thông tin email */}
+          {invoice.emailStatus && invoice.emailStatus !== "pending" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <Mail className="w-4 h-4" />
+                Thông tin gửi email
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+                <div>
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Trạng thái
+                  </label>
+                  <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                    {getEmailStatusBadge(invoice.emailStatus)}
+                  </p>
+                </div>
+                {invoice.emailSentAt && (
+                  <>
+                    <Separator />
+                    <div>
+                      <label className="text-sm text-slate-600 dark:text-slate-400">
+                        Thời gian gửi email
+                      </label>
+                      <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
+                        {formatDate(invoice.emailSentAt)}
+                      </p>
+                    </div>
+                  </>
+                )}
+                {invoice.reminders && invoice.reminders.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <label className="text-sm text-slate-600 dark:text-slate-400">
+                        Lịch sử gửi
+                      </label>
+                      <div className="mt-2 space-y-2">
+                        {invoice.reminders.map((reminder, idx) => (
+                          <div key={idx} className="text-sm">
+                            <p className="text-slate-700 dark:text-slate-300">
+                              {formatDate(reminder.sentAt)} - {reminder.channel}{" "}
+                              - {reminder.status}
+                            </p>
+                            {reminder.note && (
+                              <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                                {reminder.note}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
   );
 };
-

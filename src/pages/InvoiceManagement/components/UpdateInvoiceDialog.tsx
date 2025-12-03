@@ -22,7 +22,7 @@ interface UpdateInvoiceDialogProps {
     note?: string;
     discountAmount?: number;
     lateFee?: number;
-    status?: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+    status?: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
   };
   onSubmit: (invoiceId: string, data: IUpdateInvoiceRequest) => void;
   isLoading: boolean;
