@@ -5,6 +5,7 @@ import type {
   IContractDetailResponse,
   IContractResponse,
   IRequestExtendRequest,
+  IRequestTerminateRequest,
   ITenantContractDetailResponse,
   ITenantContractResponse,
   ITerminateContractRequest,
@@ -195,6 +196,25 @@ export const contractApi = createApi({
       }),
       invalidatesTags: ["Contract", "ContractRenewal"],
     }),
+    approveTerminateContract: builder.mutation<IContractResponse, string>({
+      // Chủ trọ phê duyệt yêu cầu chấm dứt hợp đồng từ tenant
+      // Chỉ duyệt được khi status = pending
+      query: (id) => ({
+        url: `/landlords/contracts/${id}/approve-terminate`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
+    rejectTerminateContract: builder.mutation<IContractResponse, { id: string; data: { rejectedReason: string } }>({
+      // Chủ trọ từ chối yêu cầu chấm dứt hợp đồng từ tenant
+      // Chỉ từ chối được khi status = pending
+      query: ({ id, data }) => ({
+        url: `/landlords/contracts/${id}/reject-terminate`,
+        method: "PATCH",
+        data,
+      }),
+      invalidatesTags: ["Contract", "ContractRenewal"],
+    }),
 
     // Tenant
     getTenantContracts: builder.query<ITenantContractResponse, {
@@ -296,6 +316,15 @@ export const contractApi = createApi({
         config: { responseType: "blob" },
       }),
     }),
+    requestTerminate: builder.mutation<IContractResponse, { id: string, data: IRequestTerminateRequest }>({ // Người thuê gửi yêu cầu chấm dứt hợp đồng
+      // Chỉ được gửi khi: Hợp đồng ở trạng thái completed (đang hiệu lực)
+      query: ({ id, data }) => ({
+        url: `/contracts/${id}/request-terminate`,
+        method: "PATCH",
+        data
+      }),
+      invalidatesTags: ["TenantContract"],
+    })
   }),
 });
 
@@ -315,6 +344,8 @@ export const {
   useDisableContractMutation,
   useDownloadContractMutation,
   useCreateCloneContractMutation,
+  useApproveTerminateContractMutation,
+  useRejectTerminateContractMutation,
 
   // Tenant
   useGetTenantContractsQuery,
@@ -323,5 +354,6 @@ export const {
   useSignTenantMutation,
   useGetUpcomingExpireQuery,
   useRequestExtendMutation,
-  useDownloadTenantContractMutation
+  useDownloadTenantContractMutation,
+  useRequestTerminateMutation
 } = contractApi;

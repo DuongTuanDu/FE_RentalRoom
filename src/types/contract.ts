@@ -22,6 +22,13 @@ export interface IContract {
   moveInConfirmedAt: string;
   createdAt: string;
   updatedAt: string;
+  terminationRequest?: {
+    reason: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+  };
 }
 
 export interface IContractRenewal {
@@ -71,6 +78,13 @@ export interface ITenantContract {
   status: IContractStatus;
   createdAt: string;
   updatedAt: string;
+  terminationRequest?: {
+    reason: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+  };
 }
 
 export type IPerson = {
@@ -200,6 +214,14 @@ export interface IContractDetailResponse {
   sentToTenantAt: string;
   tenantSignatureUrl: string;
   moveInConfirmedAt?: string | null;
+  terminationRequest?: {
+    reason: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+    rejectedReason?: string;
+  };
   furnitures: {
     id: string;
     name: string;
@@ -353,7 +375,14 @@ export interface ITenantContractDetailResponse {
     requestedAt: string;
     requestedById: string;
     requestedByRole: "resident";
-  }
+  };
+  terminationRequest?: {
+    reason: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+  };
   furnitures: {
     id: string;
     name: string;
@@ -366,4 +395,9 @@ export interface ITenantContractDetailResponse {
 export interface ITerminateContractRequest {
   reason: string;
   terminatedAt: string;
+}
+
+export interface IRequestTerminateRequest {
+  reason: string;
+  note: string;
 }

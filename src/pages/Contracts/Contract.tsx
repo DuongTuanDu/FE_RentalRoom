@@ -4,7 +4,17 @@ import {
   useGetUpcomingExpireQuery,
   useDownloadTenantContractMutation,
 } from "@/services/contract/contract.service";
-import { FileText, Search, Eye, Edit, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
+import {
+  FileText,
+  Search,
+  Eye,
+  Edit,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Download,
+  Ban,
+} from "lucide-react";
 import _ from "lodash";
 import { toast } from "sonner";
 import {
@@ -38,6 +48,7 @@ import { ContractDetailSheet } from "./components/ContractDetailSheet";
 import { UpdateTenantContractDialog } from "./components/UpdateTenantContractDialog";
 import { SignTenantDialog } from "./components/SignTenantDialog";
 import { RequestExtendDialog } from "./components/RequestExtendDialog";
+import { RequestTerminateDialog } from "./components/RequestTerminateDialog";
 import { TenantActionsGuide } from "./components/TenantActionsGuide";
 
 const Contract = () => {
@@ -51,6 +62,7 @@ const Contract = () => {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [isSignDialogOpen, setIsSignDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
+  const [isTerminateDialogOpen, setIsTerminateDialogOpen] = useState(false);
 
   const formatDate = useFormatDate();
   const { data, error, isLoading } = useGetTenantContractsQuery({
@@ -110,6 +122,11 @@ const Contract = () => {
   const handleOpenExtendDialog = (contractId: string) => {
     setSelectedContractId(contractId);
     setIsExtendDialogOpen(true);
+  };
+
+  const handleOpenTerminateDialog = (contractId: string) => {
+    setSelectedContractId(contractId);
+    setIsTerminateDialogOpen(true);
   };
 
   const handleDownloadContract = async (contractId: string) => {
@@ -456,26 +473,50 @@ const Contract = () => {
                                   )}
 
                                 {contract.status === "completed" && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() =>
-                                            handleDownloadContract(contract._id)
-                                          }
-                                          disabled={isDownloading}
-                                        >
-                                          <Download className="w-4 h-4 text-indigo-600" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Tải PDF hợp đồng</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  <>
+                                    {!contract.terminationRequest && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8"
+                                              onClick={() =>
+                                                handleOpenTerminateDialog(contract._id)
+                                              }
+                                            >
+                                              <Ban className="w-4 h-4 text-red-600" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Yêu cầu chấm dứt hợp đồng</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
+
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                              handleDownloadContract(contract._id)
+                                            }
+                                            disabled={isDownloading}
+                                          >
+                                            <Download className="w-4 h-4 text-indigo-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Tải PDF hợp đồng</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
                                 )}
                               </div>
                             </TableCell>
@@ -629,6 +670,21 @@ const Contract = () => {
         open={isExtendDialogOpen}
         onOpenChange={(open: boolean) => {
           setIsExtendDialogOpen(open);
+          if (!open) {
+            setSelectedContractId(null);
+          }
+        }}
+        contractId={selectedContractId}
+        onSuccess={() => {
+          setSelectedContractId(null);
+        }}
+      />
+
+      {/* Dialog Yêu cầu chấm dứt hợp đồng */}
+      <RequestTerminateDialog
+        open={isTerminateDialogOpen}
+        onOpenChange={(open: boolean) => {
+          setIsTerminateDialogOpen(open);
           if (!open) {
             setSelectedContractId(null);
           }

@@ -347,6 +347,63 @@ export const ContractDetailSheet = ({
                 </div>
               </div>
             )}
+
+          {/* Termination Request */}
+          {contractDetail.terminationRequest && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="font-semibold">Yêu cầu chấm dứt hợp đồng</div>
+              <div className="p-4 bg-red-50 rounded-lg space-y-4 border border-red-200">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Trạng thái</Label>
+                    <p className="font-medium">
+                      {contractDetail.terminationRequest.status === "pending"
+                        ? "Đang chờ"
+                        : contractDetail.terminationRequest.status === "approved"
+                        ? "Đã chấp nhận"
+                        : contractDetail.terminationRequest.status === "rejected"
+                        ? "Đã từ chối"
+                        : contractDetail.terminationRequest.status === "cancelled"
+                        ? "Đã hủy"
+                        : contractDetail.terminationRequest.status}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Ngày yêu cầu</Label>
+                    <p className="font-medium">
+                      {formatDateDisplay(
+                        contractDetail.terminationRequest.requestedAt
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {contractDetail.terminationRequest.reason && (
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Lý do chấm dứt</Label>
+                    <p className="text-sm text-slate-700">
+                      {contractDetail.terminationRequest.reason}
+                    </p>
+                  </div>
+                )}
+                {contractDetail.terminationRequest.note && (
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Ghi chú</Label>
+                    <p className="text-sm text-slate-700">
+                      {contractDetail.terminationRequest.note}
+                    </p>
+                  </div>
+                )}
+                {contractDetail.terminationRequest.rejectedReason && (
+                  <div className="space-y-2">
+                    <Label className="text-slate-500">Lý do từ chối</Label>
+                    <p className="text-sm text-red-700 font-medium">
+                      {contractDetail.terminationRequest.rejectedReason}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

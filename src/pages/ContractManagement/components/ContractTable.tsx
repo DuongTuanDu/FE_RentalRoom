@@ -46,6 +46,11 @@ interface ContractTableProps {
   isCloning?: boolean;
   sendConfirmPopoverOpen: Record<string, boolean>;
   onSendPopoverOpenChange: (contractId: string, open: boolean) => void;
+  approveTerminatePopoverOpen: Record<string, boolean>;
+  onApproveTerminatePopoverOpenChange: (contractId: string, open: boolean) => void;
+  isApprovingTerminate?: boolean;
+  onApproveTerminateRequest: (contractId: string) => void;
+  onRejectTerminateRequest: (contractId: string) => void;
 }
 
 const getStatusBadge = (status: IContractStatus) => {
@@ -109,6 +114,11 @@ export const ContractTable = ({
   isCloning,
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
+  approveTerminatePopoverOpen,
+  onApproveTerminatePopoverOpenChange,
+  isApprovingTerminate,
+  onApproveTerminateRequest,
+  onRejectTerminateRequest,
 }: ContractTableProps) => {
   const formatDate = useFormatDate();
   const totalPages = data?.total ? Math.ceil(data.total / pageLimit) : 0;
@@ -240,6 +250,16 @@ export const ContractTable = ({
                           onSendPopoverOpenChange={(open) =>
                             onSendPopoverOpenChange(contract._id, open)
                           }
+                          terminationRequest={contract.terminationRequest}
+                          approveTerminatePopoverOpen={
+                            approveTerminatePopoverOpen[contract._id] || false
+                          }
+                          onApproveTerminatePopoverOpenChange={(open) =>
+                            onApproveTerminatePopoverOpenChange(contract._id, open)
+                          }
+                          isApprovingTerminate={isApprovingTerminate}
+                          onApproveTerminateRequest={onApproveTerminateRequest}
+                          onRejectTerminateRequest={onRejectTerminateRequest}
                         />
                       </TableCell>
                     </TableRow>

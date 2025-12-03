@@ -1,4 +1,4 @@
-import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy, ChevronDown, ChevronUp, HelpCircle, ThumbsUp, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,20 @@ export const ContractActionsGuide = () => {
       title: "Tạo hợp đồng mới từ hợp đồng này",
       description: "Sao chép thông tin từ hợp đồng cũ để tạo hợp đồng mới nhanh chóng",
       availableWhen: "Khi hợp đồng ở trạng thái: Đã vô hiệu hóa, Đã chấm dứt",
+    },
+    {
+      icon: ThumbsUp,
+      iconColor: "text-emerald-600",
+      title: "Duyệt yêu cầu chấm dứt hợp đồng",
+      description: "Phê duyệt yêu cầu chấm dứt hợp đồng do khách thuê gửi lên. Hợp đồng sẽ được cập nhật trạng thái tương ứng",
+      availableWhen: "Khi có yêu cầu chấm dứt hợp đồng từ người thuê và yêu cầu đang ở trạng thái: Đang chờ xử lý (pending)",
+    },
+    {
+      icon: X,
+      iconColor: "text-red-600",
+      title: "Từ chối yêu cầu chấm dứt hợp đồng",
+      description: "Nhập lý do và từ chối yêu cầu chấm dứt hợp đồng của khách thuê",
+      availableWhen: "Khi có yêu cầu chấm dứt hợp đồng từ người thuê và yêu cầu đang ở trạng thái: Đang chờ xử lý (pending)",
     },
   ];
 
