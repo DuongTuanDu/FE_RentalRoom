@@ -12,6 +12,8 @@ import {
   useDisableContractMutation,
   useDownloadContractMutation,
   useCreateCloneContractMutation,
+  useApproveTerminateContractMutation,
+  useRejectTerminateContractMutation,
 } from "@/services/contract/contract.service";
 import { FileText } from "lucide-react";
 import _ from "lodash";
@@ -29,6 +31,7 @@ import { DeleteContractDialog } from "./components/DeleteContractDialog";
 import { ConfirmMoveInDialog } from "./components/ConfirmMoveInDialog";
 import { DisableContractDialog } from "./components/DisableContractDialog";
 import { ContractActionsGuide } from "./components/ContractActionsGuide";
+import { RejectTerminateDialog } from "./components/RejectTerminateDialog";
 import type { IContractStatus } from "@/types/contract";
 
 const ContractManagement = () => {
@@ -45,6 +48,9 @@ const ContractManagement = () => {
   const [isSignDialogOpen, setIsSignDialogOpen] = useState(false);
   const [signatureUrl, setSignatureUrl] = useState<string>("");
   const [sendConfirmPopoverOpen, setSendConfirmPopoverOpen] = useState<
+    Record<string, boolean>
+  >({});
+  const [approveTerminatePopoverOpen, setApproveTerminatePopoverOpen] = useState<
     Record<string, boolean>
   >({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -72,6 +78,9 @@ const ContractManagement = () => {
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
   const [selectedDisableContractId, setSelectedDisableContractId] = useState<string | null>(null);
   const [disableReason, setDisableReason] = useState("");
+  const [isRejectTerminateDialogOpen, setIsRejectTerminateDialogOpen] = useState(false);
+  const [rejectTerminateReason, setRejectTerminateReason] = useState("");
+  const [selectedTerminateRequestContractId, setSelectedTerminateRequestContractId] = useState<string | null>(null);
 
   const { data, error, isLoading } = useGetContractsQuery({
     page: currentPage,
@@ -115,6 +124,10 @@ const ContractManagement = () => {
     useDownloadContractMutation();
   const [createCloneContract, { isLoading: isCloning }] =
     useCreateCloneContractMutation();
+  const [approveTerminateContract, { isLoading: isApprovingTerminate }] =
+    useApproveTerminateContractMutation();
+  const [rejectTerminateContract, { isLoading: isRejectingTerminate }] =
+    useRejectTerminateContractMutation();
 
   // Reset pagination when filter/search changes
   useEffect(() => {
@@ -372,6 +385,47 @@ const ContractManagement = () => {
       );
     }
   };
+  const handleApproveTerminateRequest = async (contractId: string) => {
+    try {
+      await approveTerminateContract(contractId).unwrap();
+      toast.success("Duyệt yêu cầu chấm dứt hợp đồng thành công");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message ||
+          "Có lỗi xảy ra khi duyệt yêu cầu chấm dứt hợp đồng"
+      );
+    }
+  };
+
+  const handleOpenRejectTerminateDialog = (contractId: string) => {
+    setSelectedTerminateRequestContractId(contractId);
+    setRejectTerminateReason("");
+    setIsRejectTerminateDialogOpen(true);
+  };
+
+  const handleRejectTerminateRequest = async () => {
+    if (!selectedTerminateRequestContractId || !rejectTerminateReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    try {
+      await rejectTerminateContract({
+        id: selectedTerminateRequestContractId,
+        data: { rejectedReason: rejectTerminateReason },
+      }).unwrap();
+      toast.success("Từ chối yêu cầu chấm dứt hợp đồng thành công");
+      setIsRejectTerminateDialogOpen(false);
+      setSelectedTerminateRequestContractId(null);
+      setRejectTerminateReason("");
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message ||
+          "Có lỗi xảy ra khi từ chối yêu cầu chấm dứt hợp đồng"
+      );
+    }
+  };
+
 
 
   return (
@@ -438,6 +492,16 @@ const ContractManagement = () => {
               [contractId]: open,
             }));
           }}
+          approveTerminatePopoverOpen={approveTerminatePopoverOpen}
+          onApproveTerminatePopoverOpenChange={(contractId, open) => {
+            setApproveTerminatePopoverOpen((prev) => ({
+              ...prev,
+              [contractId]: open,
+            }));
+          }}
+          isApprovingTerminate={isApprovingTerminate}
+          onApproveTerminateRequest={handleApproveTerminateRequest}
+          onRejectTerminateRequest={handleOpenRejectTerminateDialog}
         />
 
         <RenewalRequestsSection
@@ -596,6 +660,21 @@ const ContractManagement = () => {
         onReasonChange={setDisableReason}
         onDisable={handleDisableContract}
         isLoading={isDisabling}
+      />
+
+      <RejectTerminateDialog
+        open={isRejectTerminateDialogOpen}
+        onOpenChange={(open) => {
+          setIsRejectTerminateDialogOpen(open);
+          if (!open) {
+            setSelectedTerminateRequestContractId(null);
+            setRejectTerminateReason("");
+          }
+        }}
+        reason={rejectTerminateReason}
+        onReasonChange={setRejectTerminateReason}
+        onReject={handleRejectTerminateRequest}
+        isLoading={isRejectingTerminate}
       />
     </div>
   );

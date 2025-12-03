@@ -1,4 +1,4 @@
-import { Eye, CheckCircle, Edit, Clock, Download, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { Eye, CheckCircle, Edit, Clock, Download, ChevronDown, ChevronUp, HelpCircle, Ban } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,13 @@ export const TenantActionsGuide = () => {
       title: "Yêu cầu gia hạn",
       description: "Gửi yêu cầu gia hạn hợp đồng khi hợp đồng sắp hết hạn. Chủ trọ sẽ xem xét và phê duyệt yêu cầu của bạn",
       availableWhen: "Khi hợp đồng còn 30 ngày hoặc ít hơn trước khi hết hạn và hợp đồng đã được ký hoặc hoàn thành",
+    },
+    {
+      icon: Ban,
+      iconColor: "text-red-600",
+      title: "Yêu cầu chấm dứt hợp đồng",
+      description: "Gửi yêu cầu chấm dứt hợp đồng trước thời hạn với lý do cụ thể. Chủ trọ sẽ xem xét, phê duyệt hoặc từ chối yêu cầu của bạn",
+      availableWhen: "Khi hợp đồng đang trong trạng thái: Hoàn thành (đang có hiệu lực)",
     },
     {
       icon: Download,

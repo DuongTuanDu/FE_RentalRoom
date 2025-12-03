@@ -35,6 +35,10 @@ const Profile = () => {
   const { data } = useGetProfileQuery();
   const userInfo = data?.user;
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    return new Date(dateString).toISOString().split("T")[0];
+  };
 
   // State for address (now a single string)
   const [address, setAddress] = useState<string>("");
@@ -66,7 +70,7 @@ const Profile = () => {
         _id: userInfo.userInfo._id || "",
         fullName: userInfo.userInfo.fullName || "",
         phoneNumber: userInfo.userInfo.phoneNumber || "",
-        dob: userInfo.userInfo.dob || "",
+        dob: formatDate(userInfo.userInfo.dob) || "",
         gender: userInfo.userInfo.gender || "",
       };
       setFormData(initialData);
@@ -95,7 +99,6 @@ const Profile = () => {
         setAddress("");
         setOriginalAddress("");
       }
-
     }
   }, [userInfo]);
 

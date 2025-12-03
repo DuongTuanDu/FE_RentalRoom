@@ -1,4 +1,4 @@
-import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy } from "lucide-react";
+import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy, ThumbsUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -33,6 +33,18 @@ interface ContractActionsMenuProps {
   sendConfirmPopoverOpen: boolean;
   onSendPopoverOpenChange: (open: boolean) => void;
   moveInConfirmedAt: string | null;
+  terminationRequest?: {
+    reason: string;
+    note: string;
+    status: "pending" | "approved" | "rejected" | "cancelled";
+    requestedAt: string;
+    requestedById: string;
+  };
+  approveTerminatePopoverOpen: boolean;
+  onApproveTerminatePopoverOpenChange: (open: boolean) => void;
+  isApprovingTerminate?: boolean;
+  onApproveTerminateRequest?: (contractId: string) => void;
+  onRejectTerminateRequest?: (contractId: string) => void;
 }
 
 export const ContractActionsMenu = ({
@@ -52,6 +64,12 @@ export const ContractActionsMenu = ({
   sendConfirmPopoverOpen,
   onSendPopoverOpenChange,
   moveInConfirmedAt,
+  terminationRequest,
+  approveTerminatePopoverOpen,
+  onApproveTerminatePopoverOpenChange,
+  isApprovingTerminate,
+  onApproveTerminateRequest,
+  onRejectTerminateRequest,
 }: ContractActionsMenuProps) => {
   return (
     <div className="flex items-center justify-center gap-2">
@@ -256,6 +274,86 @@ export const ContractActionsMenu = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+      )}
+
+      {terminationRequest && terminationRequest.status === "pending" && (
+        <>
+          <Popover
+            open={approveTerminatePopoverOpen}
+            onOpenChange={onApproveTerminatePopoverOpenChange}
+          >
+            <TooltipProvider>
+              <Tooltip open={!approveTerminatePopoverOpen ? undefined : false}>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={isApprovingTerminate}
+                    >
+                      <ThumbsUp className="w-4 h-4 text-green-600" />
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Duyệt yêu cầu chấm dứt</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">
+                    Xác nhận duyệt yêu cầu chấm dứt
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Bạn có chắc chắn muốn duyệt yêu cầu chấm dứt hợp đồng này không? Hợp đồng sẽ được cập nhật trạng thái tương ứng.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onApproveTerminatePopoverOpenChange(false)}
+                    disabled={isApprovingTerminate}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={async () => {
+                      await onApproveTerminateRequest?.(contractId);
+                      onApproveTerminatePopoverOpenChange(false);
+                    }}
+                    disabled={isApprovingTerminate}
+                  >
+                    {isApprovingTerminate ? "Đang xử lý..." : "Xác nhận"}
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onRejectTerminateRequest?.(contractId)}
+                >
+                  <X className="w-4 h-4 text-red-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Từ chối yêu cầu chấm dứt</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </>
       )}
     </div>
   );

@@ -14,6 +14,7 @@ import {
   Loader2,
   Edit,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -56,6 +57,7 @@ import {
   useCreateGenerateInvoiceMutation,
   useUpdateInvoiceMutation,
   useSendDraftAllInvoicesMutation,
+  useDeleteInvoiceMutation,
 } from "@/services/invoice/invoice.service";
 import type {
   InvoiceItem,
@@ -120,6 +122,8 @@ const InvoiceManagement = () => {
   );
   const [isSendDraftAllDialogOpen, setIsSendDraftAllDialogOpen] =
     useState(false);
+  const [deleteInvoicePopoverOpen, setDeleteInvoicePopoverOpen] = useState(false);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(null);
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -177,6 +181,7 @@ const InvoiceManagement = () => {
   const [updateInvoice, { isLoading: isUpdating }] = useUpdateInvoiceMutation();
   const [sendDraftAllInvoices, { isLoading: isSendingDrafts }] =
     useSendDraftAllInvoicesMutation();
+  const [deleteInvoice, { isLoading: isDeleting }] = useDeleteInvoiceMutation();
 
   const totalItems = invoicesData?.total ?? 0;
   const totalPages = Math.ceil(totalItems / pageLimit);
@@ -358,6 +363,17 @@ const InvoiceManagement = () => {
       toast.error(
         error?.message?.message || "Gửi tất cả hóa đơn nháp thất bại!"
       );
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    try {
+      await deleteInvoice(invoiceId).unwrap();
+      toast.success("Xóa hóa đơn thành công!");
+      setDeleteInvoicePopoverOpen(false);
+      setDeletingInvoiceId(null);
+    } catch (error: any) {
+      toast.error(error?.message?.message || "Xóa hóa đơn thất bại!");
     }
   };
 
@@ -680,100 +696,189 @@ const InvoiceManagement = () => {
                                   </TooltipProvider>
                                 )}
                                 {invoice.status === "draft" && (
-                                  <Popover
-                                    open={
-                                      sendInvoicePopoverOpen &&
-                                      sendingInvoiceId === invoice._id
-                                    }
-                                    onOpenChange={(open) => {
-                                      setSendInvoicePopoverOpen(open);
-                                      if (open) {
-                                        setSendingInvoiceId(invoice._id);
-                                      } else {
-                                        setSendingInvoiceId(null);
+                                  <>
+                                    <Popover
+                                      open={
+                                        sendInvoicePopoverOpen &&
+                                        sendingInvoiceId === invoice._id
                                       }
-                                    }}
-                                  >
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <PopoverTrigger asChild>
+                                      onOpenChange={(open) => {
+                                        setSendInvoicePopoverOpen(open);
+                                        if (open) {
+                                          setSendingInvoiceId(invoice._id);
+                                        } else {
+                                          setSendingInvoiceId(null);
+                                        }
+                                      }}
+                                    >
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                size="icon"
+                                                disabled={isSending}
+                                              >
+                                                <Send className="h-4 w-4" />
+                                              </Button>
+                                            </PopoverTrigger>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Gửi email</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                      <PopoverContent
+                                        className="w-80"
+                                        align="end"
+                                      >
+                                        <div className="space-y-4">
+                                          <div className="space-y-2">
+                                            <h4 className="font-medium text-sm">
+                                              Xác nhận gửi hóa đơn
+                                            </h4>
+                                            <p className="text-sm text-muted-foreground">
+                                              Bạn có chắc chắn muốn gửi hóa đơn{" "}
+                                              <span className="font-medium">
+                                                {invoice.invoiceNumber}
+                                              </span>{" "}
+                                              cho người thuê{" "}
+                                              <span className="font-medium">
+                                                {invoice.tenantId?.userInfo
+                                                  ?.fullName || "N/A"}
+                                              </span>{" "}
+                                              qua email?
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center justify-end gap-2">
                                             <Button
                                               variant="outline"
-                                              size="icon"
+                                              size="sm"
+                                              onClick={() => {
+                                                setSendInvoicePopoverOpen(false);
+                                                setSendingInvoiceId(null);
+                                              }}
                                               disabled={isSending}
                                             >
-                                              <Send className="h-4 w-4" />
+                                              Hủy
                                             </Button>
-                                          </PopoverTrigger>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Gửi email</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <PopoverContent
-                                      className="w-80"
-                                      align="end"
+                                            <Button
+                                              size="sm"
+                                              onClick={async () => {
+                                                if (sendingInvoiceId) {
+                                                  await handleSendInvoice(
+                                                    sendingInvoiceId
+                                                  );
+                                                  setSendInvoicePopoverOpen(
+                                                    false
+                                                  );
+                                                  setSendingInvoiceId(null);
+                                                }
+                                              }}
+                                              disabled={isSending}
+                                            >
+                                              {isSending ? (
+                                                <>
+                                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                  Đang gửi...
+                                                </>
+                                              ) : (
+                                                "Xác nhận gửi"
+                                              )}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                    <Popover
+                                      open={
+                                        deleteInvoicePopoverOpen &&
+                                        deletingInvoiceId === invoice._id
+                                      }
+                                      onOpenChange={(open) => {
+                                        setDeleteInvoicePopoverOpen(open);
+                                        if (open) {
+                                          setDeletingInvoiceId(invoice._id);
+                                        } else {
+                                          setDeletingInvoiceId(null);
+                                        }
+                                      }}
                                     >
-                                      <div className="space-y-4">
-                                        <div className="space-y-2">
-                                          <h4 className="font-medium text-sm">
-                                            Xác nhận gửi hóa đơn
-                                          </h4>
-                                          <p className="text-sm text-muted-foreground">
-                                            Bạn có chắc chắn muốn gửi hóa đơn{" "}
-                                            <span className="font-medium">
-                                              {invoice.invoiceNumber}
-                                            </span>{" "}
-                                            cho người thuê{" "}
-                                            <span className="font-medium">
-                                              {invoice.tenantId?.userInfo
-                                                ?.fullName || "N/A"}
-                                            </span>{" "}
-                                            qua email?
-                                          </p>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                size="icon"
+                                                disabled={isDeleting}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </PopoverTrigger>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Xóa hóa đơn</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                      <PopoverContent
+                                        className="w-80"
+                                        align="end"
+                                      >
+                                        <div className="space-y-4">
+                                          <div className="space-y-2">
+                                            <h4 className="font-medium text-sm text-red-600">
+                                              Xác nhận xóa hóa đơn
+                                            </h4>
+                                            <p className="text-sm text-muted-foreground">
+                                              Bạn có chắc chắn muốn xóa hóa đơn{" "}
+                                              <span className="font-medium">
+                                                {invoice.invoiceNumber}
+                                              </span>
+                                              ? Hành động này không thể hoàn tác.
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                setDeleteInvoicePopoverOpen(false);
+                                                setDeletingInvoiceId(null);
+                                              }}
+                                              disabled={isDeleting}
+                                            >
+                                              Hủy
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="destructive"
+                                              onClick={async () => {
+                                                if (deletingInvoiceId) {
+                                                  await handleDeleteInvoice(
+                                                    deletingInvoiceId
+                                                  );
+                                                }
+                                              }}
+                                              disabled={isDeleting}
+                                            >
+                                              {isDeleting ? (
+                                                <>
+                                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                  Đang xóa...
+                                                </>
+                                              ) : (
+                                                "Xác nhận xóa"
+                                              )}
+                                            </Button>
+                                          </div>
                                         </div>
-                                        <div className="flex items-center justify-end gap-2">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSendInvoicePopoverOpen(false);
-                                              setSendingInvoiceId(null);
-                                            }}
-                                            disabled={isSending}
-                                          >
-                                            Hủy
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            onClick={async () => {
-                                              if (sendingInvoiceId) {
-                                                await handleSendInvoice(
-                                                  sendingInvoiceId
-                                                );
-                                                setSendInvoicePopoverOpen(
-                                                  false
-                                                );
-                                                setSendingInvoiceId(null);
-                                              }
-                                            }}
-                                            disabled={isSending}
-                                          >
-                                            {isSending ? (
-                                              <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Đang gửi...
-                                              </>
-                                            ) : (
-                                              "Xác nhận gửi"
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </PopoverContent>
-                                  </Popover>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </>
                                 )}
                               </>
                             )}
