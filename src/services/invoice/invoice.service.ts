@@ -144,6 +144,13 @@ export const invoiceApi = createApi({
       }),
       invalidatesTags: ["Invoice"],
     }),
+    deleteInvoice: builder.mutation<InvoiceResponse, string>({ //Chỉ xóa được hóa đơn draft
+      query: (id) => ({
+        url: `/landlords/invoices/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
 
     // Tenant
     getTenantInvoices: builder.query<
@@ -213,6 +220,7 @@ export const {
   useGetRoomsCompletedContractQuery,
   useUpdateInvoiceMutation,
   useSendDraftAllInvoicesMutation,
+  useDeleteInvoiceMutation,
 
   // Tenant
   useGetTenantInvoicesQuery,
