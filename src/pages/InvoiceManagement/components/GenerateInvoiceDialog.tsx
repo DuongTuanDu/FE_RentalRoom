@@ -18,13 +18,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, FileText, Plus, Trash2, Building2, Zap, Droplets } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  Plus,
+  Trash2,
+  Building2,
+  Zap,
+  Droplets,
+} from "lucide-react";
 import { RoomCompletedContractSelectCombobox } from "./RoomCompletedContractSelectCombobox";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
 import { useGetRoomsCompletedContractQuery } from "@/services/invoice/invoice.service";
 import { useGetBuildingservicesQuery } from "@/services/building-services/building-services.service";
 import { useGetUtilityReadingsQuery } from "@/services/utility/utility.service";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -211,12 +225,7 @@ export const GenerateInvoiceDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !roomId ||
-      !periodMonth ||
-      !periodYear ||
-      !dueDate
-    ) {
+    if (!roomId || !periodMonth || !periodYear || !dueDate) {
       return;
     }
 
@@ -424,7 +433,8 @@ export const GenerateInvoiceDialog = ({
                                 </span>
                               </TableCell>
                               <TableCell className="text-right font-semibold text-blue-700 dark:text-blue-300">
-                                {service.fee.toLocaleString("vi-VN")} {service.currency}
+                                {service.fee.toLocaleString("vi-VN")}{" "}
+                                {service.currency}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -460,9 +470,11 @@ export const GenerateInvoiceDialog = ({
                       Đang tải...
                     </span>
                   </div>
-                ) : selectedRoomContractData?.data && selectedRoomContractData.data.length > 0 ? (
+                ) : selectedRoomContractData?.data &&
+                  selectedRoomContractData.data.length > 0 ? (
                   (() => {
-                    const selectedRoomContract = selectedRoomContractData.data[0];
+                    const selectedRoomContract =
+                      selectedRoomContractData.data[0];
                     return (
                       <div className="p-3 rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900">
                         <div className="space-y-2">
@@ -487,7 +499,10 @@ export const GenerateInvoiceDialog = ({
                               Giá phòng/tháng:
                             </span>
                             <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
-                              {selectedRoomContract.contract.price.toLocaleString("vi-VN")} đ
+                              {selectedRoomContract.contract.price.toLocaleString(
+                                "vi-VN"
+                              )}{" "}
+                              đ
                             </span>
                           </div>
                         </div>
@@ -543,7 +558,9 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số cũ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.ePreviousIndex.toLocaleString("vi-VN")}
+                                  {reading.ePreviousIndex.toLocaleString(
+                                    "vi-VN"
+                                  )}
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -551,7 +568,9 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số mới:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eCurrentIndex.toLocaleString("vi-VN")}
+                                  {reading.eCurrentIndex.toLocaleString(
+                                    "vi-VN"
+                                  )}
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -559,7 +578,8 @@ export const GenerateInvoiceDialog = ({
                                   Tiêu thụ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eConsumption.toLocaleString("vi-VN")} kWh
+                                  {reading.eConsumption.toLocaleString("vi-VN")}{" "}
+                                  kWh
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -567,7 +587,8 @@ export const GenerateInvoiceDialog = ({
                                   Đơn giá:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eUnitPrice.toLocaleString("vi-VN")} đ/kWh
+                                  {reading.eUnitPrice.toLocaleString("vi-VN")}{" "}
+                                  đ/kWh
                                 </span>
                               </div>
                               <div className="flex justify-between pt-1 border-t border-green-200 dark:border-green-800">
@@ -593,7 +614,9 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số cũ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wPreviousIndex.toLocaleString("vi-VN")}
+                                  {reading.wPreviousIndex.toLocaleString(
+                                    "vi-VN"
+                                  )}
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -601,7 +624,9 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số mới:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wCurrentIndex.toLocaleString("vi-VN")}
+                                  {reading.wCurrentIndex.toLocaleString(
+                                    "vi-VN"
+                                  )}
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -609,7 +634,8 @@ export const GenerateInvoiceDialog = ({
                                   Tiêu thụ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wConsumption.toLocaleString("vi-VN")} m³
+                                  {reading.wConsumption.toLocaleString("vi-VN")}{" "}
+                                  m³
                                 </span>
                               </div>
                               <div className="flex justify-between">
@@ -617,7 +643,8 @@ export const GenerateInvoiceDialog = ({
                                   Đơn giá:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wUnitPrice.toLocaleString("vi-VN")} đ/m³
+                                  {reading.wUnitPrice.toLocaleString("vi-VN")}{" "}
+                                  đ/m³
                                 </span>
                               </div>
                               <div className="flex justify-between pt-1 border-t border-green-200 dark:border-green-800">
@@ -637,9 +664,9 @@ export const GenerateInvoiceDialog = ({
                               Tổng cộng:
                             </span>
                             <span className="text-sm font-bold text-green-700 dark:text-green-300">
-                              {(reading.eAmount + reading.wAmount).toLocaleString(
-                                "vi-VN"
-                              )}{" "}
+                              {(
+                                reading.eAmount + reading.wAmount
+                              ).toLocaleString("vi-VN")}{" "}
                               đ
                             </span>
                           </div>
@@ -694,9 +721,7 @@ export const GenerateInvoiceDialog = ({
           {/* Items */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>
-                Chi phí phát sinh
-              </Label>
+              <Label>Chi phí phát sinh</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -728,39 +753,16 @@ export const GenerateInvoiceDialog = ({
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>Loại</Label>
-                      <Select
-                        value={item.type}
-                        onValueChange={(v) =>
-                          handleItemChange(index, "type", v)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="rent">Tiền thuê</SelectItem>
-                          <SelectItem value="electric">Điện</SelectItem>
-                          <SelectItem value="water">Nước</SelectItem>
-                          <SelectItem value="service">Dịch vụ</SelectItem>
-                          <SelectItem value="other">Khác</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Tên chi phí</Label>
-                      <Input
-                        value={item.label}
-                        onChange={(e) =>
-                          handleItemChange(index, "label", e.target.value)
-                        }
-                        placeholder="VD: Tiền thuê tháng 1"
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Tên chi phí</Label>
+                    <Input
+                      value={item.label}
+                      onChange={(e) =>
+                        handleItemChange(index, "label", e.target.value)
+                      }
+                      placeholder="VD: Tiền thuê tháng 1"
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -853,11 +855,7 @@ export const GenerateInvoiceDialog = ({
             <Button
               type="submit"
               disabled={
-                isLoading ||
-                !roomId ||
-                !periodMonth ||
-                !periodYear ||
-                !dueDate
+                isLoading || !roomId || !periodMonth || !periodYear || !dueDate
               }
             >
               {isLoading ? (
