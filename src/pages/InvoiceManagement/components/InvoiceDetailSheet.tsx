@@ -199,15 +199,6 @@ export const InvoiceDetailSheet = ({
               <Separator />
               <div>
                 <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Email
-                </label>
-                <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">
-                  {invoiceData.tenantId?.email || "N/A"}
-                </p>
-              </div>
-              <Separator />
-              <div>
-                <label className="text-sm text-slate-600 dark:text-slate-400">
                   Số điện thoại
                 </label>
                 <p className="text-base font-medium text-slate-900 dark:text-slate-100 mt-1">

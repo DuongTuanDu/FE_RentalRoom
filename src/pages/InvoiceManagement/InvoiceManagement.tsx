@@ -122,8 +122,11 @@ const InvoiceManagement = () => {
   );
   const [isSendDraftAllDialogOpen, setIsSendDraftAllDialogOpen] =
     useState(false);
-  const [deleteInvoicePopoverOpen, setDeleteInvoicePopoverOpen] = useState(false);
-  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(null);
+  const [deleteInvoicePopoverOpen, setDeleteInvoicePopoverOpen] =
+    useState(false);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(
+    null
+  );
 
   // Debounced search
   const debouncedSetSearch = useMemo(
@@ -654,27 +657,31 @@ const InvoiceManagement = () => {
                           {invoice.status !== "paid" &&
                             invoice.status !== "cancelled" && (
                               <>
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => {
-                                          setUpdatingInvoiceId(invoice._id);
-                                          setIsUpdateDialogOpen(true);
-                                        }}
-                                        disabled={isUpdating}
-                                      >
-                                        <Edit className="h-4 w-4 text-green-600" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Cập nhật</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                {invoice.status === "sent" || invoice.status === "transfer_pending" && (
+                                {invoice.status !== "transfer_pending" && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => {
+                                            setUpdatingInvoiceId(invoice._id);
+                                            setIsUpdateDialogOpen(true);
+                                          }}
+                                          disabled={isUpdating}
+                                        >
+                                          <Edit className="h-4 w-4 text-green-600" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Cập nhật</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+
+                                {(invoice.status === "sent" ||
+                                  invoice.status === "transfer_pending") && (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -756,7 +763,9 @@ const InvoiceManagement = () => {
                                               variant="outline"
                                               size="sm"
                                               onClick={() => {
-                                                setSendInvoicePopoverOpen(false);
+                                                setSendInvoicePopoverOpen(
+                                                  false
+                                                );
                                                 setSendingInvoiceId(null);
                                               }}
                                               disabled={isSending}
@@ -838,7 +847,8 @@ const InvoiceManagement = () => {
                                               <span className="font-medium">
                                                 {invoice.invoiceNumber}
                                               </span>
-                                              ? Hành động này không thể hoàn tác.
+                                              ? Hành động này không thể hoàn
+                                              tác.
                                             </p>
                                           </div>
                                           <div className="flex items-center justify-end gap-2">
@@ -846,7 +856,9 @@ const InvoiceManagement = () => {
                                               variant="outline"
                                               size="sm"
                                               onClick={() => {
-                                                setDeleteInvoicePopoverOpen(false);
+                                                setDeleteInvoicePopoverOpen(
+                                                  false
+                                                );
                                                 setDeletingInvoiceId(null);
                                               }}
                                               disabled={isDeleting}
@@ -1012,6 +1024,10 @@ const InvoiceManagement = () => {
           initialData={
             invoicesData?.data.find((inv) => inv._id === updatingInvoiceId)
               ? {
+                  items:
+                    invoicesData.data.find(
+                      (inv) => inv._id === updatingInvoiceId
+                    )?.items || [],
                   note:
                     invoicesData.data.find(
                       (inv) => inv._id === updatingInvoiceId

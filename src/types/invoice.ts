@@ -83,9 +83,18 @@ export interface IGenerateInvoiceRequest {
 }
 
 export interface IUpdateInvoiceRequest {
-  note: string;
-  discountAmount: number;
-  lateFee: number;
+  items?: {
+    type: "rent" | "electric" | "water" | "service" | "other";
+    label: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }[];
+  note?: string;
+  discountAmount?: number;
+  lateFee?: number;
+  status?: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
 }
 
 export interface ISendDraftInvoiceRequest {
