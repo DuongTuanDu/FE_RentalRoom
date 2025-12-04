@@ -3,7 +3,7 @@ import {
   useCreateCommentTenantMutation,
 } from "@/services/maintenance/maintenance.service";
 import type { ICategory } from "@/types/maintenance";
-import { CommentItemTenant } from "./CommentItemTenant";
+import { TimelineItemTenant } from "./TimelineItemTenant";
 
 const getCategoryLabel = (category: ICategory): string => {
   const labels: Record<ICategory, string> = {
@@ -323,38 +323,67 @@ export const MaintenanceDetailModal = ({
 
           {/* Comments Section */}
           {(() => {
-            const comments = maintenance.timeline?.filter((item) => item.note) || [];
+            const timeline = maintenance.timeline || [];
+
+            const formatTimelineDate = (dateString: string) => {
+              if (!dateString) return "";
+              const date = new Date(dateString);
+              const hours = date.getHours().toString().padStart(2, "0");
+              const minutes = date.getMinutes().toString().padStart(2, "0");
+              const day = date.getDate().toString().padStart(2, "0");
+              const month = (date.getMonth() + 1).toString().padStart(2, "0");
+              const year = date.getFullYear();
+              return `${hours}:${minutes} ${day}/${month}/${year}`;
+            };
+
+            const getTimelineDotColor = (action: string) => {
+              if (action?.toLowerCase().includes("bình luận") || action?.toLowerCase().includes("đã bình luận")) {
+                return "bg-blue-500";
+              }
+              return "bg-green-500";
+            };
 
             return (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                     <MessageSquare className="w-4 h-4" />
-                    Bình luận
-                    {comments.length > 0 && (
+                    Hoạt động & Bình luận
+                    {timeline.length > 0 && (
                       <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
-                        {comments.length}
+                        {timeline.length}
                       </span>
                     )}
                   </div>
                 </div>
-                {comments.length > 0 ? (
+                {timeline.length > 0 ? (
                   <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 min-h-[200px] max-h-[500px] overflow-y-auto">
-                    <div className="space-y-2">
-                      {comments.map((comment) => (
-                        <CommentItemTenant
-                          key={comment._id}
-                          comment={comment}
-                          maintenanceId={maintenance._id}
-                        />
-                      ))}
+                    <div className="relative pl-6">
+                      {/* Vertical line connecting dots */}
+                      <div className="absolute left-[7px] top-0 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
+                      
+                      <div className="space-y-6">
+                        {timeline.map((item) => {
+                          const dotColor = getTimelineDotColor(item.action);
+
+                          return (
+                            <TimelineItemTenant
+                              key={item._id}
+                              item={item}
+                              maintenanceId={maintenance._id}
+                              dotColor={dotColor}
+                              formatTimelineDate={formatTimelineDate}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 ) : (
                   <div className="bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center">
                     <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Chưa có bình luận nào
+                      Chưa có hoạt động nào
                     </p>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                       Hãy là người đầu tiên bình luận về yêu cầu này

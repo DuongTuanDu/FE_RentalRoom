@@ -61,7 +61,7 @@ const UtilityManagement = () => {
   const [pageLimit, setPageLimit] = useState(20);
   const [buildingId, setBuildingId] = useState("");
   const [roomId, setRoomId] = useState("");
-  
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
@@ -122,8 +122,8 @@ const UtilityManagement = () => {
   };
 
   const handleOpenEditDialog = (utility: IUtilityItem) => {
-    if (utility.status !== "draft") {
-      toast.error("Chỉ có thể chỉnh sửa chỉ số ở trạng thái nháp");
+    if (utility.status !== "draft" && utility.status !== "confirmed") {
+      toast.error("Chỉ có thể chỉnh sửa chỉ số ở trạng thái nháp hoặc đã xác nhận");
       return;
     }
     setSelectedUtility(utility);
@@ -186,7 +186,8 @@ const UtilityManagement = () => {
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.message?.message || "Không thể xác nhận chỉ số. Vui lòng thử lại",
+          error?.message?.message ||
+          "Không thể xác nhận chỉ số. Vui lòng thử lại",
       });
     }
   };
@@ -211,8 +212,6 @@ const UtilityManagement = () => {
       </Badge>
     );
   };
-
-
 
   return (
     <div className="container mx-auto">
@@ -390,8 +389,12 @@ const UtilityManagement = () => {
                             <span>Nước</span>
                           </div>
                         </TableHead>
-                        <TableHead className="font-semibold">Tổng tiền</TableHead>
-                        <TableHead className="font-semibold">Trạng thái</TableHead>
+                        <TableHead className="font-semibold">
+                          Tổng tiền
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Trạng thái
+                        </TableHead>
                         <TableHead className="text-center font-semibold sticky right-0 bg-slate-50 z-10">
                           Thao tác
                         </TableHead>
@@ -399,10 +402,14 @@ const UtilityManagement = () => {
                     </TableHeader>
                     <TableBody>
                       {data.items.map((item) => {
-                        const totalAmount = (item.eAmount || 0) + (item.wAmount || 0);
+                        const totalAmount =
+                          (item.eAmount || 0) + (item.wAmount || 0);
 
                         return (
-                          <TableRow key={item._id} className="hover:bg-slate-50">
+                          <TableRow
+                            key={item._id}
+                            className="hover:bg-slate-50"
+                          >
                             <TableCell className="text-slate-600 sticky left-0 bg-white z-10 font-medium">
                               Phòng {item.roomId?.roomNumber || "—"}
                             </TableCell>
@@ -413,13 +420,17 @@ const UtilityManagement = () => {
                             <TableCell className="text-center bg-yellow-50/30">
                               <div className="space-y-1 py-2">
                                 <div className="text-xs text-slate-600">
-                                  {item.ePreviousIndex?.toLocaleString() || "—"} - {item.eCurrentIndex?.toLocaleString() || "—"}
+                                  {item.ePreviousIndex?.toLocaleString() || "—"}{" "}
+                                  -{" "}
+                                  {item.eCurrentIndex?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-lg font-bold text-slate-900">
                                   {item.eConsumption?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-sm font-semibold text-yellow-700">
-                                  {item.eAmount ? `${item.eAmount.toLocaleString()} đ` : "0 đ"}
+                                  {item.eAmount
+                                    ? `${item.eAmount.toLocaleString()} đ`
+                                    : "0 đ"}
                                 </div>
                               </div>
                             </TableCell>
@@ -427,13 +438,17 @@ const UtilityManagement = () => {
                             <TableCell className="text-center bg-blue-50/30">
                               <div className="space-y-1 py-2">
                                 <div className="text-xs text-slate-600">
-                                  {item.wPreviousIndex?.toLocaleString() || "—"} - {item.wCurrentIndex?.toLocaleString() || "—"}
+                                  {item.wPreviousIndex?.toLocaleString() || "—"}{" "}
+                                  -{" "}
+                                  {item.wCurrentIndex?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-lg font-bold text-slate-900">
                                   {item.wConsumption?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-sm font-semibold text-blue-700">
-                                  {item.wAmount ? `${item.wAmount.toLocaleString()} đ` : "0 đ"}
+                                  {item.wAmount
+                                    ? `${item.wAmount.toLocaleString()} đ`
+                                    : "0 đ"}
                                 </div>
                               </div>
                             </TableCell>
@@ -465,27 +480,31 @@ const UtilityManagement = () => {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
+                                {(item.status === "draft" ||
+                                  item.status === "confirmed") && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() =>
+                                            handleOpenEditDialog(item)
+                                          }
+                                        >
+                                          <Edit className="w-4 h-4 text-green-600" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Chỉnh sửa</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+
                                 {item.status === "draft" && (
                                   <>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8"
-                                            onClick={() =>
-                                              handleOpenEditDialog(item)
-                                            }
-                                          >
-                                            <Edit className="w-4 h-4 text-green-600" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Chỉnh sửa</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -505,6 +524,7 @@ const UtilityManagement = () => {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
+
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
