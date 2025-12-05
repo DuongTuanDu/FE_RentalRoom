@@ -28,6 +28,10 @@ export interface InvoiceItem {
     quantity: number;
     unitPrice: number;
     amount: number;
+    meta?: {
+      previousIndex: number;
+      currentIndex: number;
+    };
   }[];
   subtotal: number;
   discountAmount: number;
@@ -37,7 +41,13 @@ export interface InvoiceItem {
   currency: "VND" | string;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+  status:
+    | "draft"
+    | "sent"
+    | "paid"
+    | "transfer_pending"
+    | "overdue"
+    | "cancelled";
   paymentMethod: "cash" | "online_gateway" | null;
   emailStatus: "pending" | "sent" | "failed" | null;
   isDeleted: boolean;
@@ -90,11 +100,21 @@ export interface IUpdateInvoiceRequest {
     quantity: number;
     unitPrice: number;
     amount: number;
+    meta?: {
+      previousIndex: number;
+      currentIndex: number;
+    };
   }[];
   note?: string;
   discountAmount?: number;
   lateFee?: number;
-  status?: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+  status?:
+    | "draft"
+    | "sent"
+    | "paid"
+    | "transfer_pending"
+    | "overdue"
+    | "cancelled";
 }
 
 export interface ISendDraftInvoiceRequest {
@@ -165,6 +185,10 @@ export interface InvoiceDetailResponse {
       quantity: number;
       unitPrice: number;
       amount: number;
+      meta?: {
+        previousIndex: number;
+        currentIndex: number;
+      }
     }[];
     subtotal: number;
     discountAmount: number;
@@ -174,7 +198,13 @@ export interface InvoiceDetailResponse {
     currency: "VND" | string;
     issuedAt: string;
     dueDate: string;
-    status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+    status:
+      | "draft"
+      | "sent"
+      | "paid"
+      | "transfer_pending"
+      | "overdue"
+      | "cancelled";
     paymentMethod: "cash" | "online_gateway" | null;
     emailStatus: "pending" | "sent" | "failed";
     createdBy: string;
@@ -194,6 +224,50 @@ export interface InvoiceDetailResponse {
     transferProofImageUrl?: string;
     transferRequestedAt?: string;
     note: string;
+    history: {
+      action: string;
+      itemsDiff: {
+        updated: {
+          type: string;
+          key: string;
+          label: string;
+          changes: {
+            [key: string]: {
+              before: number | string;
+              after: number | string;
+            };
+          };
+        }[];
+        added: {
+          type: string;
+          label: string;
+          description?: string;
+          quantity?: number;
+          unitPrice?: number;
+          amount?: number;
+        }[];
+        removed: {
+          type: string;
+          label: string;
+          description?: string;
+          quantity?: number;
+          unitPrice?: number;
+          amount?: number;
+        }[];
+      };
+      metaDiff?: {
+        [key: string]: {
+          before: string | number | null;
+          after: string | number | null;
+        };
+      };
+      updatedBy: {
+        _id: string;
+        email: string;
+      };
+      updatedAt: string;
+      _id: string;
+    }[];
   };
 }
 
@@ -226,7 +300,13 @@ export interface ITenantInvoiceItem {
   totalAmount: number;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+  status:
+    | "draft"
+    | "sent"
+    | "paid"
+    | "transfer_pending"
+    | "overdue"
+    | "cancelled";
   createdAt: string;
   updatedAt: string;
   paidAt?: string;
@@ -280,7 +360,13 @@ export interface ITenantInvoiceDetailResponse {
   currency: string;
   issuedAt: string;
   dueDate: string;
-  status: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+  status:
+    | "draft"
+    | "sent"
+    | "paid"
+    | "transfer_pending"
+    | "overdue"
+    | "cancelled";
   paymentMethod: "cash" | "bank_transfer" | "online_gateway" | null;
   emailStatus: "pending" | "sent" | "failed";
   createdBy: string;
@@ -298,8 +384,8 @@ export interface ITenantInvoiceDetailResponse {
   emailLastError: string | null;
   emailSentAt: string | null;
   paidAt: string | null;
-    transferProofImageUrl?: string;
-    transferRequestedAt?: string;
+  transferProofImageUrl?: string;
+  transferRequestedAt?: string;
   paymentNote?: string;
 }
 
@@ -350,4 +436,52 @@ export interface IInvoicePaymentInfoResponse {
     qrImageUrl: string;
   };
   transferNote: string;
+}
+
+export interface InvoiceHistoryResponse {
+  invoiceId: string;
+  history: {
+    action: string;
+    itemsDiff: {
+      updated: {
+        type: string;
+        key: string;
+        label: string;
+        changes: {
+          [key: string]: {
+            before: number | string;
+            after: number | string;
+          };
+        };
+      }[];
+      added: {
+        type: string;
+        label: string;
+        description?: string;
+        quantity?: number;
+        unitPrice?: number;
+        amount?: number;
+      }[];
+      removed: {
+        type: string;
+        label: string;
+        description?: string;
+        quantity?: number;
+        unitPrice?: number;
+        amount?: number;
+      }[];
+    };
+    metaDiff?: {
+      [key: string]: {
+        before: string | number | null;
+        after: string | number | null;
+      };
+    };
+    updatedBy: {
+      _id: string;
+      email: string;
+    };
+    updatedAt: string;
+    _id: string;
+  }[];
 }

@@ -9,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   FileText,
   Building2,
   User,
@@ -21,10 +29,13 @@ import {
   UserCheck,
   Trash2,
   Send,
+  History,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useGetInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface InvoiceDetailSheetProps {
   open: boolean;
@@ -112,6 +123,28 @@ export const InvoiceDetailSheet = ({
       online_gateway: "Cổng thanh toán trực tuyến",
     };
     return method ? methodMap[method] || method : "N/A";
+  };
+
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      rent: "Tiền thuê",
+      electric: "Điện",
+      water: "Nước",
+      service: "Dịch vụ",
+      other: "Khác",
+    };
+    return labels[type] || type;
+  };
+
+  const getTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      rent: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      electric: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      water: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
+      service: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      other: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+    };
+    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
   };
 
   if (isLoading) {
@@ -334,54 +367,212 @@ export const InvoiceDetailSheet = ({
                 <FileText className="w-4 h-4" />
                 Danh sách khoản thu
               </div>
-              <Card className="py-0">
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-100 dark:bg-slate-800">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            Loại
-                          </th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            Mô tả
-                          </th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            Số lượng
-                          </th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            Đơn giá
-                          </th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            Thành tiền
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {invoiceData.items.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="px-4 py-3 text-sm">
-                              <Badge variant="outline">{item.label}</Badge>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
-                              {item.description || "—"}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right">
-                              {item.quantity}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right">
-                              {formatPrice(item.unitPrice)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right font-medium">
-                              {formatPrice(item.amount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="space-y-6">
+                {/* Bảng Tiền phòng */}
+                {invoiceData.items.filter((item: any) => item.type === "rent").length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Tiền phòng
+                    </h4>
+                    <div className="border rounded-lg overflow-x-auto border-slate-200 dark:border-slate-700">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[120px]">Loại</TableHead>
+                            <TableHead>Tên</TableHead>
+                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
+                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
+                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {invoiceData.items.map((item: any, index: number) => {
+                            if (item.type !== "rent") return null;
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={getTypeColor(item.type)}
+                                  >
+                                    {getTypeLabel(item.type)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-900 dark:text-slate-100">
+                                    {item.label || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    {item.description || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-sm text-right text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.unitPrice)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.amount)}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+
+                {/* Bảng Điện nước */}
+                {invoiceData.items.filter(
+                  (item: any) => item.type === "electric" || item.type === "water"
+                ).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Điện nước
+                    </h4>
+                    <div className="border rounded-lg overflow-x-auto border-slate-200 dark:border-slate-700">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[120px]">Loại</TableHead>
+                            <TableHead className="min-w-[120px]">Tên</TableHead>
+                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
+                            <TableHead className="min-w-[100px]">Chỉ số cũ</TableHead>
+                            <TableHead className="w-[100px]">Chỉ số hiện tại</TableHead>
+                            <TableHead className="w-[80px]">Số lượng</TableHead>
+                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
+                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {invoiceData.items.map((item: any, index: number) => {
+                            if (item.type !== "electric" && item.type !== "water") return null;
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={getTypeColor(item.type)}
+                                  >
+                                    {getTypeLabel(item.type)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="min-w-[120px]">
+                                  <span className="text-sm text-slate-900 dark:text-slate-100">
+                                    {item.label || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    {item.description || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-900 dark:text-slate-100">
+                                    {(item as any).meta?.previousIndex ?? "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-900 dark:text-slate-100">
+                                    {(item as any).meta?.currentIndex ?? "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-sm text-right text-slate-900 dark:text-slate-100">
+                                    {item.quantity}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-sm text-right text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.unitPrice)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.amount)}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bảng Tiền dịch vụ và Chi phí khác */}
+                {invoiceData.items.filter(
+                  (item: any) => item.type === "service" || item.type === "other"
+                ).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Tiền dịch vụ và Chi phí khác
+                    </h4>
+                    <div className="border rounded-lg overflow-x-auto border-slate-200 dark:border-slate-700">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[120px]">Loại</TableHead>
+                            <TableHead>Tên</TableHead>
+                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
+                            <TableHead className="w-[80px]">Số lượng</TableHead>
+                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
+                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {invoiceData.items.map((item: any, index: number) => {
+                            if (item.type !== "service" && item.type !== "other") return null;
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={getTypeColor(item.type)}
+                                  >
+                                    {getTypeLabel(item.type)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-900 dark:text-slate-100">
+                                    {item.label || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                                    {item.description || "—"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-sm text-right text-slate-900 dark:text-slate-100">
+                                    {item.quantity}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="text-sm text-right text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.unitPrice)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    {formatPrice(item.amount)}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -623,6 +814,225 @@ export const InvoiceDetailSheet = ({
                   {invoiceData.note}
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Lịch sử cập nhật */}
+          {invoiceData.history && invoiceData.history.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <History className="w-4 h-4" />
+                Lịch sử cập nhật
+              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {invoiceData.history.map((historyItem) => (
+                      <div
+                        key={historyItem._id}
+                        className="relative pl-6 pb-4 border-l-2 border-slate-200 dark:border-slate-700 last:border-l-0 last:pb-0"
+                      >
+                        <div className="absolute -left-[5px] top-0 w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 border-2 border-background" />
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                {historyItem.updatedBy.email}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(new Date(historyItem.updatedAt), "dd/MM/yyyy HH:mm", {
+                                locale: vi,
+                              })}
+                            </span>
+                          </div>
+
+                          {/* Items Changes */}
+                          {(historyItem.itemsDiff.updated.length > 0 ||
+                            historyItem.itemsDiff.added.length > 0 ||
+                            historyItem.itemsDiff.removed.length > 0) && (
+                            <div className="space-y-2 mt-3">
+                              {/* Updated Items */}
+                              {historyItem.itemsDiff.updated.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                    Đã cập nhật ({historyItem.itemsDiff.updated.length}):
+                                  </p>
+                                  {historyItem.itemsDiff.updated.map((item, itemIdx) => (
+                                    <div
+                                      key={itemIdx}
+                                      className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-xs space-y-1"
+                                    >
+                                      <div className="font-medium text-slate-900 dark:text-slate-100">
+                                        {getTypeLabel(item.type)} - {item.label}
+                                      </div>
+                                      <div className="space-y-0.5 pl-2">
+                                        {Object.entries(item.changes).map(([key, change]) => (
+                                          <div
+                                            key={key}
+                                            className="flex items-center gap-2 flex-wrap"
+                                          >
+                                            <span className="text-slate-600 dark:text-slate-400 min-w-[80px]">
+                                              {key === "quantity"
+                                                ? "Số lượng"
+                                                : key === "unitPrice"
+                                                ? "Đơn giá"
+                                                : key === "amount"
+                                                ? "Thành tiền"
+                                                : key === "label"
+                                                ? "Tên"
+                                                : key === "description"
+                                                ? "Mô tả"
+                                                : key === "currentIndex"
+                                                ? "Chỉ số hiện tại"
+                                                : key === "previousIndex"
+                                                ? "Chỉ số cũ"
+                                                : key}:
+                                            </span>
+                                            <span className="line-through text-red-600 dark:text-red-400">
+                                              {typeof change.before === "number" &&
+                                              (key === "unitPrice" || key === "amount")
+                                                ? formatPrice(change.before)
+                                                : change.before}
+                                            </span>
+                                            <span className="text-green-600 dark:text-green-400 font-medium">
+                                              →
+                                            </span>
+                                            <span className="text-green-600 dark:text-green-400 font-medium">
+                                              {typeof change.after === "number" &&
+                                              (key === "unitPrice" || key === "amount")
+                                                ? formatPrice(change.after)
+                                                : change.after}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Added Items */}
+                              {historyItem.itemsDiff.added.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-xs font-semibold text-green-600 dark:text-green-400">
+                                    Đã thêm ({historyItem.itemsDiff.added.length}):
+                                  </p>
+                                  {historyItem.itemsDiff.added.map((item, itemIdx) => (
+                                    <div
+                                      key={itemIdx}
+                                      className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-xs"
+                                    >
+                                      <div className="font-medium text-slate-900 dark:text-slate-100">
+                                        {getTypeLabel(item.type)} - {item.label}
+                                      </div>
+                                      {item.description && (
+                                        <div className="text-slate-600 dark:text-slate-400 mt-1">
+                                          {item.description}
+                                        </div>
+                                      )}
+                                      {(item.quantity !== undefined ||
+                                        item.unitPrice !== undefined ||
+                                        item.amount !== undefined) && (
+                                        <div className="mt-1 space-x-2 text-slate-600 dark:text-slate-400">
+                                          {item.quantity !== undefined && (
+                                            <span>Số lượng: {item.quantity}</span>
+                                          )}
+                                          {item.unitPrice !== undefined && (
+                                            <span>Đơn giá: {formatPrice(item.unitPrice)}</span>
+                                          )}
+                                          {item.amount !== undefined && (
+                                            <span>Thành tiền: {formatPrice(item.amount)}</span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Removed Items */}
+                              {historyItem.itemsDiff.removed.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+                                    Đã xóa ({historyItem.itemsDiff.removed.length}):
+                                  </p>
+                                  {historyItem.itemsDiff.removed.map((item, itemIdx) => (
+                                    <div
+                                      key={itemIdx}
+                                      className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs"
+                                    >
+                                      <div className="font-medium line-through text-slate-900 dark:text-slate-100">
+                                        {getTypeLabel(item.type)} - {item.label}
+                                      </div>
+                                      {item.description && (
+                                        <div className="text-slate-600 dark:text-slate-400 mt-1 line-through">
+                                          {item.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Meta Changes */}
+                          {historyItem.metaDiff &&
+                            Object.keys(historyItem.metaDiff).length > 0 && (
+                              <div className="space-y-1 mt-3">
+                                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                  Thay đổi thông tin khác:
+                                </p>
+                                <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-xs space-y-0.5">
+                                  {Object.entries(historyItem.metaDiff).map(([key, change]) => (
+                                    <div
+                                      key={key}
+                                      className="flex items-center gap-2 flex-wrap"
+                                    >
+                                      <span className="text-slate-600 dark:text-slate-400 min-w-[100px]">
+                                        {key === "note"
+                                          ? "Ghi chú"
+                                          : key === "discountAmount"
+                                          ? "Giảm trừ"
+                                          : key === "lateFee"
+                                          ? "Phí trễ hạn"
+                                          : key === "status"
+                                          ? "Trạng thái"
+                                          : key}:
+                                      </span>
+                                      <span className="line-through text-red-600 dark:text-red-400">
+                                        {change.before === null
+                                          ? "—"
+                                          : typeof change.before === "number" &&
+                                            (key === "discountAmount" || key === "lateFee")
+                                          ? formatPrice(change.before)
+                                          : String(change.before)}
+                                      </span>
+                                      <span className="text-green-600 dark:text-green-400 font-medium">
+                                        →
+                                      </span>
+                                      <span className="text-green-600 dark:text-green-400 font-medium">
+                                        {change.after === null
+                                          ? "—"
+                                          : typeof change.after === "number" &&
+                                            (key === "discountAmount" || key === "lateFee")
+                                          ? formatPrice(change.after)
+                                          : String(change.after)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
