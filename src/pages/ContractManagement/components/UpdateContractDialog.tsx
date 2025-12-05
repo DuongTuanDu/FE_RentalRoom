@@ -94,6 +94,7 @@ export const UpdateContractDialog = ({
       personAEmail: "",
     },
     mode: "onBlur",
+    reValidateMode: "onChange",
   });
   const [termSlateValues, setTermSlateValues] = useState<
     Record<number, SlateValue>
@@ -211,6 +212,39 @@ export const UpdateContractDialog = ({
 
   const handleUpdateContract = async (data: ContractFormValues) => {
     if (!contractId || !contractDetail) return;
+
+    // Validate ngày bắt đầu và ngày kết thúc - kiểm tra kỹ lưỡng
+    const startDate = data.startDate?.trim();
+    const endDate = data.endDate?.trim();
+    
+    if (startDate && endDate) {
+      // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
+      // Format YYYY-MM-DD có thể so sánh trực tiếp như string
+      if (startDate > endDate) {
+        form.setError("startDate", {
+          type: "validate",
+          message: "Ngày bắt đầu không được sau ngày kết thúc",
+        });
+        form.setError("endDate", {
+          type: "validate",
+          message: "Ngày kết thúc không được trước ngày bắt đầu",
+        });
+        toast.error("Ngày bắt đầu không được sau ngày kết thúc");
+        // Scroll to error field
+        const startDateElement = document.querySelector('[name="startDate"]');
+        if (startDateElement) {
+          (startDateElement as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+    }
+
+    // Validate lại tất cả các field trước khi submit
+    const isValid = await form.trigger();
+    if (!isValid) {
+      toast.error("Vui lòng kiểm tra lại các trường thông tin");
+      return;
+    }
 
     try {
       const updateData: IUpdateContractRequest = {
@@ -660,14 +694,38 @@ export const UpdateContractDialog = ({
                       control={form.control}
                       name="startDate"
                       rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Ngày bắt đầu") || true,
+                        validate: (value) => {
+                          const requiredError = validateRequired(value, "Ngày bắt đầu");
+                          if (requiredError) return requiredError;
+                          
+                          const endDate = form.getValues("endDate");
+                          // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
+                          if (value && endDate && value > endDate) {
+                            return "Ngày bắt đầu không được sau ngày kết thúc";
+                          }
+                          return true;
+                        },
                       }}
                       render={({ field }) => (
                         <FormItem className="space-y-2">
                           <Label>Ngày bắt đầu</Label>
                           <FormControl>
-                            <Input {...field} type="date" />
+                            <Input
+                              {...field}
+                              type="date"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Trigger validation cho cả 2 trường
+                                setTimeout(() => {
+                                  form.trigger("startDate");
+                                  form.trigger("endDate");
+                                }, 0);
+                              }}
+                              onBlur={() => {
+                                field.onBlur();
+                                form.trigger("endDate");
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -677,14 +735,38 @@ export const UpdateContractDialog = ({
                       control={form.control}
                       name="endDate"
                       rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Ngày kết thúc") || true,
+                        validate: (value) => {
+                          const requiredError = validateRequired(value, "Ngày kết thúc");
+                          if (requiredError) return requiredError;
+                          
+                          const startDate = form.getValues("startDate");
+                          // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
+                          if (value && startDate && value < startDate) {
+                            return "Ngày kết thúc không được trước ngày bắt đầu";
+                          }
+                          return true;
+                        },
                       }}
                       render={({ field }) => (
                         <FormItem className="space-y-2">
                           <Label>Ngày kết thúc</Label>
                           <FormControl>
-                            <Input {...field} type="date" />
+                            <Input
+                              {...field}
+                              type="date"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Trigger validation cho cả 2 trường
+                                setTimeout(() => {
+                                  form.trigger("startDate");
+                                  form.trigger("endDate");
+                                }, 0);
+                              }}
+                              onBlur={() => {
+                                field.onBlur();
+                                form.trigger("startDate");
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

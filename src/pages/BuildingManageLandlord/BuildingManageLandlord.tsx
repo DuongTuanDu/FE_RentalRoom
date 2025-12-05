@@ -291,56 +291,55 @@ const BuildingManageLandlord = () => {
             </div>
           </div>
 
-      <Permission permission="building:create">
-          <div className="flex flex-wrap gap-3">
-            {/* Nút tải template */}
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleDownload}
-            >
-              Tải template excel cấu hình tòa
-            </Button>
+          <Permission permission="building:create">
+            <div className="flex flex-wrap gap-3">
+              {/* Nút tải template */}
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleDownload}
+              >
+                Tải template excel cấu hình tòa
+              </Button>
 
-            {/* Nút import + input ẩn */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) {
-                  handleImport(f);
-                  e.currentTarget.value = ""; // reset để lần sau chọn lại cùng file vẫn nhận
-                }
-              }}
-            />
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={openFileDialog}
-              disabled={isImporting}
-            >
-              {isImporting ? "Đang import..." : "Import Excel"}
-            </Button>
+              {/* Nút import + input ẩn */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) {
+                    handleImport(f);
+                    e.currentTarget.value = ""; // reset để lần sau chọn lại cùng file vẫn nhận
+                  }
+                }}
+              />
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={openFileDialog}
+                disabled={isImporting}
+              >
+                {isImporting ? "Đang import..." : "Import Excel"}
+              </Button>
 
-            {/* Nút có sẵn */}
-            <Button className="gap-2" onClick={handleOpenCreateModal}>
-              <Plus className="w-4 h-4" />
-              Thêm tòa nhà
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleOpenQuickModal}
-            >
-              <Zap className="w-4 h-4" />
-              Thiết lập nhanh
-            </Button>
-          </div>
-        </Permission>
-          
+              {/* Nút có sẵn */}
+              <Button className="gap-2" onClick={handleOpenCreateModal}>
+                <Plus className="w-4 h-4" />
+                Thêm tòa nhà
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleOpenQuickModal}
+              >
+                <Zap className="w-4 h-4" />
+                Thiết lập nhanh
+              </Button>
+            </div>
+          </Permission>
         </div>
 
         {/* Filter Section */}
@@ -433,9 +432,6 @@ const BuildingManageLandlord = () => {
                           Ngày tạo
                         </TableHead>
                         <TableHead className="text-center font-semibold">
-                          Trạng thái
-                        </TableHead>
-                        <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
                       </TableRow>
@@ -473,8 +469,8 @@ const BuildingManageLandlord = () => {
                           <TableCell className="text-slate-600 text-sm">
                             {formatDate(building.createdAt)}
                           </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-3">
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -485,7 +481,6 @@ const BuildingManageLandlord = () => {
                                           handleUpdateStatus(building)
                                         }
                                         disabled={isUpdatingStatus}
-                                        className="data-[state=checked]:bg-green-600"
                                       />
                                     </div>
                                   </TooltipTrigger>
@@ -498,26 +493,6 @@ const BuildingManageLandlord = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                              <Badge
-                                variant={
-                                  building.status === "active"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={`${
-                                  building.status === "active"
-                                    ? "bg-green-100 text-green-800 border-green-200"
-                                    : "bg-gray-100 text-gray-600 border-gray-200"
-                                } font-medium`}
-                              >
-                                {building.status === "active"
-                                  ? "Hoạt động"
-                                  : "Ngừng hoạt động"}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-2">
                               <Button
                                 variant="ghost"
                                 size="icon"
