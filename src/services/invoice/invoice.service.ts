@@ -13,6 +13,7 @@ import type {
   ISendDraftInvoiceRequest,
   IInvoicePaymentInfoResponse,
   IRequestTransferConfirmation,
+  InvoiceHistoryResponse,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -21,7 +22,7 @@ export const invoiceApi = createApi({
     const { url, method, data, params } = args;
     return baseQuery({ url, method, data, params });
   },
-  tagTypes: ["Invoice", "TenantInvoice"],
+  tagTypes: ["Invoice", "TenantInvoice", "InvoiceHistory"],
   endpoints: (builder) => ({
     getInvoices: builder.query<
       InvoiceResponse,
@@ -134,7 +135,7 @@ export const invoiceApi = createApi({
         method: "PATCH",
         data,
       }),
-      invalidatesTags: ["Invoice"],
+      invalidatesTags: ["Invoice", "InvoiceHistory"],
     }),
     sendDraftAllInvoices: builder.mutation<InvoiceResponse, ISendDraftInvoiceRequest>({ // Gửi tất cả hóa đơn đang draft cho người thuê qua email
       query: (data) => ({
@@ -150,6 +151,13 @@ export const invoiceApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Invoice"],
+    }),
+    historyUpdateInvoice: builder.query<InvoiceHistoryResponse, string>({ // Lịch sử cập nhật hóa đơn
+      query: (id) => ({
+        url: `/landlords/invoices/${id}/history`,
+        method: "GET",
+      }),
+      providesTags: ["InvoiceHistory"],
     }),
 
     // Tenant
@@ -221,6 +229,7 @@ export const {
   useUpdateInvoiceMutation,
   useSendDraftAllInvoicesMutation,
   useDeleteInvoiceMutation,
+  useHistoryUpdateInvoiceQuery,
 
   // Tenant
   useGetTenantInvoicesQuery,
