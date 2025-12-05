@@ -139,12 +139,17 @@ export const InvoiceDetailSheet = ({
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       rent: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-      electric: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      electric:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
       water: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
-      service: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      service:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
       other: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
     };
-    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+    return (
+      colors[type] ||
+      "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+    );
   };
 
   if (isLoading) {
@@ -369,7 +374,8 @@ export const InvoiceDetailSheet = ({
               </div>
               <div className="space-y-6">
                 {/* Bảng Tiền phòng */}
-                {invoiceData.items.filter((item: any) => item.type === "rent").length > 0 && (
+                {invoiceData.items.filter((item: any) => item.type === "rent")
+                  .length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                       Tiền phòng
@@ -380,9 +386,15 @@ export const InvoiceDetailSheet = ({
                           <TableRow>
                             <TableHead className="w-[120px]">Loại</TableHead>
                             <TableHead>Tên</TableHead>
-                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
-                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                            <TableHead className="min-w-[260px]">
+                              Mô tả
+                            </TableHead>
+                            <TableHead className="min-w-[120px] text-center">
+                              Đơn giá
+                            </TableHead>
+                            <TableHead className="min-w-[120px]">
+                              Thành tiền
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -429,7 +441,8 @@ export const InvoiceDetailSheet = ({
 
                 {/* Bảng Điện nước */}
                 {invoiceData.items.filter(
-                  (item: any) => item.type === "electric" || item.type === "water"
+                  (item: any) =>
+                    item.type === "electric" || item.type === "water"
                 ).length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -441,17 +454,33 @@ export const InvoiceDetailSheet = ({
                           <TableRow>
                             <TableHead className="w-[120px]">Loại</TableHead>
                             <TableHead className="min-w-[120px]">Tên</TableHead>
-                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
-                            <TableHead className="min-w-[100px]">Chỉ số cũ</TableHead>
-                            <TableHead className="w-[100px]">Chỉ số hiện tại</TableHead>
-                            <TableHead className="w-[80px]">Số lượng</TableHead>
-                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                            <TableHead className="min-w-[260px]">
+                              Mô tả
+                            </TableHead>
+                            <TableHead className="min-w-[100px]">
+                              Chỉ số cũ
+                            </TableHead>
+                            <TableHead className="w-[100px]">
+                              Chỉ số hiện tại
+                            </TableHead>
+                            <TableHead className="w-[80px]">
+                              Số lượng tiêu thụ
+                            </TableHead>
+                            <TableHead className="min-w-[120px] text-center">
+                              Đơn giá
+                            </TableHead>
+                            <TableHead className="min-w-[120px]">
+                              Thành tiền
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {invoiceData.items.map((item: any, index: number) => {
-                            if (item.type !== "electric" && item.type !== "water") return null;
+                            if (
+                              item.type !== "electric" &&
+                              item.type !== "water"
+                            )
+                              return null;
                             return (
                               <TableRow key={index}>
                                 <TableCell>
@@ -508,7 +537,8 @@ export const InvoiceDetailSheet = ({
 
                 {/* Bảng Tiền dịch vụ và Chi phí khác */}
                 {invoiceData.items.filter(
-                  (item: any) => item.type === "service" || item.type === "other"
+                  (item: any) =>
+                    item.type === "service" || item.type === "other"
                 ).length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -520,15 +550,25 @@ export const InvoiceDetailSheet = ({
                           <TableRow>
                             <TableHead className="w-[120px]">Loại</TableHead>
                             <TableHead>Tên</TableHead>
-                            <TableHead className="min-w-[260px]">Mô tả</TableHead>
+                            <TableHead className="min-w-[260px]">
+                              Mô tả
+                            </TableHead>
                             <TableHead className="w-[80px]">Số lượng</TableHead>
-                            <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                            <TableHead className="min-w-[120px]">Thành tiền</TableHead>
+                            <TableHead className="min-w-[120px] text-center">
+                              Đơn giá
+                            </TableHead>
+                            <TableHead className="min-w-[120px]">
+                              Thành tiền
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {invoiceData.items.map((item: any, index: number) => {
-                            if (item.type !== "service" && item.type !== "other") return null;
+                            if (
+                              item.type !== "service" &&
+                              item.type !== "other"
+                            )
+                              return null;
                             return (
                               <TableRow key={index}>
                                 <TableCell>
@@ -843,9 +883,13 @@ export const InvoiceDetailSheet = ({
                             </div>
                             <span className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(historyItem.updatedAt), "dd/MM/yyyy HH:mm", {
-                                locale: vi,
-                              })}
+                              {format(
+                                new Date(historyItem.updatedAt),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: vi,
+                                }
+                              )}
                             </span>
                           </div>
 
@@ -858,59 +902,70 @@ export const InvoiceDetailSheet = ({
                               {historyItem.itemsDiff.updated.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                    Đã cập nhật ({historyItem.itemsDiff.updated.length}):
+                                    Đã cập nhật (
+                                    {historyItem.itemsDiff.updated.length}):
                                   </p>
-                                  {historyItem.itemsDiff.updated.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-xs space-y-1"
-                                    >
-                                      <div className="font-medium text-slate-900 dark:text-slate-100">
-                                        {getTypeLabel(item.type)} - {item.label}
+                                  {historyItem.itemsDiff.updated.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-xs space-y-1"
+                                      >
+                                        <div className="font-medium text-slate-900 dark:text-slate-100">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
+                                        </div>
+                                        <div className="space-y-0.5 pl-2">
+                                          {Object.entries(item.changes).map(
+                                            ([key, change]) => (
+                                              <div
+                                                key={key}
+                                                className="flex items-center gap-2 flex-wrap"
+                                              >
+                                                <span className="text-slate-600 dark:text-slate-400 min-w-[80px]">
+                                                  {key === "quantity"
+                                                    ? "Số lượng"
+                                                    : key === "unitPrice"
+                                                    ? "Đơn giá"
+                                                    : key === "amount"
+                                                    ? "Thành tiền"
+                                                    : key === "label"
+                                                    ? "Tên"
+                                                    : key === "description"
+                                                    ? "Mô tả"
+                                                    : key === "currentIndex"
+                                                    ? "Chỉ số hiện tại"
+                                                    : key === "previousIndex"
+                                                    ? "Chỉ số cũ"
+                                                    : key}
+                                                  :
+                                                </span>
+                                                <span className="line-through text-red-600 dark:text-red-400">
+                                                  {typeof change.before ===
+                                                    "number" &&
+                                                  (key === "unitPrice" ||
+                                                    key === "amount")
+                                                    ? formatPrice(change.before)
+                                                    : change.before}
+                                                </span>
+                                                <span className="text-green-600 dark:text-green-400 font-medium">
+                                                  →
+                                                </span>
+                                                <span className="text-green-600 dark:text-green-400 font-medium">
+                                                  {typeof change.after ===
+                                                    "number" &&
+                                                  (key === "unitPrice" ||
+                                                    key === "amount")
+                                                    ? formatPrice(change.after)
+                                                    : change.after}
+                                                </span>
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="space-y-0.5 pl-2">
-                                        {Object.entries(item.changes).map(([key, change]) => (
-                                          <div
-                                            key={key}
-                                            className="flex items-center gap-2 flex-wrap"
-                                          >
-                                            <span className="text-slate-600 dark:text-slate-400 min-w-[80px]">
-                                              {key === "quantity"
-                                                ? "Số lượng"
-                                                : key === "unitPrice"
-                                                ? "Đơn giá"
-                                                : key === "amount"
-                                                ? "Thành tiền"
-                                                : key === "label"
-                                                ? "Tên"
-                                                : key === "description"
-                                                ? "Mô tả"
-                                                : key === "currentIndex"
-                                                ? "Chỉ số hiện tại"
-                                                : key === "previousIndex"
-                                                ? "Chỉ số cũ"
-                                                : key}:
-                                            </span>
-                                            <span className="line-through text-red-600 dark:text-red-400">
-                                              {typeof change.before === "number" &&
-                                              (key === "unitPrice" || key === "amount")
-                                                ? formatPrice(change.before)
-                                                : change.before}
-                                            </span>
-                                            <span className="text-green-600 dark:text-green-400 font-medium">
-                                              →
-                                            </span>
-                                            <span className="text-green-600 dark:text-green-400 font-medium">
-                                              {typeof change.after === "number" &&
-                                              (key === "unitPrice" || key === "amount")
-                                                ? formatPrice(change.after)
-                                                : change.after}
-                                            </span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               )}
 
@@ -918,38 +973,50 @@ export const InvoiceDetailSheet = ({
                               {historyItem.itemsDiff.added.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-green-600 dark:text-green-400">
-                                    Đã thêm ({historyItem.itemsDiff.added.length}):
+                                    Đã thêm (
+                                    {historyItem.itemsDiff.added.length}):
                                   </p>
-                                  {historyItem.itemsDiff.added.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-xs"
-                                    >
-                                      <div className="font-medium text-slate-900 dark:text-slate-100">
-                                        {getTypeLabel(item.type)} - {item.label}
+                                  {historyItem.itemsDiff.added.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-xs"
+                                      >
+                                        <div className="font-medium text-slate-900 dark:text-slate-100">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
+                                        </div>
+                                        {item.description && (
+                                          <div className="text-slate-600 dark:text-slate-400 mt-1">
+                                            {item.description}
+                                          </div>
+                                        )}
+                                        {(item.quantity !== undefined ||
+                                          item.unitPrice !== undefined ||
+                                          item.amount !== undefined) && (
+                                          <div className="mt-1 space-x-2 text-slate-600 dark:text-slate-400">
+                                            {item.quantity !== undefined && (
+                                              <span>
+                                                Số lượng: {item.quantity}
+                                              </span>
+                                            )}
+                                            {item.unitPrice !== undefined && (
+                                              <span>
+                                                Đơn giá:{" "}
+                                                {formatPrice(item.unitPrice)}
+                                              </span>
+                                            )}
+                                            {item.amount !== undefined && (
+                                              <span>
+                                                Thành tiền:{" "}
+                                                {formatPrice(item.amount)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
-                                      {item.description && (
-                                        <div className="text-slate-600 dark:text-slate-400 mt-1">
-                                          {item.description}
-                                        </div>
-                                      )}
-                                      {(item.quantity !== undefined ||
-                                        item.unitPrice !== undefined ||
-                                        item.amount !== undefined) && (
-                                        <div className="mt-1 space-x-2 text-slate-600 dark:text-slate-400">
-                                          {item.quantity !== undefined && (
-                                            <span>Số lượng: {item.quantity}</span>
-                                          )}
-                                          {item.unitPrice !== undefined && (
-                                            <span>Đơn giá: {formatPrice(item.unitPrice)}</span>
-                                          )}
-                                          {item.amount !== undefined && (
-                                            <span>Thành tiền: {formatPrice(item.amount)}</span>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               )}
 
@@ -957,23 +1024,27 @@ export const InvoiceDetailSheet = ({
                               {historyItem.itemsDiff.removed.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-red-600 dark:text-red-400">
-                                    Đã xóa ({historyItem.itemsDiff.removed.length}):
+                                    Đã xóa (
+                                    {historyItem.itemsDiff.removed.length}):
                                   </p>
-                                  {historyItem.itemsDiff.removed.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs"
-                                    >
-                                      <div className="font-medium line-through text-slate-900 dark:text-slate-100">
-                                        {getTypeLabel(item.type)} - {item.label}
-                                      </div>
-                                      {item.description && (
-                                        <div className="text-slate-600 dark:text-slate-400 mt-1 line-through">
-                                          {item.description}
+                                  {historyItem.itemsDiff.removed.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs"
+                                      >
+                                        <div className="font-medium line-through text-slate-900 dark:text-slate-100">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
                                         </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                        {item.description && (
+                                          <div className="text-slate-600 dark:text-slate-400 mt-1 line-through">
+                                            {item.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -987,43 +1058,50 @@ export const InvoiceDetailSheet = ({
                                   Thay đổi thông tin khác:
                                 </p>
                                 <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-xs space-y-0.5">
-                                  {Object.entries(historyItem.metaDiff).map(([key, change]) => (
-                                    <div
-                                      key={key}
-                                      className="flex items-center gap-2 flex-wrap"
-                                    >
-                                      <span className="text-slate-600 dark:text-slate-400 min-w-[100px]">
-                                        {key === "note"
-                                          ? "Ghi chú"
-                                          : key === "discountAmount"
-                                          ? "Giảm trừ"
-                                          : key === "lateFee"
-                                          ? "Phí trễ hạn"
-                                          : key === "status"
-                                          ? "Trạng thái"
-                                          : key}:
-                                      </span>
-                                      <span className="line-through text-red-600 dark:text-red-400">
-                                        {change.before === null
-                                          ? "—"
-                                          : typeof change.before === "number" &&
-                                            (key === "discountAmount" || key === "lateFee")
-                                          ? formatPrice(change.before)
-                                          : String(change.before)}
-                                      </span>
-                                      <span className="text-green-600 dark:text-green-400 font-medium">
-                                        →
-                                      </span>
-                                      <span className="text-green-600 dark:text-green-400 font-medium">
-                                        {change.after === null
-                                          ? "—"
-                                          : typeof change.after === "number" &&
-                                            (key === "discountAmount" || key === "lateFee")
-                                          ? formatPrice(change.after)
-                                          : String(change.after)}
-                                      </span>
-                                    </div>
-                                  ))}
+                                  {Object.entries(historyItem.metaDiff).map(
+                                    ([key, change]) => (
+                                      <div
+                                        key={key}
+                                        className="flex items-center gap-2 flex-wrap"
+                                      >
+                                        <span className="text-slate-600 dark:text-slate-400 min-w-[100px]">
+                                          {key === "note"
+                                            ? "Ghi chú"
+                                            : key === "discountAmount"
+                                            ? "Giảm trừ"
+                                            : key === "lateFee"
+                                            ? "Phí trễ hạn"
+                                            : key === "status"
+                                            ? "Trạng thái"
+                                            : key}
+                                          :
+                                        </span>
+                                        <span className="line-through text-red-600 dark:text-red-400">
+                                          {change.before === null
+                                            ? "—"
+                                            : typeof change.before ===
+                                                "number" &&
+                                              (key === "discountAmount" ||
+                                                key === "lateFee")
+                                            ? formatPrice(change.before)
+                                            : String(change.before)}
+                                        </span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">
+                                          →
+                                        </span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">
+                                          {change.after === null
+                                            ? "—"
+                                            : typeof change.after ===
+                                                "number" &&
+                                              (key === "discountAmount" ||
+                                                key === "lateFee")
+                                            ? formatPrice(change.after)
+                                            : String(change.after)}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}

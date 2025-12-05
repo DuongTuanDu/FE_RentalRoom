@@ -12,13 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +19,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Edit, Plus, Trash2, History, Clock, User } from "lucide-react";
+import {
+  Loader2,
+  Edit,
+  Plus,
+  Trash2,
+  History,
+  Clock,
+  User,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
@@ -58,7 +59,13 @@ interface UpdateInvoiceDialogProps {
     note?: string;
     discountAmount?: number;
     lateFee?: number;
-    status?: "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled";
+    status?:
+      | "draft"
+      | "sent"
+      | "paid"
+      | "transfer_pending"
+      | "overdue"
+      | "cancelled";
   };
   onSubmit: (invoiceId: string, data: IUpdateInvoiceRequest) => void;
   isLoading: boolean;
@@ -76,17 +83,20 @@ export const UpdateInvoiceDialog = ({
   const [note, setNote] = useState("");
   const [discountAmount, setDiscountAmount] = useState("0");
   const [lateFee, setLateFee] = useState("0");
-  const [status, setStatus] = useState<"draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled">("draft");
+  const [status, setStatus] = useState<
+    "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled"
+  >("draft");
   const [items, setItems] = useState<InvoiceItem[]>([]);
 
   // Fetch history
-  const { data: historyData, isLoading: isLoadingHistory } = useHistoryUpdateInvoiceQuery(
-    invoiceId && open ? invoiceId : skipToken
-  );
+  const { data: historyData, isLoading: isLoadingHistory } =
+    useHistoryUpdateInvoiceQuery(invoiceId && open ? invoiceId : skipToken);
 
   // Determine if update is allowed based on status
   const currentStatus = initialData?.status || "draft";
-  const canUpdate = !["paid", "transfer_pending", "cancelled"].includes(currentStatus);
+  const canUpdate = !["paid", "transfer_pending", "cancelled"].includes(
+    currentStatus
+  );
   const canUpdateItems = currentStatus === "draft" || currentStatus === "sent";
   const canUpdateStatus = currentStatus === "draft";
   const canUpdateAllItems = currentStatus === "draft";
@@ -148,8 +158,13 @@ export const UpdateInvoiceDialog = ({
       updatedItems[index] = {
         ...updatedItems[index],
         [field]: Number(value) || 0,
-        amount: (field === "quantity" ? Number(value) : updatedItems[index].quantity) *
-          (field === "unitPrice" ? Number(value) : updatedItems[index].unitPrice),
+        amount:
+          (field === "quantity"
+            ? Number(value)
+            : updatedItems[index].quantity) *
+          (field === "unitPrice"
+            ? Number(value)
+            : updatedItems[index].unitPrice),
       };
     } else {
       updatedItems[index] = {
@@ -184,8 +199,11 @@ export const UpdateInvoiceDialog = ({
         itemsToSend = items;
       } else if (canOnlyUpdateOtherItems) {
         // Sent: send "other" type items and electric/water items (for updating currentIndex)
-        itemsToSend = items.filter((item) => 
-          item.type === "other" || item.type === "electric" || item.type === "water"
+        itemsToSend = items.filter(
+          (item) =>
+            item.type === "other" ||
+            item.type === "electric" ||
+            item.type === "water"
         );
       }
 
@@ -234,7 +252,8 @@ export const UpdateInvoiceDialog = ({
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Hóa đơn có trạng thái <strong>{currentStatus}</strong> không thể được cập nhật.
+              Hóa đơn có trạng thái <strong>{currentStatus}</strong> không thể
+              được cập nhật.
             </p>
           </div>
           <DialogFooter>
@@ -261,36 +280,14 @@ export const UpdateInvoiceDialog = ({
           </DialogTitle>
           <DialogDescription>
             {currentStatus === "draft" && "Cập nhật đầy đủ thông tin hóa đơn"}
-            {currentStatus === "sent" && "Cập nhật items (chỉ loại 'Khác'), ghi chú, giảm trừ, phí trễ hạn"}
-            {currentStatus === "overdue" && "Cập nhật ghi chú, giảm trừ, phí trễ hạn"}
+            {currentStatus === "sent" &&
+              "Cập nhật items (chỉ loại 'Khác'), ghi chú, giảm trừ, phí trễ hạn"}
+            {currentStatus === "overdue" &&
+              "Cập nhật ghi chú, giảm trừ, phí trễ hạn"}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {/* Status (only for draft) */}
-          {canUpdateStatus && (
-            <div className="space-y-2">
-              <Label>Trạng thái</Label>
-              <Select
-                value={status}
-                onValueChange={(value: any) => setStatus(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Nháp</SelectItem>
-                  <SelectItem value="sent">Đã gửi</SelectItem>
-                  <SelectItem value="overdue">Quá hạn</SelectItem>
-                  <SelectItem value="cancelled">Đã hủy</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Không thể đặt trạng thái thành "Đã thanh toán" hoặc "Chờ xác nhận chuyển khoản"
-              </p>
-            </div>
-          )}
-
           {/* Items (only for draft and sent) */}
           {canUpdateItems && (
             <Card>
@@ -329,19 +326,30 @@ export const UpdateInvoiceDialog = ({
                 ) : (
                   <div className="space-y-6">
                     {/* Bảng Tiền phòng */}
-                    {items.filter(item => item.type === "rent").length > 0 && (
+                    {items.filter((item) => item.type === "rent").length >
+                      0 && (
                       <div className="space-y-2">
                         <h4 className="text-sm font-semibold">Tiền phòng</h4>
                         <div className="border rounded-lg max-w-5xl overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[120px]">Loại</TableHead>
+                                <TableHead className="w-[120px]">
+                                  Loại
+                                </TableHead>
                                 <TableHead>Tên</TableHead>
-                                <TableHead className="min-w-[260px]">Mô tả</TableHead>
-                                <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                                <TableHead className="min-w-[120px]">Thành tiền</TableHead>
-                                <TableHead className="w-[80px] text-center">Thao tác</TableHead>
+                                <TableHead className="min-w-[260px]">
+                                  Mô tả
+                                </TableHead>
+                                <TableHead className="min-w-[120px] text-center">
+                                  Đơn giá
+                                </TableHead>
+                                <TableHead className="min-w-[120px]">
+                                  Thành tiền
+                                </TableHead>
+                                <TableHead className="w-[80px] text-center">
+                                  Thao tác
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -361,18 +369,9 @@ export const UpdateInvoiceDialog = ({
                                       </Badge>
                                     </TableCell>
                                     <TableCell>
-                                      {isReadOnly ? (
-                                        <span className="text-sm">{item.label || "—"}</span>
-                                      ) : (
-                                        <Input
-                                          value={item.label}
-                                          onChange={(e) =>
-                                            handleUpdateItem(index, "label", e.target.value)
-                                          }
-                                          placeholder="Tên mục"
-                                          className="h-8"
-                                        />
-                                      )}
+                                      <span className="text-sm">
+                                        {item.label || "—"}
+                                      </span>
                                     </TableCell>
                                     <TableCell>
                                       {isReadOnly ? (
@@ -410,7 +409,9 @@ export const UpdateInvoiceDialog = ({
                                           type="button"
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => handleRemoveItem(index)}
+                                          onClick={() =>
+                                            handleRemoveItem(index)
+                                          }
                                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
                                           <Trash2 className="h-4 w-4" />
@@ -431,31 +432,56 @@ export const UpdateInvoiceDialog = ({
                     )}
 
                     {/* Bảng Điện nước */}
-                    {items.filter(item => item.type === "electric" || item.type === "water").length > 0 && (
+                    {items.filter(
+                      (item) =>
+                        item.type === "electric" || item.type === "water"
+                    ).length > 0 && (
                       <div className="space-y-2">
                         <h4 className="text-sm font-semibold">Điện nước</h4>
                         <div className="border rounded-lg max-w-5xl overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[120px]">Loại</TableHead>
-                                <TableHead className="min-w-[120px]">Tên</TableHead>
-                                <TableHead className="min-w-[260px]">Mô tả</TableHead>
-                                <TableHead className="min-w-[100px]">Chỉ số cũ</TableHead>
-                                <TableHead className="w-[100px]">Chỉ số hiện tại</TableHead>
-                                <TableHead className="w-[80px]">Số lượng</TableHead>
-                                <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                                <TableHead className="min-w-[120px]">Thành tiền</TableHead>
-                                <TableHead className="w-[80px] text-center">Thao tác</TableHead>
+                                <TableHead className="w-[120px]">
+                                  Loại
+                                </TableHead>
+                                <TableHead className="min-w-[120px]">
+                                  Tên
+                                </TableHead>
+                                <TableHead className="min-w-[260px]">
+                                  Mô tả
+                                </TableHead>
+                                <TableHead className="min-w-[100px]">
+                                  Chỉ số cũ
+                                </TableHead>
+                                <TableHead className="w-[100px]">
+                                  Chỉ số hiện tại
+                                </TableHead>
+                                <TableHead className="w-[80px]">
+                                  Số lượng tiêu thụ
+                                </TableHead>
+                                <TableHead className="min-w-[120px] text-center">
+                                  Đơn giá
+                                </TableHead>
+                                <TableHead className="min-w-[120px]">
+                                  Thành tiền
+                                </TableHead>
+                                <TableHead className="w-[80px] text-center">
+                                  Thao tác
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {items.map((item, index) => {
-                                if (item.type !== "electric" && item.type !== "water") return null;
+                                if (
+                                  item.type !== "electric" &&
+                                  item.type !== "water"
+                                )
+                                  return null;
                                 const isEditable = canUpdateAllItems;
                                 const isReadOnly = !isEditable;
-                                const canEditPreviousIndex = canUpdateAllItems; // Chỉ cho phép sửa khi draft
-                                const canEditCurrentIndex = canUpdateAllItems || canUpdateItems; // Cho phép sửa khi draft hoặc sent
+                                const canEditCurrentIndex =
+                                  canUpdateAllItems || canUpdateItems; // Cho phép sửa khi draft hoặc sent
 
                                 return (
                                   <TableRow key={index}>
@@ -468,18 +494,9 @@ export const UpdateInvoiceDialog = ({
                                       </Badge>
                                     </TableCell>
                                     <TableCell className="min-w-[120px]">
-                                      {isReadOnly ? (
-                                        <span className="text-sm">{item.label || "—"}</span>
-                                      ) : (
-                                        <Input
-                                          value={item.label}
-                                          onChange={(e) =>
-                                            handleUpdateItem(index, "label", e.target.value)
-                                          }
-                                          placeholder="Tên mục"
-                                          className="h-8"
-                                        />
-                                      )}
+                                      <span className="text-sm">
+                                        {item.label || "—"}
+                                      </span>
                                     </TableCell>
                                     <TableCell>
                                       {isReadOnly ? (
@@ -502,31 +519,9 @@ export const UpdateInvoiceDialog = ({
                                       )}
                                     </TableCell>
                                     <TableCell>
-                                      {canEditPreviousIndex ? (
-                                        <Input
-                                          type="number"
-                                          min="0"
-                                          step="0.01"
-                                          value={item.meta?.previousIndex ?? ""}
-                                          onChange={(e) => {
-                                            const updatedItems = [...items];
-                                            updatedItems[index] = {
-                                              ...updatedItems[index],
-                                              meta: {
-                                                previousIndex: Number(e.target.value) || 0,
-                                                currentIndex: item.meta?.currentIndex ?? 0,
-                                              },
-                                            };
-                                            setItems(updatedItems);
-                                          }}
-                                          placeholder="Chỉ số cũ"
-                                          className="h-8"
-                                        />
-                                      ) : (
-                                        <span className="text-sm">
-                                          {item.meta?.previousIndex ?? "—"}
-                                        </span>
-                                      )}
+                                      <span className="text-sm">
+                                        {item.meta?.previousIndex ?? "—"}
+                                      </span>
                                     </TableCell>
                                     <TableCell>
                                       {canEditCurrentIndex ? (
@@ -540,8 +535,10 @@ export const UpdateInvoiceDialog = ({
                                             updatedItems[index] = {
                                               ...updatedItems[index],
                                               meta: {
-                                                previousIndex: item.meta?.previousIndex ?? 0,
-                                                currentIndex: Number(e.target.value) || 0,
+                                                previousIndex:
+                                                  item.meta?.previousIndex ?? 0,
+                                                currentIndex:
+                                                  Number(e.target.value) || 0,
                                               },
                                             };
                                             setItems(updatedItems);
@@ -576,7 +573,9 @@ export const UpdateInvoiceDialog = ({
                                           type="button"
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => handleRemoveItem(index)}
+                                          onClick={() =>
+                                            handleRemoveItem(index)
+                                          }
                                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
                                           <Trash2 className="h-4 w-4" />
@@ -597,28 +596,49 @@ export const UpdateInvoiceDialog = ({
                     )}
 
                     {/* Bảng Tiền dịch vụ và Chi phí khác */}
-                    {items.filter(item => item.type === "service" || item.type === "other").length > 0 && (
+                    {items.filter(
+                      (item) => item.type === "service" || item.type === "other"
+                    ).length > 0 && (
                       <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">Tiền dịch vụ và Chi phí khác</h4>
+                        <h4 className="text-sm font-semibold">
+                          Tiền dịch vụ và Chi phí khác
+                        </h4>
                         <div className="border rounded-lg max-w-5xl overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[120px]">Loại</TableHead>
+                                <TableHead className="w-[120px]">
+                                  Loại
+                                </TableHead>
                                 <TableHead>Tên</TableHead>
-                                <TableHead className="min-w-[260px]">Mô tả</TableHead>
-                                <TableHead className="w-[80px]">Số lượng</TableHead>
-                                <TableHead className="min-w-[120px] text-center">Đơn giá</TableHead>
-                                <TableHead className="min-w-[120px]">Thành tiền</TableHead>
-                                <TableHead className="w-[80px] text-center">Thao tác</TableHead>
+                                <TableHead className="min-w-[260px]">
+                                  Mô tả
+                                </TableHead>
+                                <TableHead className="w-[80px]">
+                                  Số lượng
+                                </TableHead>
+                                <TableHead className="min-w-[120px] text-center">
+                                  Đơn giá
+                                </TableHead>
+                                <TableHead className="min-w-[120px]">
+                                  Thành tiền
+                                </TableHead>
+                                <TableHead className="w-[80px] text-center">
+                                  Thao tác
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {items.map((item, index) => {
-                                if (item.type !== "service" && item.type !== "other") return null;
+                                if (
+                                  item.type !== "service" &&
+                                  item.type !== "other"
+                                )
+                                  return null;
                                 const isEditable =
                                   canUpdateAllItems ||
-                                  (canOnlyUpdateOtherItems && item.type === "other");
+                                  (canOnlyUpdateOtherItems &&
+                                    item.type === "other");
                                 const isReadOnly = !isEditable;
 
                                 return (
@@ -632,18 +652,9 @@ export const UpdateInvoiceDialog = ({
                                       </Badge>
                                     </TableCell>
                                     <TableCell>
-                                      {isReadOnly ? (
-                                        <span className="text-sm">{item.label || "—"}</span>
-                                      ) : (
-                                        <Input
-                                          value={item.label}
-                                          onChange={(e) =>
-                                            handleUpdateItem(index, "label", e.target.value)
-                                          }
-                                          placeholder="Tên mục"
-                                          className="h-8"
-                                        />
-                                      )}
+                                      <span className="text-sm">
+                                        {item.label || "—"}
+                                      </span>
                                     </TableCell>
                                     <TableCell>
                                       {isReadOnly ? (
@@ -720,7 +731,9 @@ export const UpdateInvoiceDialog = ({
                                           type="button"
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => handleRemoveItem(index)}
+                                          onClick={() =>
+                                            handleRemoveItem(index)
+                                          }
                                           className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
                                           <Trash2 className="h-4 w-4" />
@@ -742,8 +755,9 @@ export const UpdateInvoiceDialog = ({
 
                     {canOnlyUpdateOtherItems && (
                       <p className="text-xs text-muted-foreground">
-                        <strong>Lưu ý:</strong> Chỉ có thể chỉnh sửa hoặc thêm mới các mục có loại "Khác". 
-                        Các mục khác (Tiền thuê, Điện, Nước, Dịch vụ) không thể chỉnh sửa hoặc xóa.
+                        <strong>Lưu ý:</strong> Chỉ có thể chỉnh sửa hoặc thêm
+                        mới các mục có loại "Khác". Các mục khác (Tiền thuê,
+                        Điện, Nước, Dịch vụ) không thể chỉnh sửa hoặc xóa.
                       </p>
                     )}
                   </div>
@@ -806,7 +820,9 @@ export const UpdateInvoiceDialog = ({
                       Đang tải lịch sử...
                     </span>
                   </div>
-                ) : historyData && historyData.history && historyData.history.length > 0 ? (
+                ) : historyData &&
+                  historyData.history &&
+                  historyData.history.length > 0 ? (
                   <div className="space-y-4">
                     {historyData.history.map((historyItem) => (
                       <div
@@ -824,9 +840,13 @@ export const UpdateInvoiceDialog = ({
                             </div>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(historyItem.updatedAt), "dd/MM/yyyy HH:mm", {
-                                locale: vi,
-                              })}
+                              {format(
+                                new Date(historyItem.updatedAt),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: vi,
+                                }
+                              )}
                             </span>
                           </div>
 
@@ -839,56 +859,70 @@ export const UpdateInvoiceDialog = ({
                               {historyItem.itemsDiff.updated.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-blue-600">
-                                    Đã cập nhật ({historyItem.itemsDiff.updated.length}):
+                                    Đã cập nhật (
+                                    {historyItem.itemsDiff.updated.length}):
                                   </p>
-                                  {historyItem.itemsDiff.updated.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-blue-50 p-2 rounded text-xs space-y-1"
-                                    >
-                                      <div className="font-medium">
-                                        {getTypeLabel(item.type)} - {item.label}
+                                  {historyItem.itemsDiff.updated.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-blue-50 p-2 rounded text-xs space-y-1"
+                                      >
+                                        <div className="font-medium">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
+                                        </div>
+                                        <div className="space-y-0.5 pl-2">
+                                          {Object.entries(item.changes).map(
+                                            ([key, change]) => (
+                                              <div
+                                                key={key}
+                                                className="flex items-center gap-2"
+                                              >
+                                                <span className="text-muted-foreground min-w-[80px]">
+                                                  {key === "quantity"
+                                                    ? "Số lượng"
+                                                    : key === "unitPrice"
+                                                    ? "Đơn giá"
+                                                    : key === "amount"
+                                                    ? "Thành tiền"
+                                                    : key === "label"
+                                                    ? "Tên"
+                                                    : key === "description"
+                                                    ? "Mô tả"
+                                                    : key === "currentIndex"
+                                                    ? "Chỉ số hiện tại"
+                                                    : key === "previousIndex"
+                                                    ? "Chỉ số cũ"
+                                                    : key}
+                                                  :
+                                                </span>
+                                                <span className="line-through text-red-600">
+                                                  {typeof change.before ===
+                                                    "number" &&
+                                                  (key === "unitPrice" ||
+                                                    key === "amount")
+                                                    ? formatPrice(change.before)
+                                                    : change.before}
+                                                </span>
+                                                <span className="text-green-600 font-medium">
+                                                  →
+                                                </span>
+                                                <span className="text-green-600 font-medium">
+                                                  {typeof change.after ===
+                                                    "number" &&
+                                                  (key === "unitPrice" ||
+                                                    key === "amount")
+                                                    ? formatPrice(change.after)
+                                                    : change.after}
+                                                </span>
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="space-y-0.5 pl-2">
-                                        {Object.entries(item.changes).map(([key, change]) => (
-                                          <div key={key} className="flex items-center gap-2">
-                                            <span className="text-muted-foreground min-w-[80px]">
-                                              {key === "quantity"
-                                                ? "Số lượng"
-                                                : key === "unitPrice"
-                                                ? "Đơn giá"
-                                                : key === "amount"
-                                                ? "Thành tiền"
-                                                : key === "label"
-                                                ? "Tên"
-                                                : key === "description"
-                                                ? "Mô tả"
-                                                : key === "currentIndex"
-                                                ? "Chỉ số hiện tại"
-                                                : key === "previousIndex"
-                                                ? "Chỉ số cũ"
-                                                : key}:
-                                            </span>
-                                            <span className="line-through text-red-600">
-                                              {typeof change.before === "number" &&
-                                              (key === "unitPrice" || key === "amount")
-                                                ? formatPrice(change.before)
-                                                : change.before}
-                                            </span>
-                                            <span className="text-green-600 font-medium">
-                                              →
-                                            </span>
-                                            <span className="text-green-600 font-medium">
-                                              {typeof change.after === "number" &&
-                                              (key === "unitPrice" || key === "amount")
-                                                ? formatPrice(change.after)
-                                                : change.after}
-                                            </span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               )}
 
@@ -896,38 +930,50 @@ export const UpdateInvoiceDialog = ({
                               {historyItem.itemsDiff.added.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-green-600">
-                                    Đã thêm ({historyItem.itemsDiff.added.length}):
+                                    Đã thêm (
+                                    {historyItem.itemsDiff.added.length}):
                                   </p>
-                                  {historyItem.itemsDiff.added.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-green-50 p-2 rounded text-xs"
-                                    >
-                                      <div className="font-medium">
-                                        {getTypeLabel(item.type)} - {item.label}
+                                  {historyItem.itemsDiff.added.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-green-50 p-2 rounded text-xs"
+                                      >
+                                        <div className="font-medium">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
+                                        </div>
+                                        {item.description && (
+                                          <div className="text-muted-foreground mt-1">
+                                            {item.description}
+                                          </div>
+                                        )}
+                                        {(item.quantity !== undefined ||
+                                          item.unitPrice !== undefined ||
+                                          item.amount !== undefined) && (
+                                          <div className="mt-1 space-x-2">
+                                            {item.quantity !== undefined && (
+                                              <span>
+                                                Số lượng: {item.quantity}
+                                              </span>
+                                            )}
+                                            {item.unitPrice !== undefined && (
+                                              <span>
+                                                Đơn giá:{" "}
+                                                {formatPrice(item.unitPrice)}
+                                              </span>
+                                            )}
+                                            {item.amount !== undefined && (
+                                              <span>
+                                                Thành tiền:{" "}
+                                                {formatPrice(item.amount)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
-                                      {item.description && (
-                                        <div className="text-muted-foreground mt-1">
-                                          {item.description}
-                                        </div>
-                                      )}
-                                      {(item.quantity !== undefined ||
-                                        item.unitPrice !== undefined ||
-                                        item.amount !== undefined) && (
-                                        <div className="mt-1 space-x-2">
-                                          {item.quantity !== undefined && (
-                                            <span>Số lượng: {item.quantity}</span>
-                                          )}
-                                          {item.unitPrice !== undefined && (
-                                            <span>Đơn giá: {formatPrice(item.unitPrice)}</span>
-                                          )}
-                                          {item.amount !== undefined && (
-                                            <span>Thành tiền: {formatPrice(item.amount)}</span>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               )}
 
@@ -935,23 +981,27 @@ export const UpdateInvoiceDialog = ({
                               {historyItem.itemsDiff.removed.length > 0 && (
                                 <div className="space-y-1">
                                   <p className="text-xs font-semibold text-red-600">
-                                    Đã xóa ({historyItem.itemsDiff.removed.length}):
+                                    Đã xóa (
+                                    {historyItem.itemsDiff.removed.length}):
                                   </p>
-                                  {historyItem.itemsDiff.removed.map((item, itemIdx) => (
-                                    <div
-                                      key={itemIdx}
-                                      className="bg-red-50 p-2 rounded text-xs"
-                                    >
-                                      <div className="font-medium line-through">
-                                        {getTypeLabel(item.type)} - {item.label}
-                                      </div>
-                                      {item.description && (
-                                        <div className="text-muted-foreground mt-1 line-through">
-                                          {item.description}
+                                  {historyItem.itemsDiff.removed.map(
+                                    (item, itemIdx) => (
+                                      <div
+                                        key={itemIdx}
+                                        className="bg-red-50 p-2 rounded text-xs"
+                                      >
+                                        <div className="font-medium line-through">
+                                          {getTypeLabel(item.type)} -{" "}
+                                          {item.label}
                                         </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                        {item.description && (
+                                          <div className="text-muted-foreground mt-1 line-through">
+                                            {item.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -965,38 +1015,50 @@ export const UpdateInvoiceDialog = ({
                                   Thay đổi thông tin khác:
                                 </p>
                                 <div className="bg-purple-50 p-2 rounded text-xs space-y-0.5">
-                                  {Object.entries(historyItem.metaDiff).map(([key, change]) => (
-                                    <div key={key} className="flex items-center gap-2">
-                                      <span className="text-muted-foreground min-w-[100px]">
-                                        {key === "note"
-                                          ? "Ghi chú"
-                                          : key === "discountAmount"
-                                          ? "Giảm trừ"
-                                          : key === "lateFee"
-                                          ? "Phí trễ hạn"
-                                          : key === "status"
-                                          ? "Trạng thái"
-                                          : key}:
-                                      </span>
-                                      <span className="line-through text-red-600">
-                                        {change.before === null
-                                          ? "—"
-                                          : typeof change.before === "number" &&
-                                            (key === "discountAmount" || key === "lateFee")
-                                          ? formatPrice(change.before)
-                                          : String(change.before)}
-                                      </span>
-                                      <span className="text-green-600 font-medium">→</span>
-                                      <span className="text-green-600 font-medium">
-                                        {change.after === null
-                                          ? "—"
-                                          : typeof change.after === "number" &&
-                                            (key === "discountAmount" || key === "lateFee")
-                                          ? formatPrice(change.after)
-                                          : String(change.after)}
-                                      </span>
-                                    </div>
-                                  ))}
+                                  {Object.entries(historyItem.metaDiff).map(
+                                    ([key, change]) => (
+                                      <div
+                                        key={key}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <span className="text-muted-foreground min-w-[100px]">
+                                          {key === "note"
+                                            ? "Ghi chú"
+                                            : key === "discountAmount"
+                                            ? "Giảm trừ"
+                                            : key === "lateFee"
+                                            ? "Phí trễ hạn"
+                                            : key === "status"
+                                            ? "Trạng thái"
+                                            : key}
+                                          :
+                                        </span>
+                                        <span className="line-through text-red-600">
+                                          {change.before === null
+                                            ? "—"
+                                            : typeof change.before ===
+                                                "number" &&
+                                              (key === "discountAmount" ||
+                                                key === "lateFee")
+                                            ? formatPrice(change.before)
+                                            : String(change.before)}
+                                        </span>
+                                        <span className="text-green-600 font-medium">
+                                          →
+                                        </span>
+                                        <span className="text-green-600 font-medium">
+                                          {change.after === null
+                                            ? "—"
+                                            : typeof change.after ===
+                                                "number" &&
+                                              (key === "discountAmount" ||
+                                                key === "lateFee")
+                                            ? formatPrice(change.after)
+                                            : String(change.after)}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}
