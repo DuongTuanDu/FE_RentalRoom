@@ -20,6 +20,14 @@ import {
 import { uploadFile, UPLOAD_CLINSKIN_PRESET } from "@/helpers/cloudinary";
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";
+import {
+  validateContractNo,
+  validateCCCD,
+  validatePhone,
+  validateEmail,
+  validateRequired,
+  validateNumber,
+} from "@/helpers/validation";
 import type { Element } from "slate";
 import { SlateEditor } from "@/pages/TermManagement/components/SlateEditor";
 import { htmlToSlate, slateToHtml } from "@/pages/TermManagement/components/slateHelpers";
@@ -48,6 +56,24 @@ export const SendContractModal = ({
   const [deposit, setDeposit] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  
+  // Error states
+  const [contractNoError, setContractNoError] = useState("");
+  const [signDateError, setSignDateError] = useState("");
+  const [signPlaceError, setSignPlaceError] = useState("");
+  const [priceError, setPriceError] = useState("");
+  const [depositError, setDepositError] = useState("");
+  const [startDateError, setStartDateError] = useState("");
+  const [endDateError, setEndDateError] = useState("");
+  const [personANameError, setPersonANameError] = useState("");
+  const [personADobError, setPersonADobError] = useState("");
+  const [personACccdError, setPersonACccdError] = useState("");
+  const [personACccdIssuedDateError, setPersonACccdIssuedDateError] = useState("");
+  const [personACccdIssuedPlaceError, setPersonACccdIssuedPlaceError] = useState("");
+  const [personAPermanentAddressError, setPersonAPermanentAddressError] = useState("");
+  const [personAPhoneError, setPersonAPhoneError] = useState("");
+  const [personAEmailError, setPersonAEmailError] = useState("");
+  const [personABankAccountError, setPersonABankAccountError] = useState("");
 
   // Person A (Landlord) states
   const [personAName, setPersonAName] = useState("");
@@ -102,6 +128,10 @@ export const SendContractModal = ({
       setContractNo("");
       setSignPlace("");
       setSignDate(new Date().toISOString().split("T")[0]);
+      // Reset errors
+      setStartDateError("");
+      setEndDateError("");
+      setPersonABankAccountError("");
 
       // Fill Person A (Landlord) - from contractData.A
       setPersonAName(contractData.A.name || "");
@@ -164,6 +194,10 @@ export const SendContractModal = ({
       setRegulationSlateValues({});
       setRegulationNames({});
       setRegulationSlateValuesInitialized(false);
+      // Reset errors
+      setStartDateError("");
+      setEndDateError("");
+      setPersonABankAccountError("");
     }
   }, [open, contractData, sortedTerms, sortedRegulations]);
 
@@ -212,28 +246,181 @@ export const SendContractModal = ({
   const handleSubmit = async () => {
     if (!contractData) return;
 
-    // Validate required fields
-    if (
-      !contractNo ||
-      !signPlace ||
-      !signDate ||
-      !price ||
-      !deposit ||
-      !startDate ||
-      !endDate
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin hợp đồng");
-      return;
+    // Reset all errors
+    setContractNoError("");
+    setSignDateError("");
+    setSignPlaceError("");
+    setPriceError("");
+    setDepositError("");
+    setStartDateError("");
+    setEndDateError("");
+    setPersonANameError("");
+    setPersonADobError("");
+    setPersonACccdError("");
+    setPersonACccdIssuedDateError("");
+    setPersonACccdIssuedPlaceError("");
+    setPersonAPermanentAddressError("");
+    setPersonAPhoneError("");
+    setPersonAEmailError("");
+    setPersonABankAccountError("");
+
+    let hasError = false;
+    let firstErrorField: string | null = null;
+
+    // Validate contractNo
+    const contractNoErrorMsg = validateContractNo(contractNo);
+    if (contractNoErrorMsg) {
+      setContractNoError(contractNoErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "contractNo";
     }
 
-    if (
-      !personAName ||
-      !personADob ||
-      !personACccd ||
-      !personAPhone ||
-      !personAEmail
-    ) {
-      toast.error("Vui lòng điền đầy đủ thông tin bên cho thuê");
+    // Validate signDate
+    const signDateErrorMsg = validateRequired(signDate, "Ngày ký");
+    if (signDateErrorMsg) {
+      setSignDateError(signDateErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "signDate";
+    }
+
+    // Validate signPlace
+    const signPlaceErrorMsg = validateRequired(signPlace, "Địa điểm ký");
+    if (signPlaceErrorMsg) {
+      setSignPlaceError(signPlaceErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "signPlace";
+    }
+
+    // Validate price
+    const priceErrorMsg = validateNumber(price, "Giá thuê");
+    if (priceErrorMsg) {
+      setPriceError(priceErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "price";
+    }
+
+    // Validate deposit
+    const depositErrorMsg = validateNumber(deposit, "Tiền cọc");
+    if (depositErrorMsg) {
+      setDepositError(depositErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "deposit";
+    }
+
+    // Validate startDate
+    const startDateTrimmed = startDate.trim();
+    const startDateErrorMsg = validateRequired(startDateTrimmed, "Ngày bắt đầu");
+    if (startDateErrorMsg) {
+      setStartDateError(startDateErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "startDate";
+    }
+
+    // Validate endDate
+    const endDateTrimmed = endDate.trim();
+    const endDateErrorMsg = validateRequired(endDateTrimmed, "Ngày kết thúc");
+    if (endDateErrorMsg) {
+      setEndDateError(endDateErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "endDate";
+    }
+
+    // Validate date range
+    if (startDateTrimmed && endDateTrimmed) {
+      if (startDateTrimmed > endDateTrimmed) {
+        setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
+        setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+        hasError = true;
+        if (!firstErrorField) firstErrorField = "startDate";
+      }
+    }
+
+    // Validate personAName
+    const personANameErrorMsg = validateRequired(personAName, "Tên bên cho thuê");
+    if (personANameErrorMsg) {
+      setPersonANameError(personANameErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personAName";
+    }
+
+    // Validate personADob
+    const personADobErrorMsg = validateRequired(personADob, "Ngày sinh");
+    if (personADobErrorMsg) {
+      setPersonADobError(personADobErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personADob";
+    }
+
+    // Validate personACccd
+    const personACccdErrorMsg = validateCCCD(personACccd);
+    if (personACccdErrorMsg) {
+      setPersonACccdError(personACccdErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personACccd";
+    }
+
+    // Validate personACccdIssuedDate
+    const personACccdIssuedDateErrorMsg = validateRequired(personACccdIssuedDate, "Ngày cấp CCCD");
+    if (personACccdIssuedDateErrorMsg) {
+      setPersonACccdIssuedDateError(personACccdIssuedDateErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personACccdIssuedDate";
+    }
+
+    // Validate personACccdIssuedPlace
+    const personACccdIssuedPlaceErrorMsg = validateRequired(personACccdIssuedPlace, "Nơi cấp CCCD");
+    if (personACccdIssuedPlaceErrorMsg) {
+      setPersonACccdIssuedPlaceError(personACccdIssuedPlaceErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personACccdIssuedPlace";
+    }
+
+    // Validate personAPermanentAddress
+    const personAPermanentAddressErrorMsg = validateRequired(personAPermanentAddress, "Hộ khẩu thường trú");
+    if (personAPermanentAddressErrorMsg) {
+      setPersonAPermanentAddressError(personAPermanentAddressErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personAPermanentAddress";
+    }
+
+    // Validate personAPhone
+    const personAPhoneErrorMsg = validatePhone(personAPhone);
+    if (personAPhoneErrorMsg) {
+      setPersonAPhoneError(personAPhoneErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personAPhone";
+    }
+
+    // Validate personAEmail
+    const personAEmailErrorMsg = validateEmail(personAEmail);
+    if (personAEmailErrorMsg) {
+      setPersonAEmailError(personAEmailErrorMsg);
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "personAEmail";
+    }
+
+    // Validate personABankAccount (STK) - nếu có giá trị thì phải là số
+    if (personABankAccount && personABankAccount.trim() !== "") {
+      if (!/^\d+$/.test(personABankAccount.trim())) {
+        setPersonABankAccountError("Số tài khoản chỉ được chứa số");
+        hasError = true;
+        if (!firstErrorField) firstErrorField = "personABankAccount";
+      } else if (personABankAccount.trim().length < 8 || personABankAccount.trim().length > 19) {
+        setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
+        hasError = true;
+        if (!firstErrorField) firstErrorField = "personABankAccount";
+      }
+    }
+
+    if (hasError) {
+      toast.error("Vui lòng kiểm tra lại các trường thông tin");
+      // Scroll to first error field
+      if (firstErrorField) {
+        const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`);
+        if (errorElement) {
+          (errorElement as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
       return;
     }
 
@@ -339,110 +526,285 @@ export const SendContractModal = ({
             <div className="text-center">
               <div className="text-xl font-bold">HỢP ĐỒNG THUÊ PHÒNG</div>
               <div className="text-sm text-muted-foreground">
-                Số:{" "}
-                <Input
-                  value={contractNo}
-                  onChange={(e) => setContractNo(e.target.value)}
-                  placeholder="Nhập số hợp đồng"
-                  className="inline-block w-32 h-6 text-sm"
-                />
+                <div>
+                  Số:{" "}
+                  <Input
+                    data-field="contractNo"
+                    value={contractNo}
+                    onChange={(e) => {
+                      setContractNo(e.target.value);
+                      const error = validateContractNo(e.target.value);
+                      setContractNoError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateContractNo(contractNo);
+                      setContractNoError(error || "");
+                    }}
+                    placeholder="Nhập số hợp đồng"
+                    className={`inline-block w-32 h-6 text-sm ${contractNoError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {contractNoError && (
+                  <p className="text-xs text-red-500 mt-1 ml-0">{contractNoError}</p>
+                )}
               </div>
             </div>
             <div className="space-y-1 text-sm">
               <div>
-                Hôm nay, ngày{" "}
-                <Input
-                  type="date"
-                  value={signDate}
-                  onChange={(e) => setSignDate(e.target.value)}
-                  className="inline-block w-32 h-6 text-sm"
-                />{" "}
-                tại:{" "}
-                <Input
-                  value={signPlace}
-                  onChange={(e) => setSignPlace(e.target.value)}
-                  placeholder="Nhập địa điểm"
-                  className="inline-block w-48 h-6 text-sm"
-                />
+                <div>
+                  Hôm nay, ngày{" "}
+                  <Input
+                    data-field="signDate"
+                    type="date"
+                    value={signDate}
+                    onChange={(e) => {
+                      setSignDate(e.target.value);
+                      const error = validateRequired(e.target.value, "Ngày ký");
+                      setSignDateError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(signDate, "Ngày ký");
+                      setSignDateError(error || "");
+                    }}
+                    className={`inline-block w-32 h-6 text-sm ${signDateError ? "border-red-500" : ""}`}
+                  />{" "}
+                  tại:{" "}
+                  <Input
+                    data-field="signPlace"
+                    value={signPlace}
+                    onChange={(e) => {
+                      setSignPlace(e.target.value);
+                      const error = validateRequired(e.target.value, "Địa điểm ký");
+                      setSignPlaceError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(signPlace, "Địa điểm ký");
+                      setSignPlaceError(error || "");
+                    }}
+                    placeholder="Nhập địa điểm"
+                    className={`inline-block w-48 h-6 text-sm ${signPlaceError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {(signDateError || signPlaceError) && (
+                  <div className="text-xs text-red-500 mt-1">
+                    {signDateError && <p>{signDateError}</p>}
+                    {signPlaceError && <p>{signPlaceError}</p>}
+                  </div>
+                )}
               </div>
               <div className="font-semibold">BÊN CHO THUÊ NHÀ (BÊN A):</div>
               <div>
-                Đại diện (Ông/Bà):{" "}
-                <Input
-                  value={personAName}
-                  onChange={(e) => setPersonAName(e.target.value)}
-                  placeholder="Nhập tên"
-                  className="inline-block w-48 h-6 text-sm"
-                />
+                <div>
+                  Đại diện (Ông/Bà):{" "}
+                  <Input
+                    data-field="personAName"
+                    value={personAName}
+                    onChange={(e) => {
+                      setPersonAName(e.target.value);
+                      const error = validateRequired(e.target.value, "Tên bên cho thuê");
+                      setPersonANameError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(personAName, "Tên bên cho thuê");
+                      setPersonANameError(error || "");
+                    }}
+                    placeholder="Nhập tên"
+                    className={`inline-block w-48 h-6 text-sm ${personANameError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personANameError && (
+                  <p className="text-xs text-red-500 mt-1">{personANameError}</p>
+                )}
               </div>
               <div>
-                Ngày sinh:{" "}
-                <Input
-                  type="date"
-                  value={personADob}
-                  onChange={(e) => setPersonADob(e.target.value)}
-                  className="inline-block w-32 h-6 text-sm"
-                />
+                <div>
+                  Ngày sinh:{" "}
+                  <Input
+                    data-field="personADob"
+                    type="date"
+                    value={personADob}
+                    onChange={(e) => {
+                      setPersonADob(e.target.value);
+                      const error = validateRequired(e.target.value, "Ngày sinh");
+                      setPersonADobError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(personADob, "Ngày sinh");
+                      setPersonADobError(error || "");
+                    }}
+                    className={`inline-block w-32 h-6 text-sm ${personADobError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personADobError && (
+                  <p className="text-xs text-red-500 mt-1">{personADobError}</p>
+                )}
               </div>
               <div>
-                CCCD:{" "}
-                <Input
-                  value={personACccd}
-                  onChange={(e) => setPersonACccd(e.target.value)}
-                  placeholder="Nhập số CCCD"
-                  className="inline-block w-40 h-6 text-sm"
-                />{" "}
-                Cấp ngày:{" "}
-                <Input
-                  type="date"
-                  value={personACccdIssuedDate}
-                  onChange={(e) => setPersonACccdIssuedDate(e.target.value)}
-                  className="inline-block w-32 h-6 text-sm"
-                />
-                , Nơi cấp:{" "}
-                <Input
-                  value={personACccdIssuedPlace}
-                  onChange={(e) => setPersonACccdIssuedPlace(e.target.value)}
-                  placeholder="Nhập nơi cấp"
-                  className="inline-block w-40 h-6 text-sm"
-                />
+                <div>
+                  CCCD:{" "}
+                  <Input
+                    data-field="personACccd"
+                    value={personACccd}
+                    onChange={(e) => {
+                      setPersonACccd(e.target.value);
+                      const error = validateCCCD(e.target.value);
+                      setPersonACccdError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateCCCD(personACccd);
+                      setPersonACccdError(error || "");
+                    }}
+                    placeholder="Nhập số CCCD"
+                    className={`inline-block w-40 h-6 text-sm ${personACccdError ? "border-red-500" : ""}`}
+                  />{" "}
+                  Cấp ngày:{" "}
+                  <Input
+                    data-field="personACccdIssuedDate"
+                    type="date"
+                    value={personACccdIssuedDate}
+                    onChange={(e) => {
+                      setPersonACccdIssuedDate(e.target.value);
+                      const error = validateRequired(e.target.value, "Ngày cấp CCCD");
+                      setPersonACccdIssuedDateError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(personACccdIssuedDate, "Ngày cấp CCCD");
+                      setPersonACccdIssuedDateError(error || "");
+                    }}
+                    className={`inline-block w-32 h-6 text-sm ${personACccdIssuedDateError ? "border-red-500" : ""}`}
+                  />
+                  , Nơi cấp:{" "}
+                  <Input
+                    data-field="personACccdIssuedPlace"
+                    value={personACccdIssuedPlace}
+                    onChange={(e) => {
+                      setPersonACccdIssuedPlace(e.target.value);
+                      const error = validateRequired(e.target.value, "Nơi cấp CCCD");
+                      setPersonACccdIssuedPlaceError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(personACccdIssuedPlace, "Nơi cấp CCCD");
+                      setPersonACccdIssuedPlaceError(error || "");
+                    }}
+                    placeholder="Nhập nơi cấp"
+                    className={`inline-block w-40 h-6 text-sm ${personACccdIssuedPlaceError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {(personACccdError || personACccdIssuedDateError || personACccdIssuedPlaceError) && (
+                  <div className="text-xs text-red-500 mt-1">
+                    {personACccdError && <p>{personACccdError}</p>}
+                    {personACccdIssuedDateError && <p>{personACccdIssuedDateError}</p>}
+                    {personACccdIssuedPlaceError && <p>{personACccdIssuedPlaceError}</p>}
+                  </div>
+                )}
               </div>
               <div>
-                Hộ khẩu thường trú:{" "}
-                <Input
-                  value={personAPermanentAddress}
-                  onChange={(e) => setPersonAPermanentAddress(e.target.value)}
-                  placeholder="Nhập địa chỉ"
-                  className="inline-block w-64 h-6 text-sm"
-                />
+                <div>
+                  Hộ khẩu thường trú:{" "}
+                  <Input
+                    data-field="personAPermanentAddress"
+                    value={personAPermanentAddress}
+                    onChange={(e) => {
+                      setPersonAPermanentAddress(e.target.value);
+                      const error = validateRequired(e.target.value, "Hộ khẩu thường trú");
+                      setPersonAPermanentAddressError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateRequired(personAPermanentAddress, "Hộ khẩu thường trú");
+                      setPersonAPermanentAddressError(error || "");
+                    }}
+                    placeholder="Nhập địa chỉ"
+                    className={`inline-block w-64 h-6 text-sm ${personAPermanentAddressError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personAPermanentAddressError && (
+                  <p className="text-xs text-red-500 mt-1">{personAPermanentAddressError}</p>
+                )}
               </div>
               <div>
-                Điện thoại:{" "}
-                <Input
-                  value={personAPhone}
-                  onChange={(e) => setPersonAPhone(e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                  className="inline-block w-40 h-6 text-sm"
-                />
+                <div>
+                  Điện thoại:{" "}
+                  <Input
+                    data-field="personAPhone"
+                    value={personAPhone}
+                    onChange={(e) => {
+                      setPersonAPhone(e.target.value);
+                      const error = validatePhone(e.target.value);
+                      setPersonAPhoneError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validatePhone(personAPhone);
+                      setPersonAPhoneError(error || "");
+                    }}
+                    placeholder="Nhập số điện thoại"
+                    className={`inline-block w-40 h-6 text-sm ${personAPhoneError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personAPhoneError && (
+                  <p className="text-xs text-red-500 mt-1">{personAPhoneError}</p>
+                )}
               </div>
               <div>
-                Email:{" "}
-                <Input
-                  type="email"
-                  value={personAEmail}
-                  onChange={(e) => setPersonAEmail(e.target.value)}
-                  placeholder="Nhập email"
-                  className="inline-block w-48 h-6 text-sm"
-                />
+                <div>
+                  Email:{" "}
+                  <Input
+                    data-field="personAEmail"
+                    type="email"
+                    value={personAEmail}
+                    onChange={(e) => {
+                      setPersonAEmail(e.target.value);
+                      const error = validateEmail(e.target.value);
+                      setPersonAEmailError(error || "");
+                    }}
+                    onBlur={() => {
+                      const error = validateEmail(personAEmail);
+                      setPersonAEmailError(error || "");
+                    }}
+                    placeholder="Nhập email"
+                    className={`inline-block w-48 h-6 text-sm ${personAEmailError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personAEmailError && (
+                  <p className="text-xs text-red-500 mt-1">{personAEmailError}</p>
+                )}
               </div>
               <div>
-                STK:{" "}
-                <Input
-                  value={personABankAccount}
-                  onChange={(e) => setPersonABankAccount(e.target.value)}
-                  placeholder="Nhập số tài khoản"
-                  className="inline-block w-40 h-6 text-sm"
-                />
+                <div>
+                  STK:{" "}
+                  <Input
+                    data-field="personABankAccount"
+                    value={personABankAccount}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setPersonABankAccount(value);
+                      // Reset error khi người dùng thay đổi
+                      setPersonABankAccountError("");
+                      // Validate ngay khi thay đổi nếu có giá trị
+                      if (value && value.trim() !== "") {
+                        if (!/^\d+$/.test(value.trim())) {
+                          setPersonABankAccountError("Số tài khoản chỉ được chứa số");
+                        } else if (value.trim().length < 8 || value.trim().length > 19) {
+                          setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      // Validate khi blur
+                      if (personABankAccount && personABankAccount.trim() !== "") {
+                        if (!/^\d+$/.test(personABankAccount.trim())) {
+                          setPersonABankAccountError("Số tài khoản chỉ được chứa số");
+                        } else if (personABankAccount.trim().length < 8 || personABankAccount.trim().length > 19) {
+                          setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
+                        }
+                      }
+                    }}
+                    placeholder="Nhập số tài khoản"
+                    className={`inline-block w-40 h-6 text-sm ${personABankAccountError ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {personABankAccountError && (
+                  <p className="text-xs text-red-500 mt-1">{personABankAccountError}</p>
+                )}
               </div>
               <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
               <div>Đại diện (Ông/Bà): {contractData?.B?.name || "-"}</div>
@@ -465,36 +827,130 @@ export const SendContractModal = ({
               <div className="space-y-2">
                 <Label>Giá thuê (VNĐ)</Label>
                 <Input
+                  data-field="price"
                   type="number"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    const error = validateNumber(e.target.value, "Giá thuê");
+                    setPriceError(error || "");
+                  }}
+                  onBlur={() => {
+                    const error = validateNumber(price, "Giá thuê");
+                    setPriceError(error || "");
+                  }}
                   placeholder="Nhập giá thuê"
+                  className={priceError ? "border-red-500" : ""}
                 />
+                {priceError && (
+                  <p className="text-sm text-red-500 mt-1">{priceError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Tiền cọc (VNĐ)</Label>
                 <Input
+                  data-field="deposit"
                   type="number"
                   value={deposit}
-                  onChange={(e) => setDeposit(e.target.value)}
+                  onChange={(e) => {
+                    setDeposit(e.target.value);
+                    const error = validateNumber(e.target.value, "Tiền cọc");
+                    setDepositError(error || "");
+                  }}
+                  onBlur={() => {
+                    const error = validateNumber(deposit, "Tiền cọc");
+                    setDepositError(error || "");
+                  }}
                   placeholder="Nhập tiền cọc"
+                  className={depositError ? "border-red-500" : ""}
                 />
+                {depositError && (
+                  <p className="text-sm text-red-500 mt-1">{depositError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Ngày bắt đầu</Label>
                 <Input
+                  data-field="startDate"
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setStartDate(value);
+                    // Validate required
+                    const requiredError = validateRequired(value, "Ngày bắt đầu");
+                    setStartDateError(requiredError || "");
+                    // Validate date range
+                    if (value && endDate) {
+                      if (value > endDate) {
+                        setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
+                        setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+                      } else if (!requiredError) {
+                        setEndDateError("");
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Validate required
+                    const requiredError = validateRequired(startDate, "Ngày bắt đầu");
+                    if (requiredError) {
+                      setStartDateError(requiredError);
+                    }
+                    // Validate date range
+                    if (startDate && endDate) {
+                      if (startDate > endDate) {
+                        setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
+                        setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+                      }
+                    }
+                  }}
+                  className={startDateError ? "border-red-500" : ""}
                 />
+                {startDateError && (
+                  <p className="text-sm text-red-500 mt-1">{startDateError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Ngày kết thúc</Label>
                 <Input
+                  data-field="endDate"
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEndDate(value);
+                    // Validate required
+                    const requiredError = validateRequired(value, "Ngày kết thúc");
+                    setEndDateError(requiredError || "");
+                    // Validate date range
+                    if (value && startDate) {
+                      if (value < startDate) {
+                        setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+                        setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
+                      } else if (!requiredError) {
+                        setStartDateError("");
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Validate required
+                    const requiredError = validateRequired(endDate, "Ngày kết thúc");
+                    if (requiredError) {
+                      setEndDateError(requiredError);
+                    }
+                    // Validate date range
+                    if (startDate && endDate) {
+                      if (startDate > endDate) {
+                        setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
+                        setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+                      }
+                    }
+                  }}
+                  className={endDateError ? "border-red-500" : ""}
                 />
+                {endDateError && (
+                  <p className="text-sm text-red-500 mt-1">{endDateError}</p>
+                )}
               </div>
             </div>
           </div>

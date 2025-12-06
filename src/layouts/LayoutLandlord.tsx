@@ -1,6 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Search, Sparkles } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   SidebarProvider,
@@ -27,10 +26,6 @@ export default function LayoutLandlord() {
           <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
             <div className="flex-1 flex items-center gap-4">
-              <div className="relative w-full max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input placeholder="Tìm kiếm..." className="pl-10 w-full" />
-              </div>
             </div>
             
             {/* Package Service Button */}

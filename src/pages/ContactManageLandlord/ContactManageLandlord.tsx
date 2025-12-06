@@ -135,7 +135,7 @@ const ContactManageLandlord = () => {
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.data?.message ||
+          error?.message?.message ||
           "Không thể cập nhật trạng thái. Vui lòng thử lại",
       });
     }
@@ -150,7 +150,7 @@ const ContactManageLandlord = () => {
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.data?.message ||
+          error?.message?.message ||
           "Không thể tạo hợp đồng. Vui lòng thử lại",
       });
     }
