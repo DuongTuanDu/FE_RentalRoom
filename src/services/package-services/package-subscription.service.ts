@@ -88,12 +88,12 @@ export const packageSubscriptionApi = createApi({
       transformResponse: (response: IDetailSubscriptionResponse) => {
         return response || null;
       },
-      providesTags: ["PackageSubscription"], 
+      providesTags: ["PackageSubscription"],
     }),
 
-    cancelSubscription: builder.mutation<ICancelSubscriptionResponse, void>({
-      query: () => ({
-        url: `/subscriptions/cancel`,
+    cancelSubscription: builder.mutation<ICancelSubscriptionResponse, string>({
+      query: (id) => ({
+        url: `/subscriptions/cancel/${id}`,
         method: "PATCH",
       }),
       invalidatesTags: ["PackageSubscription"],

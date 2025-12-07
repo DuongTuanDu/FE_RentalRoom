@@ -81,44 +81,49 @@ export const HistorySubscription = () => {
     return diff > 0 ? diff : 0;
   };
 
-const handleRenewConfirm = async () => {
-  try {
-    const result = await renewSubscription().unwrap();
+  const handleRenewConfirm = async () => {
+    try {
+      const result = await renewSubscription().unwrap();
 
-    if (result?.data.paymentUrl) {
-      toast.success("Đang chuyển bạn đến cổng thanh toán VNPay...", {
-        duration: 3000,
-      });
-      window.location.href = result?.data.paymentUrl;
+      if (result?.data.paymentUrl) {
+        toast.success("Đang chuyển bạn đến cổng thanh toán VNPay...", {
+          duration: 3000,
+        });
+        window.location.href = result?.data.paymentUrl;
+        return;
+      }
+
+      toast.info("Bạn đã có yêu cầu gia hạn rồi.");
+      refetch();
+      setRenewDialogOpen(false);
+
+    } catch (err: any) {
+      const message = err?.data?.message || err?.message || "Gia hạn thất bại";
+
+      if (message.includes("30 ngày")) {
+        toast.error("Chỉ được gia hạn khi gói còn ≤ 30 ngày");
+      } else if (message.includes("gói trial")) {
+        toast.error("Không thể gia hạn gói dùng thử");
+      } else if (message.includes("đã có gói gia hạn")) {
+        toast.error("Không thể gia hạn thêm", {
+          description: "Bạn đã có 1 gói gia hạn đang chờ hoặc sắp kích hoạt.",
+        });
+      } else {
+        toast.error("Gia hạn thất bại", { description: message });
+      }
+
+      setRenewDialogOpen(false);
+    }
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!subscriptionToCancel?._id) {
+      toast.error("Không tìm thấy gói cần hủy.");
       return;
     }
 
-    toast.info( "Bạn đã có yêu cầu gia hạn rồi.");
-    refetch();
-    setRenewDialogOpen(false);
-
-  } catch (err: any) {
-    const message = err?.data?.message || err?.message || "Gia hạn thất bại";
-
-    if (message.includes("30 ngày")) {
-      toast.error("Chỉ được gia hạn khi gói còn ≤ 30 ngày");
-    } else if (message.includes("gói trial")) {
-      toast.error("Không thể gia hạn gói dùng thử");
-    } else if (message.includes("đã có gói gia hạn")) {
-      toast.error("Không thể gia hạn thêm", {
-        description: "Bạn đã có 1 gói gia hạn đang chờ hoặc sắp kích hoạt.",
-      });
-    } else {
-      toast.error("Gia hạn thất bại", { description: message });
-    }
-
-    setRenewDialogOpen(false);
-  }
-};
-
-  const handleCancelConfirm = async () => {
     try {
-      await cancelSubscription().unwrap();
+      await cancelSubscription(subscriptionToCancel._id).unwrap();
       toast.success("Gói dịch vụ đã được hủy thành công.");
       refetch();
       setCancelDialogOpen(false);
@@ -159,7 +164,7 @@ const handleRenewConfirm = async () => {
   };
 
   const activeSubscription = allSubscriptions.find(sub => sub.status === "active");
-  
+
   return (
     <>
       <div className="container mx-auto space-y-6 py-6">
@@ -265,7 +270,7 @@ const handleRenewConfirm = async () => {
                         const canCancel = isActive || isUpcoming;
 
                         return (
-                          <TableRow 
+                          <TableRow
                             key={sub._id}
                             className={`
                               transition-all duration-200
@@ -275,9 +280,8 @@ const handleRenewConfirm = async () => {
                           >
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-3">
-                                <Package className={`h-5 w-5 flex-shrink-0 ${
-                                  isActive ? 'text-blue-600' : 'text-muted-foreground'
-                                }`} />
+                                <Package className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-muted-foreground'
+                                  }`} />
                                 <div>
                                   <div className="font-medium flex items-center gap-2">
                                     {sub.packageId.name}
@@ -346,13 +350,12 @@ const handleRenewConfirm = async () => {
                             <TableCell>
                               <Badge
                                 variant="outline"
-                                className={`flex w-fit items-center gap-1.5 font-medium ${
-                                  isActive 
-                                    ? "bg-blue-100 text-blue-800 border-blue-300" 
-                                    : isUpcoming
+                                className={`flex w-fit items-center gap-1.5 font-medium ${isActive
+                                  ? "bg-blue-100 text-blue-800 border-blue-300"
+                                  : isUpcoming
                                     ? "bg-amber-100 text-amber-800 border-amber-300"
                                     : STATUS_COLORS[sub.status as keyof typeof STATUS_COLORS]
-                                }`}
+                                  }`}
                               >
                                 {isActive && <CheckCircle className="h-3.5 w-3.5" />}
                                 {isUpcoming && <Clock className="h-3.5 w-3.5" />}
@@ -491,7 +494,7 @@ const handleRenewConfirm = async () => {
         </Card>
       </div>
 
-    <AlertDialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
+      <AlertDialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -520,13 +523,13 @@ const handleRenewConfirm = async () => {
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-           <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-            <AlertCircle className="h-5 w-5" />
-            {subscriptionToCancel?.status === "upcoming" 
-              ? "Hủy gói sắp kích hoạt" 
-              : "Hủy gói đang hoạt động"
-            }
-          </AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              {subscriptionToCancel?.status === "upcoming"
+                ? "Hủy gói sắp kích hoạt"
+                : "Hủy gói đang hoạt động"
+              }
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-base">
               <strong>Bạn sắp hủy gói dịch vụ này!</strong>
               <br /><br />
