@@ -262,12 +262,6 @@ const menuItems = [
     staffAccess: true,
   },
   {
-    title: "Lịch hẹn",
-    icon: Calendar,
-    path: "/landlord/appointments",
-    staffAccess: true,
-  },
-  {
     title: "Cài đặt",
     icon: Settings,
     path: "/landlord/settings",

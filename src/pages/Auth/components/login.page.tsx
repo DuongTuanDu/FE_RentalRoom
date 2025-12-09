@@ -208,14 +208,14 @@ const Login = () => {
             </div>
           </div>
 
-          <Button
+          {/* <Button
             type="button"
             variant="outline"
             onClick={handleGoogleLogin}
             className="w-full h-11 flex items-center justify-center gap-2"
           >
             Google
-          </Button>
+          </Button> */}
 
           <div className="text-center">
             <p className="text-sm text-gray-600">

@@ -284,16 +284,16 @@ const   ProfileLandlord = () => {
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div>
           {/* Thông tin cá nhân */}
-          <Card>
+          <Card  className="mb-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
                 Thông tin cá nhân
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Số điện thoại</Label>
                 <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
@@ -313,74 +313,17 @@ const   ProfileLandlord = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Địa chỉ */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-green-600" />
-                Địa chỉ nhận tiền / ở
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label>Tỉnh/Thành</Label>
-                  <Select value={province} onValueChange={(v) => { setProvince(v); setDistrict(""); setWard(""); }}>
-                    <SelectTrigger><SelectValue placeholder="Chọn tỉnh" /></SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {provincesData?.data?.map((p: any) => (
-                        <SelectItem key={p.ProvinceID} value={String(p.ProvinceID)}>
-                          {p.ProvinceName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Quận/Huyện</Label>
-                  <Select value={district} onValueChange={(v) => { setDistrict(v); setWard(""); }} disabled={!province}>
-                    <SelectTrigger><SelectValue placeholder="Quận/huyện" /></SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {districtsData?.data?.map((d: any) => (
-                        <SelectItem key={d.DistrictID} value={String(d.DistrictID)}>
-                          {d.DistrictName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Phường/Xã</Label>
-                  <Select value={ward} onValueChange={setWard} disabled={!district}>
-                    <SelectTrigger><SelectValue placeholder="Phường/xã" /></SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {wardsData?.data?.map((w: any) => (
-                        <SelectItem key={w.WardCode} value={w.WardCode}>
-                          {w.WardName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
               <div className="space-y-2">
-                <Label>Số nhà, đường...</Label>
+                <Label>Địa chỉ</Label>
                 <Input
                   value={addressDetail}
                   onChange={(e) => setAddressDetail(e.target.value)}
                   placeholder="Ví dụ: 123 Nguyễn Văn Cừ"
                 />
               </div>
-              {fullAddress && (
-                <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-800 border border-blue-200">
-                  <strong>Địa chỉ đầy đủ:</strong> {fullAddress}
-                </div>
-              )}
             </CardContent>
           </Card>
+
 
           {/* Ngân hàng & QR */}
           <Card className="md:col-span-2">
