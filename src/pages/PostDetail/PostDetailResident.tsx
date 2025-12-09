@@ -230,7 +230,7 @@ const PostDetailResident = () => {
                 Đặt lịch xem phòng
               </Button>
               <Button onClick={handleContactCreate}>
-                Liên hệ ngay
+                Yêu cầu tạo hợp đồng
               </Button>
             </div>
           </CardContent>

@@ -495,7 +495,7 @@ export const ModalPost = ({
                       <FormLabel>Khoảng giá thuê (VNĐ) *</FormLabel>
                       <FormControl>
                         <div className="space-y-3">
-                          <Slider
+                          {/* <Slider
                             min={priceMinValue}
                             max={priceMaxValue || 20000000}
                             step={100000}
@@ -505,7 +505,7 @@ export const ModalPost = ({
                               form.setValue("priceMax", values[1]);
                             }}
                             disabled={!buildingIdWatch || prices.length === 0}
-                          />
+                          /> */}
                           <div className="flex items-center justify-between gap-4 text-sm">
                             <div className="flex items-center gap-2 flex-1">
                               <span className="text-muted-foreground whitespace-nowrap">
@@ -588,7 +588,7 @@ export const ModalPost = ({
                       <FormLabel>Khoảng diện tích (m²) *</FormLabel>
                       <FormControl>
                         <div className="space-y-3">
-                          <Slider
+                          {/* <Slider
                             min={areaMinValue}
                             max={areaMaxValue || 200}
                             step={1}
@@ -598,7 +598,7 @@ export const ModalPost = ({
                               form.setValue("areaMax", values[1]);
                             }}
                             disabled={!buildingIdWatch || areas.length === 0}
-                          />
+                          /> */}
                           <div className="flex items-center justify-between gap-4 text-sm">
                             <div className="flex items-center gap-2 flex-1">
                               <span className="text-muted-foreground whitespace-nowrap">
