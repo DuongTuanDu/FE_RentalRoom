@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Check, ChevronsUpDown, DoorOpen, Loader2, Search, Square } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  DoorOpen,
+  Loader2,
+  Search,
+  Square,
+} from "lucide-react";
 import _ from "lodash";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -48,9 +59,12 @@ export const RoomMultiSelectCombobox = ({
     return () => debouncedSetSearch.cancel();
   }, [debouncedSetSearch]);
 
-  const { data, isLoading, isFetching } = useGetVacantRoomsByBuildingIdQuery(buildingId, {
-    skip: !buildingId,
-  } as any);
+  const { data, isLoading, isFetching } = useGetVacantRoomsByBuildingIdQuery(
+    buildingId,
+    {
+      skip: !buildingId,
+    } as any
+  );
 
   const allRooms = useMemo(() => data?.data?.rooms ?? [], [data]);
 
@@ -71,6 +85,11 @@ export const RoomMultiSelectCombobox = ({
 
   const hasMore = visibleRooms.length < filteredRooms.length;
 
+  const areAllFilteredSelected = useMemo(() => {
+    if (filteredRooms.length === 0) return false;
+    return filteredRooms.every((room: any) => value.includes(room._id));
+  }, [filteredRooms, value]);
+
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
@@ -85,6 +104,18 @@ export const RoomMultiSelectCombobox = ({
       onValueChange(value.filter((x) => x !== id));
     } else {
       onValueChange([...value, id]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (areAllFilteredSelected) {
+      const filteredIds = new Set(filteredRooms.map((r: any) => r._id));
+      const newValue = value.filter((id) => !filteredIds.has(id));
+      onValueChange(newValue);
+    } else {
+      const filteredIds = filteredRooms.map((r: any) => r._id);
+      const newValue = Array.from(new Set([...value, ...filteredIds]));
+      onValueChange(newValue);
     }
   };
 
@@ -114,7 +145,10 @@ export const RoomMultiSelectCombobox = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0"
+        align="start"
+      >
         <div className="flex flex-col">
           <div className="flex items-center border-b px-3 relative">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -131,24 +165,47 @@ export const RoomMultiSelectCombobox = ({
             )}
           </div>
 
+          {/* Nút Chọn tất cả / Bỏ chọn tất cả */}
+          {!isLoading && filteredRooms.length > 0 && (
+            <div className="border-b">
+              <button
+                onClick={toggleSelectAll}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors font-medium text-primary"
+              >
+                <div
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded border border-primary",
+                    areAllFilteredSelected
+                      ? "bg-primary text-primary-foreground"
+                      : "opacity-50"
+                  )}
+                >
+                  {areAllFilteredSelected && <Check className="h-3 w-3" />}
+                </div>
+                {areAllFilteredSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+              </button>
+            </div>
+          )}
+
           <div
             className="max-h-[320px] overflow-y-auto overscroll-auto"
             onWheel={(e) => {
               const target = e.currentTarget;
               const delta = e.deltaY;
-              // Scroll inside the popover instead of the page
               target.scrollTop += delta;
               e.stopPropagation();
             }}
           >
-            {(!buildingId || isLoading) ? (
+            {!buildingId || isLoading ? (
               <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Đang tải phòng trống...
               </div>
             ) : filteredRooms.length === 0 ? (
               <div className="py-6 text-center text-sm text-muted-foreground">
-                {searchInput ? "Không tìm thấy phòng phù hợp" : "Chưa có phòng trống"}
+                {searchInput
+                  ? "Không tìm thấy phòng phù hợp"
+                  : "Chưa có phòng trống"}
               </div>
             ) : (
               <>
@@ -160,24 +217,31 @@ export const RoomMultiSelectCombobox = ({
                       onClick={() => toggleSelect(room._id)}
                       className={cn(
                         "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors",
-                        checked && "bg-accent"
+                        checked && "bg-accent/50"
                       )}
                     >
-                      <Check
+                      <div
                         className={cn(
-                          "h-4 w-4 shrink-0",
-                          checked ? "opacity-100" : "opacity-0"
+                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border border-primary",
+                          checked
+                            ? "bg-primary text-primary-foreground"
+                            : "opacity-50"
                         )}
-                      />
-                      <div className="flex items-center gap-2 min-w-0 w-full justify-between">
-                        <span className="truncate">P.{room.roomNumber}</span>
+                      >
+                        {checked && <Check className="h-3 w-3" />}
+                      </div>
+
+                      <div className="flex items-center gap-2 min-w-0 w-full justify-between text-left">
+                        <span className="truncate font-medium">
+                          P.{room.roomNumber}
+                        </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-3 shrink-0">
                           <span className="inline-flex items-center gap-1">
                             <Square className="h-3 w-3" />
                             {room.area} m²
                           </span>
-                          <span className="inline-flex items-center gap-1">
-                            ₫ {room.price.toLocaleString("vi-VN")}
+                          <span className="inline-flex items-center gap-1 font-mono">
+                            ₫{room.price.toLocaleString("vi-VN")}
                           </span>
                         </span>
                       </div>
@@ -210,8 +274,11 @@ export const RoomMultiSelectCombobox = ({
           </div>
 
           {!!filteredRooms.length && (
-            <div className="border-t px-3 py-2 text-xs text-muted-foreground">
-              Đã chọn {selectedCount} / {filteredRooms.length} phòng hiển thị
+            <div className="border-t px-3 py-2 text-xs text-muted-foreground flex justify-between items-center bg-muted/20">
+              <span>Hiển thị: {filteredRooms.length} phòng</span>
+              <span className="font-medium text-primary">
+                Đã chọn: {selectedCount}
+              </span>
             </div>
           )}
         </div>
@@ -219,5 +286,3 @@ export const RoomMultiSelectCombobox = ({
     </Popover>
   );
 };
-
-

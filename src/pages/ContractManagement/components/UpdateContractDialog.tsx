@@ -213,14 +213,20 @@ export const UpdateContractDialog = ({
   const handleUpdateContract = async (data: ContractFormValues) => {
     if (!contractId || !contractDetail) return;
 
-    // Validate ngày bắt đầu và ngày kết thúc - kiểm tra kỹ lưỡng
+    // Validate ngày tháng
     const startDate = data.startDate?.trim();
     const endDate = data.endDate?.trim();
-    
+
     if (startDate && endDate) {
-      // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
-      // Format YYYY-MM-DD có thể so sánh trực tiếp như string
-      if (startDate > endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Tính ngày tối thiểu kết thúc (ngày bắt đầu + 1 tháng)
+      const minEndDate = new Date(start);
+      minEndDate.setMonth(minEndDate.getMonth() + 1);
+
+      // Kiểm tra 1: Ngày bắt đầu có lớn hơn ngày kết thúc không (Logic cũ)
+      if (start > end) {
         form.setError("startDate", {
           type: "validate",
           message: "Ngày bắt đầu không được sau ngày kết thúc",
@@ -230,10 +236,33 @@ export const UpdateContractDialog = ({
           message: "Ngày kết thúc không được trước ngày bắt đầu",
         });
         toast.error("Ngày bắt đầu không được sau ngày kết thúc");
-        // Scroll to error field
+
+        // Scroll tới chỗ lỗi
         const startDateElement = document.querySelector('[name="startDate"]');
         if (startDateElement) {
-          (startDateElement as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (startDateElement as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+        return;
+      }
+
+      // Kiểm tra 2: Thời hạn có dưới 1 tháng không
+      if (end < minEndDate) {
+        form.setError("endDate", {
+          type: "validate",
+          message: "Thời hạn hợp đồng phải tối thiểu 1 tháng",
+        });
+        toast.error("Thời hạn hợp đồng phải tối thiểu 1 tháng");
+
+        // Scroll tới ô ngày kết thúc
+        const endDateElement = document.querySelector('[name="endDate"]');
+        if (endDateElement) {
+          (endDateElement as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
         }
         return;
       }
@@ -695,9 +724,12 @@ export const UpdateContractDialog = ({
                       name="startDate"
                       rules={{
                         validate: (value) => {
-                          const requiredError = validateRequired(value, "Ngày bắt đầu");
+                          const requiredError = validateRequired(
+                            value,
+                            "Ngày bắt đầu"
+                          );
                           if (requiredError) return requiredError;
-                          
+
                           const endDate = form.getValues("endDate");
                           // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
                           if (value && endDate && value > endDate) {
@@ -736,9 +768,12 @@ export const UpdateContractDialog = ({
                       name="endDate"
                       rules={{
                         validate: (value) => {
-                          const requiredError = validateRequired(value, "Ngày kết thúc");
+                          const requiredError = validateRequired(
+                            value,
+                            "Ngày kết thúc"
+                          );
                           if (requiredError) return requiredError;
-                          
+
                           const startDate = form.getValues("startDate");
                           // So sánh trực tiếp string date (YYYY-MM-DD) để tránh vấn đề timezone
                           if (value && startDate && value < startDate) {

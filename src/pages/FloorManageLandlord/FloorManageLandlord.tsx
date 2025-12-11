@@ -3,7 +3,6 @@ import {
   Building2,
   Plus,
   Edit,
-  // Trash2,
   Layers,
   ChevronLeft,
   ChevronRight,
@@ -143,7 +142,30 @@ const FloorManageLandlord = () => {
       setIsModalOpen(false);
       setSelectedFloor(null);
     } catch (error: any) {
-      toast.error(error.message.message);
+      const errorTitle = "Lỗi!";
+      let errorDescription = "Đã xảy ra lỗi không xác định.";
+
+      if (error?.status === 409) {
+        errorDescription = "Số tầng này đã tồn tại trong tòa nhà.";
+      } else if (error?.status === 400) {
+        errorDescription =
+          error?.data?.message ||
+          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+      } else if (error?.status === 403) {
+        errorDescription = "Bạn không có quyền thực hiện thao tác này.";
+      } else if (error?.status === 404) {
+        errorDescription = selectedFloor
+          ? "Không tìm thấy tầng cần cập nhật."
+          : "Không tìm thấy tòa nhà.";
+      } else if (error?.data?.message) {
+        errorDescription = error.data.message;
+      } else if (error?.message) {
+        errorDescription = error.message;
+      }
+
+      toast.error(errorTitle, {
+        description: errorDescription,
+      });
       console.error("error", error);
     }
   };
@@ -201,28 +223,28 @@ const FloorManageLandlord = () => {
             Quản lý thông tin các tầng trong tòa nhà
           </p>
         </div>
-      
-      <Permission permission="floor:create">
-        <div className="flex gap-2">
-          <Button
-            className="gap-2"
-            onClick={handleOpenCreateModal}
-            disabled={!selectedBuildingId}
-          >
-            <Plus className="h-4 w-4" />
-            Thêm Tầng Mới
-          </Button>
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={handleOpenQuickModal}
-            disabled={!selectedBuildingId}
-          >
-            <Zap className="h-4 w-4" />
-            Thiết lập nhanh
-          </Button>
-        </div>
-      </Permission>
+
+        <Permission permission="floor:create">
+          <div className="flex gap-2">
+            <Button
+              className="gap-2"
+              onClick={handleOpenCreateModal}
+              disabled={!selectedBuildingId}
+            >
+              <Plus className="h-4 w-4" />
+              Thêm Tầng Mới
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleOpenQuickModal}
+              disabled={!selectedBuildingId}
+            >
+              <Zap className="h-4 w-4" />
+              Thiết lập nhanh
+            </Button>
+          </div>
+        </Permission>
       </div>
 
       {/* Building Selection Card */}
@@ -312,37 +334,37 @@ const FloorManageLandlord = () => {
                           <TableCell>
                             <div className="flex gap-2">
                               <Permission permission="floor:edit">
-                              <div className="flex items-center">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center">
-                                      <Switch
-                                        checked={floor.status === "active"}
-                                        onCheckedChange={() =>
-                                          handleToggleStatus(floor)
-                                        }
-                                        disabled={isUpdatingStatusFloor}
-                                      />
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>
-                                      {floor.status === "active"
-                                        ? "Click để ngừng hoạt động tòa nhà"
-                                        : "Click để kích hoạt tòa nhà"}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleOpenEditModal(floor)}
-                                title="Chỉnh sửa"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                                <div className="flex items-center">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center">
+                                        <Switch
+                                          checked={floor.status === "active"}
+                                          onCheckedChange={() =>
+                                            handleToggleStatus(floor)
+                                          }
+                                          disabled={isUpdatingStatusFloor}
+                                        />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>
+                                        {floor.status === "active"
+                                          ? "Click để ngừng hoạt động tòa nhà"
+                                          : "Click để kích hoạt tòa nhà"}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleOpenEditModal(floor)}
+                                  title="Chỉnh sửa"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
                               </Permission>
 
                               {/* <Permission permission="floor:delete">

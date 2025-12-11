@@ -26,7 +26,13 @@ export const ModalQuickFloor = ({
   onOpenChange,
   buildingId,
 }: ModalQuickFloorProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fromLevel: number | string;
+    toLevel: number | string;
+    count: number | string;
+    startLevel: number | string;
+    description: string;
+  }>({
     fromLevel: 1,
     toLevel: 5,
     count: 5,
@@ -36,62 +42,81 @@ export const ModalQuickFloor = ({
 
   const [quickCreateFloor, { isLoading }] = useQuickCreateFloorMutation();
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = (field: string, value: string) => {
+    if (value === "") {
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+      return;
+    }
+
+    const num = parseInt(value);
+    if (!isNaN(num) && num > 0) {
+      setFormData((prev) => ({ ...prev, [field]: num }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!buildingId) {
       toast.error("Vui lòng chọn tòa nhà trước!");
       return;
     }
 
-    if (formData.fromLevel > formData.toLevel) {
-      toast.error("Tầng bắt đầu không được lớn hơn tầng kết thúc!");
+    if (
+      formData.fromLevel === "" ||
+      formData.toLevel === "" ||
+      formData.count === "" ||
+      formData.startLevel === ""
+    ) {
+      toast.error("Vui lòng nhập đầy đủ các trường số liệu!");
       return;
     }
 
-    if (formData.count <= 0) {
-      toast.error("Số lượng tầng phải lớn hơn 0!");
+    if (Number(formData.fromLevel) > Number(formData.toLevel)) {
+      toast.error("Tầng bắt đầu không được lớn hơn tầng kết thúc!");
       return;
     }
 
     try {
       const requestData: QuiclCreateFloorRequest = {
         buildingId,
-        fromLevel: formData.fromLevel,
-        toLevel: formData.toLevel,
-        count: formData.count,
-        startLevel: formData.startLevel,
+        fromLevel: Number(formData.fromLevel),
+        toLevel: Number(formData.toLevel),
+        count: Number(formData.count),
+        startLevel: Number(formData.startLevel),
         description: formData.description,
       };
+      const response = (await quickCreateFloor(requestData).unwrap()) as any;
 
-      await quickCreateFloor(requestData).unwrap();
-      toast.success("Tạo nhanh tầng thành công!");
+      const { createdCount, createdLevels, skippedLevels } = response;
+      const skippedCount = skippedLevels?.length || 0;
+
+      if (skippedCount > 0 && createdCount > 0) {
+        toast.success(
+          `Đã tạo ${createdCount} tầng. Bỏ qua các tầng trùng: ${skippedLevels.join(
+            ", "
+          )}`
+        );
+      } else {
+        toast.success(
+          `Tạo thành công ${createdCount} tầng: ${createdLevels.join(", ")}`
+        );
+      }
+
       onOpenChange(false);
-      
-      // Reset form
-      setFormData({
-        fromLevel: 1,
-        toLevel: 5,
-        count: 5,
-        startLevel: 1,
-        description: "",
-      });
+      resetForm();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Tạo nhanh tầng thất bại!");
       console.error("Quick create floor error:", error);
+
+      if (error.status === 409) {
+        toast.warning(`Tầng này đã tồn tại`);
+      } else {
+        toast.error(error?.data?.message || "Tạo nhanh tầng thất bại!");
+      }
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
-    // Reset form when closing
+  const resetForm = () => {
     setFormData({
       fromLevel: 1,
       toLevel: 5,
@@ -99,6 +124,11 @@ export const ModalQuickFloor = ({
       startLevel: 1,
       description: "",
     });
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    resetForm();
   };
 
   return (
@@ -118,9 +148,8 @@ export const ModalQuickFloor = ({
               <Input
                 id="fromLevel"
                 type="number"
-                min="1"
                 value={formData.fromLevel}
-                onChange={(e) => handleInputChange("fromLevel", parseInt(e.target.value) || 1)}
+                onChange={(e) => handleInputChange("fromLevel", e.target.value)}
                 placeholder="1"
                 required
               />
@@ -130,9 +159,8 @@ export const ModalQuickFloor = ({
               <Input
                 id="toLevel"
                 type="number"
-                min="1"
                 value={formData.toLevel}
-                onChange={(e) => handleInputChange("toLevel", parseInt(e.target.value) || 1)}
+                onChange={(e) => handleInputChange("toLevel", e.target.value)}
                 placeholder="5"
                 required
               />
@@ -145,9 +173,8 @@ export const ModalQuickFloor = ({
               <Input
                 id="count"
                 type="number"
-                min="1"
                 value={formData.count}
-                onChange={(e) => handleInputChange("count", parseInt(e.target.value) || 1)}
+                onChange={(e) => handleInputChange("count", e.target.value)}
                 placeholder="5"
                 required
               />
@@ -157,9 +184,10 @@ export const ModalQuickFloor = ({
               <Input
                 id="startLevel"
                 type="number"
-                min="1"
                 value={formData.startLevel}
-                onChange={(e) => handleInputChange("startLevel", parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  handleInputChange("startLevel", e.target.value)
+                }
                 placeholder="1"
                 required
               />
@@ -171,7 +199,12 @@ export const ModalQuickFloor = ({
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               placeholder="Nhập mô tả chung cho các tầng..."
               rows={3}
             />

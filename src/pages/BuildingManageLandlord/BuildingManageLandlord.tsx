@@ -173,7 +173,7 @@ const BuildingManageLandlord = () => {
   const handleCreateBuilding = async (formData: CreateBuildingRequest) => {
     try {
       const res = await createBuilding(formData).unwrap();
-      if (res.data) {
+      if (res.success) {
         setIsModalOpen(false);
         refetch();
         toast.success("Thành công", {
@@ -181,9 +181,19 @@ const BuildingManageLandlord = () => {
         });
       }
     } catch (error: any) {
-      const message = toText(error, "Đã xảy ra lỗi không xác định.");
-      toast.error("Thêm tòa nhà thất bại", { description: message });
-      console.error(error);
+      let errorMessage = "Đã xảy ra lỗi không xác định.";
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.status === 409) {
+        errorMessage = "Tên tòa nhà đã tồn tại trong tài khoản của bạn";
+      } else if (error?.status === 400) {
+        errorMessage = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+      }
+
+      toast.error("Thêm tòa nhà thất bại", {
+        description: errorMessage,
+      });
+      console.error("Create building error:", error);
     }
   };
 
@@ -246,7 +256,6 @@ const BuildingManageLandlord = () => {
       const res = await createQuickBuilding(formData).unwrap();
       console.log("res", res);
 
-      // Đóng modal và refresh data khi API call thành công
       setIsQuickModalOpen(false);
       toast.success("Thành công", {
         description: res.message,
@@ -312,7 +321,7 @@ const BuildingManageLandlord = () => {
                   const f = e.target.files?.[0];
                   if (f) {
                     handleImport(f);
-                    e.currentTarget.value = ""; // reset để lần sau chọn lại cùng file vẫn nhận
+                    e.currentTarget.value = "";
                   }
                 }}
               />

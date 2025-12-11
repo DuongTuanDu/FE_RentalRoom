@@ -74,18 +74,18 @@ const RoomFurnitureLandlord = () => {
     }
   }, [initialBuildingData, selectedBuildingId]);
 
-  // Fetch room furnitures
-  const { data: roomFurnituresData, isLoading } = useGetRoomFurnituresQuery(
-    {
-      buildingId: selectedBuildingId || undefined,
-      // floorId: selectedFloorId || undefined,
-      roomId: selectedRoomId || undefined,
-    },
-    {
-      skip: !selectedBuildingId && !selectedRoomId,
-      refetchOnMountOrArgChange: true,
-    }
-  );
+  const queryParams = selectedRoomId
+    ? { roomId: selectedRoomId }
+    : { buildingId: selectedBuildingId };
+
+  const {
+    data: roomFurnituresData,
+    isLoading,
+    isFetching,
+  } = useGetRoomFurnituresQuery(queryParams, {
+    skip: !selectedBuildingId && !selectedRoomId,
+    refetchOnMountOrArgChange: true,
+  });
 
   // Mutations
   const [createRoomFurniture, { isLoading: isCreating }] =
@@ -179,7 +179,7 @@ const RoomFurnitureLandlord = () => {
                 value={selectedBuildingId}
                 onValueChange={(val) => {
                   setSelectedBuildingId(val);
-                  setSelectedRoomId(""); // reset phòng khi đổi tòa
+                  setSelectedRoomId("");
                 }}
               />
             </div>
@@ -189,7 +189,9 @@ const RoomFurnitureLandlord = () => {
               <label className="text-sm font-medium">Phòng</label>
               <RoomSelectCombobox
                 value={selectedRoomId}
-                onValueChange={setSelectedRoomId}
+                onValueChange={(val) => {
+                  setSelectedRoomId(val);
+                }}
                 buildingId={selectedBuildingId}
                 disabled={!selectedBuildingId}
               />
@@ -210,16 +212,17 @@ const RoomFurnitureLandlord = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading || isFetching ? (
             <div className="flex items-center justify-center py-8">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <span className="ml-2 text-muted-foreground">Đang tải...</span>
             </div>
-          ) : !Array.isArray(filteredRoomFurnitures) ? (
+          ) : !Array.isArray(filteredRoomFurnitures) ||
+            filteredRoomFurnitures.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {selectedRoomId
                 ? "Không có nội thất nào trong phòng này"
-                : "Vui lòng chọn tòa nhà và phòng để xem nội thất"}
+                : "Không có nội thất nào trong tòa nhà này"}
             </div>
           ) : (
             <div className="rounded-md border">
@@ -236,79 +239,98 @@ const RoomFurnitureLandlord = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRoomFurnitures.map((roomFurniture) => (
-                    <TableRow key={roomFurniture._id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <DoorOpen className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">
-                              Phòng {roomFurniture.roomId.roomNumber}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {roomFurniture.roomId.area}m² •{" "}
-                              {roomFurniture.roomId.maxTenants} người
+                  {filteredRoomFurnitures.map((roomFurniture) => {
+                    const roomInfo = roomFurniture.roomId as any;
+                    const roomName = roomInfo?.roomNumber
+                      ? `Phòng ${roomInfo.roomNumber}`
+                      : roomInfo?.name || "---";
+
+                    const buildingName = roomInfo?.buildingId?.name;
+                    const floorLevel = roomInfo?.floorId?.level;
+
+                    const furnitureInfo = roomFurniture.furnitureId as any;
+                    const furnitureName = furnitureInfo?.name || "Nội thất";
+
+                    return (
+                      <TableRow key={roomFurniture._id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <DoorOpen className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">{roomName}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {roomInfo?.area ? `${roomInfo.area}m²` : ""}
+                                {roomInfo?.maxTenants
+                                  ? ` • ${roomInfo.maxTenants} người`
+                                  : ""}
+                                {!roomInfo?.area && !roomInfo?.maxTenants && (
+                                  <>
+                                    {buildingName && `Tòa ${buildingName}`}
+                                    {floorLevel && ` • Tầng ${floorLevel}`}
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <div className="font-medium">
-                              {roomFurniture.furnitureId?.name || "Nội thất"}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {roomFurniture.furnitureId?.category || "Chưa phân loại"} •{" "}
-                              {formatPrice(
-                                roomFurniture.furnitureId?.price || 0
-                              )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <div className="font-medium">{furnitureName}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {furnitureInfo?.category || "Chưa phân loại"} •{" "}
+                                {formatPrice(furnitureInfo?.price || 0)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          {roomFurniture.quantity}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={CONDITION_COLORS[roomFurniture.condition]}
-                        >
-                          {CONDITION_LABELS[roomFurniture.condition]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {roomFurniture.notes || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(roomFurniture.createdAt)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenEditModal(roomFurniture)}
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">
+                            {roomFurniture.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              CONDITION_COLORS[roomFurniture.condition]
+                            }
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <DeleteRoomFurniturePopover
-                            roomFurniture={roomFurniture}
-                            onConfirm={() => handleConfirmDelete(roomFurniture)}
-                            isOpen={false}
-                            onOpenChange={() => {}}
-                            isLoading={isDeleting}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {CONDITION_LABELS[roomFurniture.condition]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {roomFurniture.notes || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {formatDate(roomFurniture.createdAt)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenEditModal(roomFurniture)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <DeleteRoomFurniturePopover
+                              roomFurniture={roomFurniture}
+                              onConfirm={() =>
+                                handleConfirmDelete(roomFurniture)
+                              }
+                              isOpen={false}
+                              onOpenChange={() => {}}
+                              isLoading={isDeleting}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

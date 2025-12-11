@@ -35,15 +35,53 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const quickRoomSchema = z.object({
-  buildingId: z.string().min(1, "Vui lòng chọn tòa nhà"),
-  floorId: z.string().min(1, "Vui lòng chọn tầng"),
-  perFloor: z.number().min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
-  seqStart: z.number().min(1, "Số bắt đầu phải lớn hơn 0"),
+  buildingId: z
+    .string({ error: "Vui lòng chọn tòa nhà" })
+    .min(1, "Vui lòng chọn tòa nhà"),
+  floorId: z
+    .string({ error: "Vui lòng chọn tầng" })
+    .min(1, "Vui lòng chọn tầng"),
+
+  perFloor: z
+    .number({
+      error: "Vui lòng nhập số phòng",
+      invalid_type_error: "Vui lòng nhập số phòng",
+    })
+    .min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
+
+  seqStart: z
+    .number({
+      error: "Vui lòng nhập số bắt đầu",
+      invalid_type_error: "Vui lòng nhập số bắt đầu",
+    })
+    .min(1, "Số bắt đầu phải lớn hơn 0"),
+
   defaults: z.object({
-    price: z.number().min(0, "Giá thuê phải lớn hơn hoặc bằng 0"),
-    area: z.number().min(0, "Diện tích phải lớn hơn hoặc bằng 0"),
-    maxTenants: z.number().min(1, "Sức chứa phải lớn hơn 0"),
-    status: z.enum(["available", "rented", "maintenance"]),
+    price: z
+      .number({
+        error: "Vui lòng nhập giá thuê",
+        invalid_type_error: "Vui lòng nhập giá thuê",
+      })
+      .min(0, "Giá thuê không được nhỏ hơn 0"),
+
+    area: z
+      .number({
+        error: "Vui lòng nhập diện tích",
+        invalid_type: "Vui lòng nhập diện tích",
+      })
+      .min(0, "Diện tích không được nhỏ hơn 0"),
+
+    maxTenants: z
+      .number({
+        error: "Vui lòng nhập sức chứa",
+        invalid_type_error: "Vui lòng nhập sức chứa",
+      })
+      .min(1, "Sức chứa phải lớn hơn 0"),
+
+    status: z.enum(["available", "rented", "maintenance"], {
+      required_error: "Vui lòng chọn trạng thái",
+    }),
+
     description: z.string().optional(),
   }),
 });
@@ -61,8 +99,10 @@ export const ModalQuickRoom = ({
   onOpenChange,
   defaultBuildingId,
 }: ModalQuickRoomProps) => {
-  const [selectedBuildingId, setSelectedBuildingId] = useState(defaultBuildingId || "");
-  
+  const [selectedBuildingId, setSelectedBuildingId] = useState(
+    defaultBuildingId || ""
+  );
+
   const form = useForm<QuickRoomFormData>({
     resolver: zodResolver(quickRoomSchema),
     defaultValues: {
@@ -88,7 +128,6 @@ export const ModalQuickRoom = ({
 
   const [quickCreate, { isLoading: isCreating }] = useQuickCreateMutation();
 
-  // Reset form when modal opens/closes
   useEffect(() => {
     if (open) {
       form.reset({
@@ -108,19 +147,63 @@ export const ModalQuickRoom = ({
     }
   }, [open, defaultBuildingId, form]);
 
-  // Reset floor when building changes
   useEffect(() => {
     form.setValue("floorId", "");
   }, [selectedBuildingId, form]);
 
   const handleSubmit = async (data: QuickRoomFormData) => {
     try {
-      await quickCreate(data).unwrap();
-      toast.success("Tạo phòng nhanh thành công!");
+      const result: any = await quickCreate(data).unwrap();
+      toast.success(result?.message || "Tạo phòng nhanh thành công!");
       onOpenChange(false);
     } catch (error: any) {
-      toast.error("Tạo phòng nhanh thất bại!");
-      console.error(error);
+      console.error("Lỗi:", error);
+      const status = error?.status;
+      const detailMessage = error?.data?.message;
+      switch (status) {
+        case 403:
+          toast.error(
+            "Bạn không có quyền thực hiện hoặc Tòa nhà đang bị khóa!"
+          );
+          break;
+        case 404:
+          toast.error("Không tìm thấy Tòa nhà hoặc Tầng (Có thể đã bị xóa)!");
+          break;
+        case 409:
+          toast.error("Tất cả số phòng yêu cầu đều đã tồn tại");
+          break;
+        case 400:
+          toast.error(`Dữ liệu không hợp lệ: ${detailMessage}`);
+          break;
+        case 500:
+          toast.error("Lỗi hệ thống (Server Error). Vui lòng thử lại sau!");
+          break;
+        default:
+          toast.error(
+            detailMessage || "Tạo phòng thất bại! Vui lòng kiểm tra lại."
+          );
+      }
+    }
+  };
+
+  const handleNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (value: number | undefined) => void
+  ) => {
+    const value = e.target.value;
+    if (value === "") {
+      onChange(undefined);
+    } else {
+      const parsed = parseFloat(value);
+      if (!isNaN(parsed)) {
+        onChange(parsed);
+      }
+    }
+  };
+
+  const blockInvalidChar = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
     }
   };
 
@@ -135,7 +218,10 @@ export const ModalQuickRoom = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Building Selection */}
               <div className="space-y-2">
@@ -177,7 +263,9 @@ export const ModalQuickRoom = ({
                           <SelectTrigger>
                             <SelectValue
                               placeholder={
-                                selectedBuildingId ? "Chọn tầng..." : "Chọn tòa nhà trước"
+                                selectedBuildingId
+                                  ? "Chọn tầng..."
+                                  : "Chọn tòa nhà trước"
                               }
                             />
                           </SelectTrigger>
@@ -209,7 +297,12 @@ export const ModalQuickRoom = ({
                           type="number"
                           min="1"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value ?? ""} // Hiển thị rỗng khi undefined
+                          onKeyDown={blockInvalidChar}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) =>
+                            handleNumberChange(e, field.onChange)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -231,7 +324,12 @@ export const ModalQuickRoom = ({
                           type="number"
                           min="1"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value ?? ""}
+                          onKeyDown={blockInvalidChar}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) =>
+                            handleNumberChange(e, field.onChange)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -244,7 +342,7 @@ export const ModalQuickRoom = ({
             {/* Default Values Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Thông số mặc định</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Price */}
                 <FormField
@@ -258,7 +356,12 @@ export const ModalQuickRoom = ({
                           type="number"
                           min="0"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value ?? ""}
+                          onKeyDown={blockInvalidChar}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) =>
+                            handleNumberChange(e, field.onChange)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -279,7 +382,12 @@ export const ModalQuickRoom = ({
                           min="0"
                           step="0.1"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value ?? ""}
+                          onKeyDown={blockInvalidChar}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) =>
+                            handleNumberChange(e, field.onChange)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -299,7 +407,12 @@ export const ModalQuickRoom = ({
                           type="number"
                           min="1"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value ?? ""}
+                          onKeyDown={blockInvalidChar}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) =>
+                            handleNumberChange(e, field.onChange)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -314,7 +427,10 @@ export const ModalQuickRoom = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Trạng thái *</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -361,7 +477,9 @@ export const ModalQuickRoom = ({
                 Hủy
               </Button>
               <Button type="submit" disabled={isCreating}>
-                {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isCreating && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Tạo phòng nhanh
               </Button>
             </DialogFooter>

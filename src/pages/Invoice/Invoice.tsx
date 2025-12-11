@@ -137,7 +137,7 @@ const Invoice = () => {
   // Fetch all invoices for statistics (without filters)
   const { data: allInvoicesData } = useGetTenantInvoicesQuery({
     page: 1,
-    limit: 1000, // Get all for stats
+    limit: 1000,
   });
 
   // Mutations
@@ -266,7 +266,9 @@ const Invoice = () => {
     ).length;
     const pending = items.filter(
       (inv: ITenantInvoiceItem) =>
-        inv.status === "sent" || inv.status === "draft" || inv.status === "transfer_pending"
+        inv.status === "sent" ||
+        inv.status === "draft" ||
+        inv.status === "transfer_pending"
     ).length;
     const overdue = items.filter(
       (inv: ITenantInvoiceItem) => inv.status === "overdue"
@@ -285,7 +287,9 @@ const Invoice = () => {
     const pendingAmount = items
       .filter(
         (inv: ITenantInvoiceItem) =>
-          inv.status === "sent" || inv.status === "overdue" || inv.status === "transfer_pending"
+          inv.status === "sent" ||
+          inv.status === "overdue" ||
+          inv.status === "transfer_pending"
       )
       .reduce(
         (sum: number, inv: ITenantInvoiceItem) => sum + inv.totalAmount,
@@ -302,6 +306,12 @@ const Invoice = () => {
       pendingAmount,
     };
   }, [allInvoicesData?.items]);
+
+  const shouldHideActions = (status: string) => {
+    return ["paid", "transfer_pending", "overdue", "cancelled"].includes(
+      status
+    );
+  };
 
   return (
     <div className="p-4">
@@ -644,54 +654,53 @@ const Invoice = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                              {invoice.status !== "paid" &&
-                                invoice.status !== "cancelled" && (
-                                  <>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="default"
-                                            size="sm"
-                                            onClick={() =>
-                                              handleOpenPayDialog(invoice._id)
-                                            }
-                                            disabled={isPaying}
-                                            className="gap-2"
-                                          >
-                                            <CreditCard className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Thanh toán</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                              handleOpenRequestTransferDialog(
-                                                invoice._id
-                                              )
-                                            }
-                                            className="gap-2"
-                                          >
-                                            <Upload className="h-4 w-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>
-                                            Gửi yêu cầu xác nhận chuyển khoản
-                                          </p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </>
-                                )}
+
+                              {!shouldHideActions(invoice.status) && (
+                                <>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleOpenPayDialog(invoice._id)
+                                          }
+                                          disabled={isPaying}
+                                          className="gap-2"
+                                        >
+                                          <CreditCard className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Thanh toán</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleOpenRequestTransferDialog(
+                                              invoice._id
+                                            )
+                                          }
+                                          className="gap-2"
+                                        >
+                                          <Upload className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Gửi yêu cầu xác nhận chuyển khoản</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

@@ -1,17 +1,21 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/api-client";
-import type { IRoomListResponse, IRoom, CreateRoomRequest, IQuickCreateRoomRequest, IMyRoomResponse } from "@/types/room";
-import type { IRoommateDetail, IRoommateRequest, IRoommateResponse, ISearchRoommateResponse } from "@/types/roommate";
+import type {
+  IRoomListResponse,
+  IRoom,
+  CreateRoomRequest,
+  IQuickCreateRoomRequest,
+  IMyRoomResponse,
+} from "@/types/room";
+import type {
+  IRoommateDetail,
+  IRoommateRequest,
+  IRoommateResponse,
+  ISearchRoommateResponse,
+} from "@/types/roommate";
 
-// Custom baseQuery for handling FormData
 const customBaseQuery = async (args: any) => {
   const { url, method, data, params } = args;
-  
-  // If data is FormData, we need to handle it specially
-  if (data instanceof FormData) {
-    console.log('Sending FormData with files:', Array.from(data.entries()));
-  }
-  
   return baseQuery({ url, method, data, params });
 };
 
@@ -33,7 +37,6 @@ export const roomApi = createApi({
     >({
       query: ({ buildingId, floorId, status, q, page, limit }) => {
         const params = new URLSearchParams();
-
         if (buildingId) params.append("buildingId", buildingId);
         if (floorId) params.append("floorId", floorId);
         if (status) params.append("status", status);
@@ -49,28 +52,32 @@ export const roomApi = createApi({
       providesTags: ["Room"],
     }),
 
-    createRoom: builder.mutation<IRoom, CreateRoomRequest>({
+    createRoom: builder.mutation<
+      IRoom,
+      CreateRoomRequest & { images?: File[] }
+    >({
       query: (data) => {
-        console.log("Creating room with data:", data);
+        if (data.images && data.images.length > 0) {
+          const formData = new FormData();
+          const { images, ...roomInfo } = data;
 
-        // Create JSON payload without images
-        const roomData = {
-          buildingId: data.buildingId,
-          floorId: data.floorId,
-          roomNumber: data.roomNumber,
-          area: data.area,
-          price: data.price,
-          maxTenants: data.maxTenants,
-          status: data.status,
-          description: data.description || "",
-        };
+          formData.append("data", JSON.stringify(roomInfo));
 
-        console.log("Sending JSON payload:", roomData);
+          images.forEach((file) => {
+            formData.append("images", file);
+          });
+
+          return {
+            url: "/landlords/rooms",
+            method: "POST",
+            data: formData,
+          };
+        }
 
         return {
           url: "/landlords/rooms",
           method: "POST",
-          data: roomData,
+          data: data,
         };
       },
       invalidatesTags: ["Room"],
@@ -78,11 +85,8 @@ export const roomApi = createApi({
 
     updateRoom: builder.mutation<IRoom, { id: string; data: any }>({
       query: ({ id, data }) => {
-        console.log("Updating room with data:", { id, data });
-
         const formData = new FormData();
 
-        // Add basic fields
         if (data.roomNumber !== undefined)
           formData.append("roomNumber", data.roomNumber);
         if (data.area !== undefined)
@@ -97,40 +101,17 @@ export const roomApi = createApi({
         if (data.floorId !== undefined)
           formData.append("floorId", data.floorId);
 
-        // Add image management fields
         if (data.removeUrls && data.removeUrls.length > 0) {
-          console.log("Adding removeUrls:", data.removeUrls);
           formData.append("removeUrls", JSON.stringify(data.removeUrls));
         }
         if (data.replaceAllImages !== undefined) {
-          console.log("Adding replaceAllImages:", data.replaceAllImages);
           formData.append("replaceAllImages", data.replaceAllImages.toString());
         }
 
-        // Add new images if provided
         if (data.images && data.images.length > 0) {
-          console.log("Adding new images:", data.images.length, "files");
-          data.images.forEach((file: File, index: number) => {
-            console.log(
-              `Adding file ${index}:`,
-              file.name,
-              file.size,
-              file.type
-            );
+          data.images.forEach((file: File) => {
             formData.append("images", file);
           });
-        } else {
-          console.log("No new images to add");
-        }
-
-        // Debug: Log FormData contents
-        console.log("Update FormData entries:");
-        for (const [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(`${key}:`, value.name, value.size, value.type);
-          } else {
-            console.log(`${key}:`, value);
-          }
         }
 
         return {
@@ -161,30 +142,20 @@ export const roomApi = createApi({
 
     addRoomImages: builder.mutation<
       { message: string; images: string[] },
-      { id: string; images: File[] }
+      { id: string; images: File[] | FormData }
     >({
       query: ({ id, images }) => {
-        console.log("Adding images to room:", {
-          id,
-          imagesCount: images.length,
-        });
-
-        const formData = new FormData();
-        images.forEach((file, index) => {
-          console.log(`Adding file ${index}:`, file.name, file.size, file.type);
-          formData.append("images", file);
-        });
-
-        // Debug: Log FormData contents
-        console.log("FormData entries for addRoomImages:");
-        for (const [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(`${key}:`, value.name, value.size, value.type);
-          } else {
-            console.log(`${key}:`, value);
-          }
+        if (images instanceof FormData) {
+          return {
+            url: `/landlords/rooms/${id}/images`,
+            method: "POST",
+            data: images,
+          };
         }
-
+        const formData = new FormData();
+        if (Array.isArray(images)) {
+          images.forEach((file) => formData.append("images", file));
+        }
         return {
           url: `/landlords/rooms/${id}/images`,
           method: "POST",
@@ -221,7 +192,6 @@ export const roomApi = createApi({
       invalidatesTags: ["Room"],
     }),
 
-    // Tenant
     getMyRoom: builder.query<IMyRoomResponse, void>({
       query: () => ({
         url: "/rooms/my-room",
@@ -229,27 +199,27 @@ export const roomApi = createApi({
       }),
       providesTags: ["MyRoom"],
     }),
-    getRoommateSearch: builder.query<ISearchRoommateResponse, { q: string }>({ // Tìm kiếm người dùng để thêm vào phòng
+    getRoommateSearch: builder.query<ISearchRoommateResponse, { q: string }>({
       query: ({ q }) => ({
         url: "/roommates/search",
         method: "GET",
         params: { q },
       }),
     }),
-    getRoommatesByRoomId: builder.query<IRoommateResponse, string>({ // Lấy danh sách người ở cùng của phòng theo roomId
+    getRoommatesByRoomId: builder.query<IRoommateResponse, string>({
       query: (roomId) => ({
         url: `/roommates/${roomId}`,
         method: "GET",
       }),
       providesTags: ["Roommate"],
     }),
-    getRoommateDetail: builder.query<IRoommateDetail, string>({ // Lấy thông tin chi tiết của 1 người ở cùng
+    getRoommateDetail: builder.query<IRoommateDetail, string>({
       query: (userId) => ({
         url: `/roommates/${userId}/detail`,
         method: "GET",
       }),
     }),
-    addRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({ // Thêm 1 hoặc nhiều người ở cùng vào phòng
+    addRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({
       query: (data) => ({
         url: "/roommates/add",
         method: "POST",
@@ -257,7 +227,7 @@ export const roomApi = createApi({
       }),
       invalidatesTags: ["Roommate"],
     }),
-    removeRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({ // Xóa 1 hoặc nhiều người ở cùng khỏi phòng
+    removeRoommate: builder.mutation<IRoommateResponse, IRoommateRequest>({
       query: (data) => ({
         url: "/roommates/remove",
         method: "POST",
@@ -278,12 +248,10 @@ export const {
   useRemoveRoomImagesMutation,
   useGetRoomByIdQuery,
   useQuickCreateMutation,
-
-  // Tenant
   useGetMyRoomQuery,
   useGetRoommateSearchQuery,
   useGetRoommatesByRoomIdQuery,
   useGetRoommateDetailQuery,
   useAddRoommateMutation,
-  useRemoveRoommateMutation
+  useRemoveRoommateMutation,
 } = roomApi;
