@@ -76,15 +76,33 @@ const FurnitureManageLandlord = () => {
         await createFurniture(formData).unwrap();
         toast.success("Thêm nội thất mới thành công!");
       }
+
       setIsModalOpen(false);
       setEditingFurniture(null);
     } catch (error: any) {
-      toast.error(
-        editingFurniture
-          ? "Cập nhật nội thất thất bại!"
-          : "Thêm nội thất mới thất bại!"
-      );
       console.error(error);
+      const status = error?.status;
+      const detailMessage = error?.data?.message;
+
+      switch (status) {
+        case 400:
+          toast.error("Tên nội thất này đã tồn tại! Vui lòng đặt tên khác.");
+          break;
+
+        case 404:
+          toast.error(detailMessage || "Không tìm thấy nội thất!");
+          break;
+
+        case 500:
+          toast.error("Lỗi hệ thống (Server Error). Vui lòng thử lại sau!");
+          break;
+
+        default: {
+          const actionName = editingFurniture ? "Cập nhật" : "Thêm mới";
+          toast.error(detailMessage || `${actionName} nội thất thất bại!`);
+          break;
+        }
+      }
     }
   };
 
@@ -114,7 +132,7 @@ const FurnitureManageLandlord = () => {
             Quản lý thông tin các loại nội thất cho phòng trọ
           </p>
         </div>
-        <Permission  permission="furniture:create">
+        <Permission permission="furniture:create">
           <Button className="gap-2" onClick={handleOpenCreateModal}>
             <Plus className="h-4 w-4" />
             Thêm Nội Thất Mới
@@ -202,24 +220,24 @@ const FurnitureManageLandlord = () => {
                       <TableCell>
                         <div className="flex justify-end gap-2">
                           <Permission permission="furniture:edit">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleOpenEditModal(furniture)}
-                          >
-                            <Edit className="h-4 w-4 text-amber-600" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleOpenEditModal(furniture)}
+                            >
+                              <Edit className="h-4 w-4 text-amber-600" />
+                            </Button>
                           </Permission>
                           <Permission permission="furniture:delete">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleOpenDeleteDialog(furniture)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleOpenDeleteDialog(furniture)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
                           </Permission>
                         </div>
                       </TableCell>

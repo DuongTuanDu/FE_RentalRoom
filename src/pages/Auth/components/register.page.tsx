@@ -3,13 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, User, Home, UserPlus, Loader2 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Home,
+  UserPlus,
+  Loader2,
+} from "lucide-react";
 import { useRegisterMutation } from "@/services/auth/auth.service";
 import { Link, useNavigate } from "react-router-dom";
 import config from "@/config/config";
 import useValidateRegisterForm from "@/hooks/register/useValidateRegisterForm.hook";
 import { useDispatch } from "react-redux";
 import { setEmailVerify } from "@/services/auth/auth.slice";
+import { toast } from "sonner";
 
 const Register = () => {
   const [registerApi, { isLoading }] = useRegisterMutation();
@@ -59,12 +69,42 @@ const Register = () => {
 
     try {
       const res = await registerApi(payload).unwrap();
-      if (res.data) {
-        dispatch(setEmailVerify(res.data.email));
-        navigate(config.verifyPath);
+
+      if (res) {
+        toast.success(
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác thực."
+        );
+
+        if (res.data?.email) {
+          dispatch(setEmailVerify(res.data.email));
+        }
+
+        setTimeout(() => {
+          navigate(config.verifyPath);
+        }, 1500);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Register error:", err);
+
+      const status = err?.status;
+      const detailMessage = err?.data?.message;
+
+      switch (status) {
+        case 400:
+          toast.error(
+            detailMessage ||
+              "Email đã được đăng ký! Vui lòng sử dụng email khác."
+          );
+          break;
+
+        case 500:
+          toast.error("Lỗi hệ thống (Server Error). Vui lòng thử lại sau!");
+          break;
+
+        default:
+          toast.error(detailMessage || "Đăng ký thất bại. Vui lòng thử lại!");
+          break;
+      }
     }
   };
 
@@ -110,30 +150,30 @@ const Register = () => {
             </div>
 
             {/* Full Name */}
-            <div className='space-y-2'>
+            <div className="space-y-2">
               <Label
-                htmlFor='name'
-                className='text-sm font-medium text-gray-700'
+                htmlFor="name"
+                className="text-sm font-medium text-gray-700"
               >
                 Tên đầy đủ
               </Label>
-              <div className='relative'>
-                <User className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  id='name'
-                  type='text'
+                  id="name"
+                  type="text"
                   {...nameRegister}
-                  placeholder='Nhập tên đầy đủ của bạn'
+                  placeholder="Nhập tên đầy đủ của bạn"
                   disabled={isLoading}
                   className={`pl-10 h-11 ${
                     errors.fullName
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                      : ''
-                  } ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : ""
+                  } ${isLoading ? "bg-gray-50 cursor-not-allowed" : ""}`}
                 />
               </div>
               {errors.fullName && (
-                <p className='text-sm text-red-600'>
+                <p className="text-sm text-red-600">
                   {errors.fullName.message}
                 </p>
               )}
@@ -141,7 +181,10 @@ const Register = () => {
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700"
+              >
                 Email
               </Label>
               <div className="relative">
@@ -151,7 +194,9 @@ const Register = () => {
                   type="email"
                   placeholder="Nhập email của bạn"
                   disabled={isLoading}
-                  className={`pl-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                  className={`pl-10 h-11 ${
+                    isLoading ? "bg-gray-50 cursor-not-allowed" : ""
+                  }`}
                   {...emailRegister}
                 />
               </div>
@@ -162,7 +207,10 @@ const Register = () => {
 
             {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700"
+              >
                 Mật khẩu
               </Label>
               <div className="relative">
@@ -172,7 +220,9 @@ const Register = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Nhập mật khẩu"
                   disabled={isLoading}
-                  className={`pl-10 pr-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                  className={`pl-10 pr-10 h-11 ${
+                    isLoading ? "bg-gray-50 cursor-not-allowed" : ""
+                  }`}
                   {...passwordRegister}
                 />
                 <button
@@ -181,11 +231,17 @@ const Register = () => {
                   disabled={isLoading}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
 
               {watch("password") && (
@@ -221,7 +277,9 @@ const Register = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Nhập lại mật khẩu"
                   disabled={isLoading}
-                  className={`pl-10 pr-10 h-11 ${isLoading ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                  className={`pl-10 pr-10 h-11 ${
+                    isLoading ? "bg-gray-50 cursor-not-allowed" : ""
+                  }`}
                   {...confirmPasswordRegister}
                 />
                 <button
@@ -230,11 +288,17 @@ const Register = () => {
                   disabled={isLoading}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
@@ -264,9 +328,11 @@ const Register = () => {
           <div className="text-center mt-6 pt-6 border-t">
             <p className="text-sm text-gray-600">
               Bạn đã có tài khoản?{" "}
-              <Link 
-                to={config.loginPath} 
-                className={`text-blue-600 hover:underline ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+              <Link
+                to={config.loginPath}
+                className={`text-blue-600 hover:underline ${
+                  isLoading ? "pointer-events-none opacity-50" : ""
+                }`}
               >
                 Đăng nhập
               </Link>

@@ -52,13 +52,15 @@ const ModalCreateStaffAccount = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [createStaff, { isLoading }] = useCreateStaffMutation();
-  const { data: allPermissions, isLoading: isLoadingPermissions } = useGetPermissionsQuery();
-  const { data: allBuildings, isLoading: isLoadingBuildings } = useGetBuildingsQuery({
-    q: "",
-    page: 1,
-    limit: 100,
-    status: "active",
-  });
+  const { data: allPermissions, isLoading: isLoadingPermissions } =
+    useGetPermissionsQuery();
+  const { data: allBuildings, isLoading: isLoadingBuildings } =
+    useGetBuildingsQuery({
+      q: "",
+      page: 1,
+      limit: 100,
+      status: "active",
+    });
 
   useEffect(() => {
     if (!open) {
@@ -81,14 +83,14 @@ const ModalCreateStaffAccount = ({
       const viewPermissions = allPermissions
         .filter((permission: IPermission) => permission.action === "view")
         .map((permission: IPermission) => permission.code);
-      
+
       setSelectedPermissions(viewPermissions);
     }
   }, [open, allPermissions]);
 
   const permissionGroups = useMemo(() => {
     if (!allPermissions) return {};
-    
+
     const groups: Record<string, IPermission[]> = {};
     allPermissions.forEach((permission: IPermission) => {
       const groupName = permission.group;
@@ -99,10 +101,12 @@ const ModalCreateStaffAccount = ({
     });
 
     const actionOrder = { view: 1, create: 2, edit: 3, delete: 4 };
-    Object.keys(groups).forEach(groupName => {
+    Object.keys(groups).forEach((groupName) => {
       groups[groupName].sort((a, b) => {
-        return (actionOrder[a.action as keyof typeof actionOrder] || 999) - 
-               (actionOrder[b.action as keyof typeof actionOrder] || 999);
+        return (
+          (actionOrder[a.action as keyof typeof actionOrder] || 999) -
+          (actionOrder[b.action as keyof typeof actionOrder] || 999)
+        );
       });
     });
 
@@ -153,9 +157,9 @@ const ModalCreateStaffAccount = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -169,11 +173,15 @@ const ModalCreateStaffAccount = ({
 
   const handleToggleGroup = (groupName: string) => {
     const groupPermissions = permissionGroups[groupName] || [];
-    const groupCodes = groupPermissions.map(p => p.code);
-    const allSelected = groupCodes.every((code) => selectedPermissions.includes(code));
+    const groupCodes = groupPermissions.map((p) => p.code);
+    const allSelected = groupCodes.every((code) =>
+      selectedPermissions.includes(code)
+    );
 
     if (allSelected) {
-      setSelectedPermissions((prev) => prev.filter((p) => !groupCodes.includes(p)));
+      setSelectedPermissions((prev) =>
+        prev.filter((p) => !groupCodes.includes(p))
+      );
     } else {
       setSelectedPermissions((prev) => {
         const newPermissions = [...prev];
@@ -196,9 +204,12 @@ const ModalCreateStaffAccount = ({
   };
 
   const handleSelectAllBuildings = () => {
-    const allBuildingIds = allBuildings?.data.map((b: IBuilding) => b._id) || [];
-    const allSelected = allBuildingIds.every((id: string) => selectedBuildings.includes(id));
-    
+    const allBuildingIds =
+      allBuildings?.data.map((b: IBuilding) => b._id) || [];
+    const allSelected = allBuildingIds.every((id: string) =>
+      selectedBuildings.includes(id)
+    );
+
     if (allSelected) {
       setSelectedBuildings([]);
     } else {
@@ -207,42 +218,84 @@ const ModalCreateStaffAccount = ({
   };
 
   const handleSubmit = async () => {
-  if (!validateForm()) {
-    toast.error("Vui lòng kiểm tra lại thông tin");
-    return;
-  }
+    if (!validateForm()) {
+      toast.error("Vui lòng kiểm tra lại thông tin");
+      return;
+    }
 
-  try {
-    await createStaff({
-      email: formData.email,
-      fullName: formData.fullName,
-      phoneNumber: formData.phoneNumber,
-      dob: formData.dob,
-      gender: formData.gender,
-      address: formData.address,
-      assignedBuildings: selectedBuildings,
-      permissions: selectedPermissions,
-    }).unwrap();
+    try {
+      const response = await createStaff({
+        email: formData.email,
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        dob: formData.dob,
+        gender: formData.gender,
+        address: formData.address,
+        assignedBuildings: selectedBuildings,
+        permissions: selectedPermissions,
+      }).unwrap();
 
-    toast.success("Tạo tài khoản nhân viên thành công");
-    
-    await onSuccess?.();
-    
-    onOpenChange(false);
-  } catch (error: any) {
-    toast.error(error?.data?.message || "Tạo tài khoản thất bại");
-  }
-};
+      // Hiển thị message thành công từ Backend
+      toast.success(response?.message || "Tạo tài khoản nhân viên thành công");
+
+      await onSuccess?.();
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Lỗi tạo nhân viên:", error);
+
+      const status = error?.status;
+      const errorData = error?.data;
+      const detailMessage = errorData?.message;
+
+      switch (status) {
+        case 400:
+          toast.error(detailMessage || "Email đã tồn tại trong hệ thống!");
+          break;
+
+        case 403:
+          toast.error(
+            detailMessage ||
+              "Bạn không có quyền quản lý một số tòa nhà đã chọn!"
+          );
+          break;
+
+        case 404:
+          toast.error("Không tìm thấy dữ liệu liên quan!");
+          break;
+
+        case 409:
+          toast.error(detailMessage || "Dữ liệu đã tồn tại trong hệ thống!");
+          break;
+
+        case 500:
+          toast.error("Lỗi hệ thống (Server Error). Vui lòng thử lại sau!");
+          break;
+
+        default:
+          toast.error(
+            detailMessage || "Tạo tài khoản thất bại! Vui lòng kiểm tra lại."
+          );
+          break;
+      }
+    }
+  };
 
   const isGroupFullySelected = (groupName: string) => {
     const groupPermissions = permissionGroups[groupName] || [];
-    const groupCodes = groupPermissions.map(p => p.code);
-    return groupCodes.length > 0 && groupCodes.every((code) => selectedPermissions.includes(code));
+    const groupCodes = groupPermissions.map((p) => p.code);
+    return (
+      groupCodes.length > 0 &&
+      groupCodes.every((code) => selectedPermissions.includes(code))
+    );
   };
 
   const isAllBuildingsSelected = useMemo(() => {
-    const allBuildingIds = allBuildings?.data.map((b: IBuilding) => b._id) || [];
-    return allBuildingIds.length > 0 && allBuildingIds.every((id: string) => selectedBuildings.includes(id));
+    const allBuildingIds =
+      allBuildings?.data.map((b: IBuilding) => b._id) || [];
+    return (
+      allBuildingIds.length > 0 &&
+      allBuildingIds.every((id: string) => selectedBuildings.includes(id))
+    );
   }, [allBuildings, selectedBuildings]);
 
   return (
@@ -279,7 +332,9 @@ const ModalCreateStaffAccount = ({
                       type="email"
                       placeholder="staff@example.com"
                       value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
                       className={errors.email ? "border-red-500" : ""}
                     />
                     {errors.email && (
@@ -295,27 +350,36 @@ const ModalCreateStaffAccount = ({
                       id="fullName"
                       placeholder="Nguyễn Văn A"
                       value={formData.fullName}
-                      onChange={(e) => handleInputChange("fullName", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("fullName", e.target.value)
+                      }
                       className={errors.fullName ? "border-red-500" : ""}
                     />
                     {errors.fullName && (
                       <p className="text-xs text-red-500">{errors.fullName}</p>
                     )}
                   </div>
-              
+
                   <div className="space-y-2">
-                    <Label htmlFor="phoneNumber" className="text-sm font-medium">
+                    <Label
+                      htmlFor="phoneNumber"
+                      className="text-sm font-medium"
+                    >
                       Số điện thoại <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="phoneNumber"
                       placeholder="0901234567"
                       value={formData.phoneNumber}
-                      onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phoneNumber", e.target.value)
+                      }
                       className={errors.phoneNumber ? "border-red-500" : ""}
                     />
                     {errors.phoneNumber && (
-                      <p className="text-xs text-red-500">{errors.phoneNumber}</p>
+                      <p className="text-xs text-red-500">
+                        {errors.phoneNumber}
+                      </p>
                     )}
                   </div>
 
@@ -335,7 +399,12 @@ const ModalCreateStaffAccount = ({
                     <Label htmlFor="gender" className="text-sm font-medium">
                       Giới tính
                     </Label>
-                    <Select value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
+                    <Select
+                      value={formData.gender}
+                      onValueChange={(value) =>
+                        handleInputChange("gender", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -354,7 +423,9 @@ const ModalCreateStaffAccount = ({
                       id="address"
                       placeholder="An cảnh lê lợi"
                       value={formData.address}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -369,7 +440,8 @@ const ModalCreateStaffAccount = ({
                 </h3>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-slate-500">
-                    {selectedBuildings.length} / {allBuildings?.data.length || 0} tòa
+                    {selectedBuildings.length} /{" "}
+                    {allBuildings?.data.length || 0} tòa
                   </span>
                   <Button
                     type="button"
@@ -395,7 +467,9 @@ const ModalCreateStaffAccount = ({
                 ) : allBuildings?.data ?? [] ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {allBuildings?.data.map((building: IBuilding) => {
-                      const isChecked = selectedBuildings.includes(building._id);
+                      const isChecked = selectedBuildings.includes(
+                        building._id
+                      );
                       return (
                         <div
                           key={building._id}
@@ -409,7 +483,9 @@ const ModalCreateStaffAccount = ({
                           <Checkbox
                             id={building._id}
                             checked={isChecked}
-                            onCheckedChange={() => handleToggleBuilding(building._id)}
+                            onCheckedChange={() =>
+                              handleToggleBuilding(building._id)
+                            }
                           />
                           <Label
                             htmlFor={building._id}
@@ -442,63 +518,77 @@ const ModalCreateStaffAccount = ({
                     Quyền hạn chức năng
                   </h3>
                   <span className="text-sm text-slate-500">
-                    {selectedPermissions.length} / {allPermissions?.length || 0} quyền
+                    {selectedPermissions.length} / {allPermissions?.length || 0}{" "}
+                    quyền
                   </span>
                 </div>
 
-                {Object.entries(permissionGroups).map(([groupName, permissions]) => (
-                  <Card key={groupName} className="p-4 border-slate-200 shadow-sm">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <Label className="text-sm font-semibold text-slate-800">
-                          {groupName}
-                        </Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleGroup(groupName)}
-                          className={`h-7 text-xs ${
-                            isGroupFullySelected(groupName)
-                              ? "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                              : "text-slate-600"
-                          }`}
-                        >
-                          {isGroupFullySelected(groupName) ? "Bỏ chọn tất cả" : "Chọn tất cả"}
-                        </Button>
-                      </div>
+                {Object.entries(permissionGroups).map(
+                  ([groupName, permissions]) => (
+                    <Card
+                      key={groupName}
+                      className="p-4 border-slate-200 shadow-sm"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <Label className="text-sm font-semibold text-slate-800">
+                            {groupName}
+                          </Label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleGroup(groupName)}
+                            className={`h-7 text-xs ${
+                              isGroupFullySelected(groupName)
+                                ? "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                : "text-slate-600"
+                            }`}
+                          >
+                            {isGroupFullySelected(groupName)
+                              ? "Bỏ chọn tất cả"
+                              : "Chọn tất cả"}
+                          </Button>
+                        </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {permissions.map((permission) => {
-                          const isChecked = selectedPermissions.includes(permission.code);
-                          return (
-                            <div
-                              key={permission._id}
-                              className={`flex items-center space-x-2 p-2.5 rounded-lg border transition-all cursor-pointer ${
-                                isChecked
-                                  ? "bg-purple-50 border-purple-200 shadow-sm"
-                                  : getActionColor(permission.action)
-                              }`}
-                              onClick={() => handleTogglePermission(permission.code)}
-                            >
-                              <Checkbox
-                                id={permission._id}
-                                checked={isChecked}
-                                onCheckedChange={() => handleTogglePermission(permission.code)}
-                              />
-                              <Label
-                                htmlFor={permission._id}
-                                className="text-xs font-medium cursor-pointer flex-1"
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {permissions.map((permission) => {
+                            const isChecked = selectedPermissions.includes(
+                              permission.code
+                            );
+                            return (
+                              <div
+                                key={permission._id}
+                                className={`flex items-center space-x-2 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                                  isChecked
+                                    ? "bg-purple-50 border-purple-200 shadow-sm"
+                                    : getActionColor(permission.action)
+                                }`}
+                                onClick={() =>
+                                  handleTogglePermission(permission.code)
+                                }
                               >
-                                {getActionLabel(permission.action)}
-                              </Label>
-                            </div>
-                          );
-                        })}
+                                <Checkbox
+                                  id={permission._id}
+                                  checked={isChecked}
+                                  onCheckedChange={() =>
+                                    handleTogglePermission(permission.code)
+                                  }
+                                />
+                                <Label
+                                  htmlFor={permission._id}
+                                  className="text-xs font-medium cursor-pointer flex-1"
+                                >
+                                  {getActionLabel(permission.action)}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  )
+                )}
               </div>
             )}
           </div>

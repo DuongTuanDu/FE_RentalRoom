@@ -61,6 +61,7 @@ import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
 import type { IRoom } from "@/types/room";
 import Permission from "@/layouts/Permission";
+
 const RoomManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
   const [selectedFloorId, setSelectedFloorId] = useState("");
@@ -70,19 +71,16 @@ const RoomManageLandlord = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(20);
 
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<IRoom | null>(null);
 
-  // Room detail drawer states
   const [isRoomDetailOpen, setIsRoomDetailOpen] = useState(false);
   const [viewingRoomId, setViewingRoomId] = useState<string | null>(null);
 
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
 
-  // Debounced search
   const debouncedSetSearch = useMemo(
     () =>
       _.debounce((value: string) => {
@@ -107,7 +105,6 @@ const RoomManageLandlord = () => {
     };
   }, [debouncedSetSearch]);
 
-  // Auto-select first building
   const { data: initialBuildingData } = useGetBuildingsQuery({
     q: "",
     page: 1,
@@ -121,13 +118,11 @@ const RoomManageLandlord = () => {
     }
   }, [initialBuildingData, selectedBuildingId]);
 
-  // Fetch floors based on selected building
   const { data: floorsData } = useGetFloorsQuery(
     { buildingId: selectedBuildingId, page: 1, limit: 10, status: "active" },
     { skip: !selectedBuildingId }
   );
 
-  // Fetch rooms
   const { data: roomsData, isLoading: isRoomsLoading } = useGetRoomsQuery({
     buildingId: selectedBuildingId,
     floorId:
@@ -140,7 +135,6 @@ const RoomManageLandlord = () => {
     limit: pageLimit,
   });
 
-  // Mutations
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
   const [activeRoom, { isLoading: isActivating }] = useActiveRoomMutation();
@@ -151,7 +145,6 @@ const RoomManageLandlord = () => {
     ? Math.ceil(roomsData.total / pageLimit)
     : 0;
 
-  // Handlers
   const handleOpenCreateModal = () => {
     setEditingRoom(null);
     setIsModalOpen(true);
@@ -176,7 +169,6 @@ const RoomManageLandlord = () => {
       );
     } catch (error: any) {
       toast.error("Cập nhật trạng thái hoạt động thất bại!");
-      console.error(error);
     }
   };
 
@@ -186,14 +178,19 @@ const RoomManageLandlord = () => {
   };
 
   const handleSubmitRoom = async (data: any) => {
+    // Validate: Số phòng phải chứa ít nhất 1 chữ số
+    if (!/\d/.test(data.roomNumber)) {
+      toast.error("Số phòng phải chứa ít nhất một chữ số (Ví dụ: P101, 101A)!");
+      return;
+    }
+
     try {
       if (editingRoom) {
-        // For edit mode, only send the fields that can be updated
         const updateData = {
           roomNumber: data.roomNumber,
-          area: data.area,
-          price: data.price,
-          maxTenants: data.maxTenants,
+          area: Number(data.area),
+          price: Number(data.price),
+          maxTenants: Number(data.maxTenants || 1),
           status: data.status,
           description: data.description,
           images: data.images,
@@ -201,69 +198,73 @@ const RoomManageLandlord = () => {
           replaceAllImages: data.replaceAllImages,
         };
 
-        console.log("Updating room with filtered data:", updateData);
-
         await updateRoom({
           id: editingRoom._id,
           data: updateData,
         }).unwrap();
+
         toast.success("Cập nhật phòng thành công!");
       } else {
-        // For create mode, create room first then upload images if any
         const roomData = {
           buildingId: data.buildingId,
           floorId: data.floorId,
           roomNumber: data.roomNumber,
-          area: data.area,
-          price: data.price,
-          maxTenants: data.maxTenants,
+          area: Number(data.area),
+          price: Number(data.price),
+          maxTenants: Number(data.maxTenants || 1),
           status: data.status,
           description: data.description,
+          images: data.images,
         };
 
-        console.log("Creating room with data:", roomData);
-
-        const createdRoom = await createRoom(roomData).unwrap();
+        await createRoom(roomData).unwrap();
         toast.success("Thêm phòng mới thành công!");
-
-        // Upload images if any were selected
-        if (data.images && data.images.length > 0) {
-          try {
-            await addRoomImages({
-              id: createdRoom._id,
-              images: data.images,
-            }).unwrap();
-            toast.success("Tải lên ảnh thành công!");
-          } catch (imageError) {
-            console.error("Image upload failed:", imageError);
-            toast.error("Tải lên ảnh thất bại!");
-          }
-        }
       }
+
       setIsModalOpen(false);
       setEditingRoom(null);
     } catch (error: any) {
-      toast.error(
-        editingRoom ? "Cập nhật phòng thất bại!" : "Thêm phòng mới thất bại!"
-      );
-      console.error(error);
+      const status = error?.status;
+      const detailMessage = error?.data?.message;
+
+      switch (status) {
+        case 403:
+          toast.error(
+            "Bạn không có quyền thực hiện hoặc Tòa nhà đang bị khóa!"
+          );
+          break;
+        case 404:
+          toast.error("Không tìm thấy Tòa nhà hoặc Tầng!");
+          break;
+        case 409:
+          toast.error("Số phòng này đã tồn tại trong tòa rồi!");
+          break;
+        case 400:
+          toast.error(`Dữ liệu không hợp lệ: ${detailMessage}`);
+          break;
+        case 500:
+          toast.error("Lỗi hệ thống (Server Error). Vui lòng thử lại sau!");
+          break;
+        default: {
+          const actionName = editingRoom ? "Cập nhật" : "Thêm mới";
+          toast.error(detailMessage || `${actionName} phòng thất bại!`);
+          break;
+        }
+      }
     }
   };
 
-  // Reset floor when building changes
   useEffect(() => {
     setSelectedFloorId("");
     setCurrentPage(1);
   }, [selectedBuildingId]);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedFloorId, selectedStatus, debouncedSearch]);
 
   return (
     <div className="container mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -274,29 +275,28 @@ const RoomManageLandlord = () => {
           </p>
         </div>
         <Permission permission="room:create">
-        <div className="flex gap-2">
-          <Button
-            className="gap-2"
-            disabled={!selectedBuildingId}
-            onClick={handleOpenCreateModal}
-          >
-            <Plus className="h-4 w-4" />
-            Thêm Phòng Mới
-          </Button>
-          <Button
-            variant="outline"
-            className="gap-2"
-            disabled={!selectedBuildingId}
-            onClick={handleOpenQuickModal}
-          >
-            <Zap className="h-4 w-4" />
-            Thiết lập nhanh
-          </Button>
-        </div>
+          <div className="flex gap-2">
+            <Button
+              className="gap-2"
+              disabled={!selectedBuildingId}
+              onClick={handleOpenCreateModal}
+            >
+              <Plus className="h-4 w-4" />
+              Thêm Phòng Mới
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={!selectedBuildingId}
+              onClick={handleOpenQuickModal}
+            >
+              <Zap className="h-4 w-4" />
+              Thiết lập nhanh
+            </Button>
+          </div>
         </Permission>
       </div>
 
-      {/* Filters Card */}
       <Card>
         <CardHeader>
           <CardTitle>Bộ lọc</CardTitle>
@@ -306,7 +306,6 @@ const RoomManageLandlord = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
-            {/* Building Select */}
             <div className="space-y-2 w-full md:w-[220px]">
               <label className="text-sm font-medium">Tòa nhà</label>
               <BuildingSelectCombobox
@@ -315,7 +314,6 @@ const RoomManageLandlord = () => {
               />
             </div>
 
-            {/* Floor Select */}
             <div className="space-y-2 w-full md:w-[124px]">
               <label className="text-sm font-medium">Tầng</label>
               <Select
@@ -341,7 +339,6 @@ const RoomManageLandlord = () => {
               </Select>
             </div>
 
-            {/* Status Select */}
             <div className="space-y-2 w-full md:w-[150px]">
               <label className="text-sm font-medium">Trạng thái</label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -358,7 +355,6 @@ const RoomManageLandlord = () => {
               </Select>
             </div>
 
-            {/* Search */}
             <div className="space-y-2 flex-1 min-w-[250px]">
               <label className="text-sm font-medium">Tìm kiếm</label>
               <div className="relative">
@@ -375,7 +371,6 @@ const RoomManageLandlord = () => {
         </CardContent>
       </Card>
 
-      {/* Rooms Table */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -524,7 +519,6 @@ const RoomManageLandlord = () => {
                 </Table>
               </div>
 
-              {/* Pagination */}
               <div className="flex items-center justify-between pt-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">
@@ -612,7 +606,6 @@ const RoomManageLandlord = () => {
         </CardContent>
       </Card>
 
-      {/* Modal Room (Create/Edit) */}
       <ModalRoom
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -627,7 +620,6 @@ const RoomManageLandlord = () => {
         defaultBuildingId={selectedBuildingId}
       />
 
-      {/* Room Detail Drawer */}
       <RoomDetail
         open={isRoomDetailOpen}
         onOpenChange={(open) => {
@@ -639,7 +631,6 @@ const RoomManageLandlord = () => {
         roomId={viewingRoomId}
       />
 
-      {/* Quick Create Modal */}
       <ModalQuickRoom
         open={isQuickModalOpen}
         onOpenChange={(open) => {
