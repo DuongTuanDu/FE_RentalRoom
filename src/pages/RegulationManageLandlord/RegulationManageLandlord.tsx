@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Eye, FileText, Calendar, Shield } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  FileText,
+  Calendar,
+  Shield,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -39,6 +47,7 @@ import { DeleteRegulationPopover } from "./components/DeleteRegulationPopover";
 import { RegulationDetailSheet } from "./components/RegulationDetailDrawer";
 import { toast } from "sonner";
 import type { IRegulation, IRegulationRequest } from "@/types/regulation";
+import { RegulationActionsGuide } from "./components/RegulationActionsGuide";
 
 const RegulationManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -47,11 +56,13 @@ const RegulationManageLandlord = () => {
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRegulation, setEditingRegulation] = useState<IRegulation | null>(null);
+  const [editingRegulation, setEditingRegulation] =
+    useState<IRegulation | null>(null);
 
   // Delete dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingRegulation, setDeletingRegulation] = useState<IRegulation | null>(null);
+  const [deletingRegulation, setDeletingRegulation] =
+    useState<IRegulation | null>(null);
 
   const formatDate = useFormatDate();
 
@@ -69,22 +80,27 @@ const RegulationManageLandlord = () => {
   }, [initialBuildingData, selectedBuildingId]);
 
   // Fetch regulations
-  const { data: regulationsData, isLoading: isRegulationsLoading } = useGetRegulationsQuery(
-    { buildingId: selectedBuildingId },
-    { skip: !selectedBuildingId }
-  );
+  const { data: regulationsData, isLoading: isRegulationsLoading } =
+    useGetRegulationsQuery(
+      { buildingId: selectedBuildingId },
+      { skip: !selectedBuildingId }
+    );
 
   // Mutations
-  const [createRegulation, { isLoading: isCreating }] = useCreateRegulationMutation();
-  const [updateRegulation, { isLoading: isUpdating }] = useUpdateRegulationMutation();
-  const [deleteRegulation, { isLoading: isDeleting }] = useDeleteRegulationMutation();
+  const [createRegulation, { isLoading: isCreating }] =
+    useCreateRegulationMutation();
+  const [updateRegulation, { isLoading: isUpdating }] =
+    useUpdateRegulationMutation();
+  const [deleteRegulation, { isLoading: isDeleting }] =
+    useDeleteRegulationMutation();
 
   // Pagination
   const totalPages = Math.ceil((regulationsData?.length || 0) / pageLimit);
-  const paginatedRegulations = regulationsData?.slice(
-    (currentPage - 1) * pageLimit,
-    currentPage * pageLimit
-  ) || [];
+  const paginatedRegulations =
+    regulationsData?.slice(
+      (currentPage - 1) * pageLimit,
+      currentPage * pageLimit
+    ) || [];
 
   // Handlers
   const handleOpenCreateModal = () => {
@@ -123,7 +139,9 @@ const RegulationManageLandlord = () => {
       setEditingRegulation(null);
     } catch (error: any) {
       toast.error(
-        editingRegulation ? "Cập nhật quy định thất bại!" : "Thêm quy định mới thất bại!"
+        editingRegulation
+          ? "Cập nhật quy định thất bại!"
+          : "Thêm quy định mới thất bại!"
       );
       console.error(error);
     }
@@ -148,16 +166,14 @@ const RegulationManageLandlord = () => {
     setCurrentPage(1);
   }, [selectedBuildingId]);
 
-
-
   const STATUS_LABELS = {
     active: "Đang áp dụng",
-    inactive: "Không áp dụng"
+    inactive: "Không áp dụng",
   };
 
   const STATUS_COLORS = {
     active: "bg-green-100 text-green-800 border-green-200",
-    inactive: "bg-red-100 text-red-800 border-red-200"
+    inactive: "bg-red-100 text-red-800 border-red-200",
   };
 
   return (
@@ -181,14 +197,13 @@ const RegulationManageLandlord = () => {
           Thêm Quy định Mới
         </Button>
       </div>
+      <RegulationActionsGuide />
 
       {/* Building Selection */}
       <Card>
         <CardHeader>
           <CardTitle>Chọn tòa nhà</CardTitle>
-          <CardDescription>
-            Chọn tòa nhà để xem quy định
-          </CardDescription>
+          <CardDescription>Chọn tòa nhà để xem quy định</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
@@ -222,9 +237,7 @@ const RegulationManageLandlord = () => {
           ) : !regulationsData || regulationsData.length === 0 ? (
             <div className="text-center py-12 space-y-3">
               <Shield className="h-12 w-12 mx-auto text-muted-foreground/50" />
-              <p className="text-muted-foreground">
-                Chưa có quy định nào
-              </p>
+              <p className="text-muted-foreground">Chưa có quy định nào</p>
             </div>
           ) : (
             <div>
@@ -233,7 +246,6 @@ const RegulationManageLandlord = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tiêu đề</TableHead>
-                     
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Hiệu lực từ</TableHead>
                       <TableHead>Ngày tạo</TableHead>
@@ -247,11 +259,13 @@ const RegulationManageLandlord = () => {
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-muted-foreground" />
                             <div className="min-w-0 flex-1">
-                              <div className="font-medium truncate">{regulation.title}</div>
+                              <div className="font-medium truncate">
+                                {regulation.title}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
-                      
+
                         <TableCell>
                           <Badge
                             variant="outline"
@@ -315,10 +329,16 @@ const RegulationManageLandlord = () => {
                       </span>{" "}
                       đến{" "}
                       <span className="font-medium">
-                        {Math.min(currentPage * pageLimit, regulationsData?.length || 0)}
+                        {Math.min(
+                          currentPage * pageLimit,
+                          regulationsData?.length || 0
+                        )}
                       </span>{" "}
                       trong tổng số{" "}
-                      <span className="font-medium">{regulationsData?.length || 0}</span> quy định
+                      <span className="font-medium">
+                        {regulationsData?.length || 0}
+                      </span>{" "}
+                      quy định
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -350,31 +370,34 @@ const RegulationManageLandlord = () => {
                       Trước
                     </Button>
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                currentPage === pageNum ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="w-9"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
                         }
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={
-                              currentPage === pageNum ? "default" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className="w-9"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
+                      )}
                     </div>
                     <Button
                       variant="outline"

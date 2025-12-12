@@ -52,8 +52,10 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 import Permission from "@/layouts/Permission";
+import { FloorActionsGuide } from "./components/FloorActionsGuide";
 
 const FloorManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -83,8 +85,6 @@ const FloorManageLandlord = () => {
       skip: !selectedBuildingId,
     }
   );
-
-  console.log("floorsData", floorsData);
 
   const [createFloor, { isLoading: isCreatingFloor }] =
     useCreateFloorMutation();
@@ -120,11 +120,6 @@ const FloorManageLandlord = () => {
     setSelectedFloor(floor);
     setIsModalOpen(true);
   };
-
-  // const handleOpenDeleteDialog = (floor: IFloor) => {
-  //   setFloorToDelete(floor);
-  //   setIsDeleteDialogOpen(true);
-  // };
 
   const handleSubmitFloor = async (data: CreateFloorRequest) => {
     try {
@@ -228,10 +223,11 @@ const FloorManageLandlord = () => {
           <div className="flex gap-2">
             <Button
               className="gap-2"
+              variant="outline"
               onClick={handleOpenCreateModal}
               disabled={!selectedBuildingId}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 text-green-600" />
               Thêm Tầng Mới
             </Button>
             <Button
@@ -240,12 +236,15 @@ const FloorManageLandlord = () => {
               onClick={handleOpenQuickModal}
               disabled={!selectedBuildingId}
             >
-              <Zap className="h-4 w-4" />
+              <Zap className="h-4 w-4 text-yellow-600" />
               Thiết lập nhanh
             </Button>
           </div>
         </Permission>
       </div>
+
+      {/* Guide Section */}
+      <FloorActionsGuide />
 
       {/* Building Selection Card */}
       <Card>
@@ -335,26 +334,28 @@ const FloorManageLandlord = () => {
                             <div className="flex gap-2">
                               <Permission permission="floor:edit">
                                 <div className="flex items-center">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="flex items-center">
-                                        <Switch
-                                          checked={floor.status === "active"}
-                                          onCheckedChange={() =>
-                                            handleToggleStatus(floor)
-                                          }
-                                          disabled={isUpdatingStatusFloor}
-                                        />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>
-                                        {floor.status === "active"
-                                          ? "Click để ngừng hoạt động tòa nhà"
-                                          : "Click để kích hoạt tòa nhà"}
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="flex items-center">
+                                          <Switch
+                                            checked={floor.status === "active"}
+                                            onCheckedChange={() =>
+                                              handleToggleStatus(floor)
+                                            }
+                                            disabled={isUpdatingStatusFloor}
+                                          />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>
+                                          {floor.status === "active"
+                                            ? "Click để ngừng hoạt động tòa nhà"
+                                            : "Click để kích hoạt tòa nhà"}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </div>
                                 <Button
                                   variant="ghost"
@@ -363,21 +364,21 @@ const FloorManageLandlord = () => {
                                   onClick={() => handleOpenEditModal(floor)}
                                   title="Chỉnh sửa"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Edit className="h-4 w-4 text-amber-600" />
                                 </Button>
                               </Permission>
 
                               {/* <Permission permission="floor:delete">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => handleOpenDeleteDialog(floor)}
-                                  title="Xóa"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </Permission> */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => handleOpenDeleteDialog(floor)}
+                                title="Xóa"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </Permission> */}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -476,7 +477,7 @@ const FloorManageLandlord = () => {
               </>
             ) : (
               <div className="text-center py-12 space-y-3">
-                <Layers className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                <Layers className="h-12 w-12 mx-auto text-slate-400" />
                 <p className="text-muted-foreground">
                   Chưa có tầng nào trong tòa nhà này
                 </p>
@@ -485,7 +486,7 @@ const FloorManageLandlord = () => {
                   className="gap-2"
                   onClick={handleOpenCreateModal}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 text-green-600" />
                   Thêm Tầng Đầu Tiên
                 </Button>
               </div>
@@ -498,7 +499,7 @@ const FloorManageLandlord = () => {
       {!selectedBuildingId && (
         <Card>
           <CardContent className="text-center py-12 space-y-3">
-            <Building2 className="h-12 w-12 mx-auto text-muted-foreground/50" />
+            <Building2 className="h-12 w-12 mx-auto text-blue-200" />
             <p className="text-muted-foreground">
               Vui lòng chọn một tòa nhà để xem danh sách tầng
             </p>

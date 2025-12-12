@@ -35,6 +35,7 @@ import type {
   IFurnitureRoom,
   IFurnitureRoomRequest,
 } from "@/types/room-furniture";
+import { RoomFurnitureActionsGuide } from "./components/RoomFurnitureActionsGuide";
 
 const CONDITION_LABELS = {
   good: "Tốt",
@@ -161,6 +162,8 @@ const RoomFurnitureLandlord = () => {
           Thêm nội thất phòng
         </Button>
       </div>
+
+      <RoomFurnitureActionsGuide />
 
       {/* Filters */}
       <Card>

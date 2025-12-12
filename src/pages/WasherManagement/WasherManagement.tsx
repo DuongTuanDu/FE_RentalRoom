@@ -1,11 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  WashingMachine,
-  Zap,
-} from "lucide-react";
+import { Plus, Edit, Trash2, WashingMachine, Zap } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -49,6 +43,7 @@ import { BuildingSelectCombobox } from "../FloorManageLandlord/components/Buildi
 import type { IWasherItem, ILaundryDeviceRequest } from "@/types/laundry";
 import { WasherModal } from "./components/WasherModal";
 import { DeleteLaundryPopover } from "./components/DeleteLaundryPopover";
+import { LaundryActionsGuide } from "./components/LaundryActionsGuide";
 
 const LaundryManagement = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -60,7 +55,9 @@ const LaundryManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<IWasherItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingDevice, setDeletingDevice] = useState<IWasherItem | null>(null);
+  const [deletingDevice, setDeletingDevice] = useState<IWasherItem | null>(
+    null
+  );
 
   const { data: initialBuildingData } = useGetBuildingsQuery({
     q: "",
@@ -148,15 +145,16 @@ const LaundryManagement = () => {
       const list = Array.isArray(data?.data)
         ? data.data
         : Array.isArray(data)
-          ? data
-          : [];
+        ? data
+        : [];
       setRealtimeDevices(list as IWasherItem[]);
     };
 
     const handleError = (err: any) => {
       console.error("[Laundry][Socket] Nhận laundry_error:", err);
       const message =
-        err?.message || "Không thể cập nhật realtime trạng thái thiết bị giặt sấy";
+        err?.message ||
+        "Không thể cập nhật realtime trạng thái thiết bị giặt sấy";
       toast.error(message);
     };
 
@@ -251,7 +249,8 @@ const LaundryManagement = () => {
             Quản lý Thiết bị giặt sấy
           </h1>
           <p className="text-muted-foreground">
-            Thiết lập và quản lý các thiết bị giặt sấy thông minh theo từng tòa nhà, tầng.
+            Thiết lập và quản lý các thiết bị giặt sấy thông minh theo từng tòa
+            nhà, tầng.
           </p>
         </div>
         <div className="flex gap-2">
@@ -266,9 +265,10 @@ const LaundryManagement = () => {
         </div>
       </div>
 
+      <LaundryActionsGuide />
+
       <Card>
         <CardHeader>
-
           <CardTitle>Bộ lọc</CardTitle>
           <CardDescription>
             Lọc theo tòa nhà, tầng và trạng thái
@@ -334,7 +334,8 @@ const LaundryManagement = () => {
               <div className="space-y-1">
                 <CardTitle>Danh sách thiết bị giặt sấy</CardTitle>
                 <CardDescription>
-                  Các thiết bị được liên kết với hệ thống IoT (Tuya/Smart Life) theo tầng.
+                  Các thiết bị được liên kết với hệ thống IoT (Tuya/Smart Life)
+                  theo tầng.
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="text-base px-3 py-1">
@@ -365,9 +366,14 @@ const LaundryManagement = () => {
                   </Button>
                   {!selectedFloorId && (
                     <p className="text-xs text-muted-foreground max-w-md mx-auto !mt-2">
-                      Để thêm thiết bị, vui lòng chọn <span className="font-semibold">Tòa nhà</span>{" "}
-                      và <span className="font-semibold">Tầng</span> ở khung lọc phía trên, sau đó nút{" "}
-                      <span className="font-semibold">“Thêm thiết bị đầu tiên”</span> sẽ được kích hoạt.
+                      Để thêm thiết bị, vui lòng chọn{" "}
+                      <span className="font-semibold">Tòa nhà</span> và{" "}
+                      <span className="font-semibold">Tầng</span> ở khung lọc
+                      phía trên, sau đó nút{" "}
+                      <span className="font-semibold">
+                        “Thêm thiết bị đầu tiên”
+                      </span>{" "}
+                      sẽ được kích hoạt.
                     </p>
                   )}
                 </div>
@@ -398,10 +404,7 @@ const LaundryManagement = () => {
                           {device.name}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className="capitalize"
-                          >
+                          <Badge variant="outline" className="capitalize">
                             {device.type === "washer" ? "Máy giặt" : "Máy sấy"}
                           </Badge>
                         </TableCell>
@@ -421,22 +424,22 @@ const LaundryManagement = () => {
                               device.status === "idle"
                                 ? "default"
                                 : device.status === "running"
-                                  ? "secondary"
-                                  : "outline"
+                                ? "secondary"
+                                : "outline"
                             }
                             className={
                               device.status === "idle"
                                 ? "bg-green-100 text-green-800 hover:bg-green-100"
                                 : device.status === "running"
-                                  ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                                  : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-100"
                             }
                           >
                             {device.status === "running"
                               ? "Đang chạy"
                               : device.status === "idle"
-                                ? "Rảnh"
-                                : "Không xác định"}
+                              ? "Rảnh"
+                              : "Không xác định"}
                           </Badge>
                         </TableCell>
 
@@ -463,9 +466,7 @@ const LaundryManagement = () => {
                                   variant="outline"
                                   size="sm"
                                   className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  onClick={() =>
-                                    handleOpenDeleteDialog(device)
-                                  }
+                                  onClick={() => handleOpenDeleteDialog(device)}
                                   disabled={isDeleting}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -490,7 +491,8 @@ const LaundryManagement = () => {
           <CardContent className="text-center py-12 space-y-3">
             <Zap className="h-12 w-12 mx-auto text-muted-foreground/50" />
             <p className="text-muted-foreground">
-              Vui lòng chọn tòa nhà và tầng để xem hoặc cấu hình thiết bị giặt sấy.
+              Vui lòng chọn tòa nhà và tầng để xem hoặc cấu hình thiết bị giặt
+              sấy.
             </p>
           </CardContent>
         </Card>

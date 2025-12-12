@@ -55,6 +55,7 @@ import {
   useDeleteUtilityReadingMutation,
   useConfirmUtilityReadingMutation,
 } from "@/services/utility/utility.service";
+import { UtilityActionsGuide } from "./components/UtilityActionsGuide";
 
 const UtilityManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,7 +124,9 @@ const UtilityManagement = () => {
 
   const handleOpenEditDialog = (utility: IUtilityItem) => {
     if (utility.status !== "draft" && utility.status !== "confirmed") {
-      toast.error("Chỉ có thể chỉnh sửa chỉ số ở trạng thái nháp hoặc đã xác nhận");
+      toast.error(
+        "Chỉ có thể chỉnh sửa chỉ số ở trạng thái nháp hoặc đã xác nhận"
+      );
       return;
     }
     setSelectedUtility(utility);
@@ -242,6 +245,8 @@ const UtilityManagement = () => {
             </Button>
           </div>
         </div>
+
+        <UtilityActionsGuide />
 
         <Card>
           <CardHeader>
@@ -555,7 +560,8 @@ const UtilityManagement = () => {
                   </Table>
                 </div>
 
-                {data && data.total > 0 && totalPages > 0 && (
+                {/* Pagination */}
+                {totalPages > 0 && (
                   <div className="flex items-center justify-between pt-4">
                     <p className="text-sm text-slate-600">
                       Hiển thị{" "}

@@ -61,6 +61,7 @@ import { RoomDetail } from "./components/RoomDetail";
 import { toast } from "sonner";
 import type { IRoom } from "@/types/room";
 import Permission from "@/layouts/Permission";
+import { RoomActionsGuide } from "./components/RoomActionsGuide";
 
 const RoomManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -296,6 +297,8 @@ const RoomManageLandlord = () => {
           </div>
         </Permission>
       </div>
+
+      <RoomActionsGuide />
 
       <Card>
         <CardHeader>

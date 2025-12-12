@@ -32,6 +32,7 @@ import type { IContractTemplate } from "@/types/contract-template";
 import { CreateEditContractTemplateModal } from "./components/CreateEditContractTemplateModal";
 import { DeleteContractTemplateDialog } from "./components/DeleteContractTemplateDialog";
 import { Spinner } from "@/components/ui/spinner";
+import { ContractTemplateActionsGuide } from "./components/ContractTemplateActionsGuide";
 
 const ContractTemplateManagement = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -165,6 +166,7 @@ const ContractTemplateManagement = () => {
           <Plus className="h-4 w-4" /> Thêm mẫu hợp đồng
         </Button>
       </div>
+      <ContractTemplateActionsGuide />
 
       {/* Bộ lọc */}
       <Card>

@@ -1,7 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import {
-  useGetMaintenancesQuery,
-} from "@/services/maintenance/maintenance.service";
+import { useGetMaintenancesQuery } from "@/services/maintenance/maintenance.service";
 import { Wrench, Search, Eye, Edit2, Loader2 } from "lucide-react";
 import _ from "lodash";
 import {
@@ -34,6 +32,7 @@ import type { IMaintenanceItem } from "@/types/maintenance";
 import { MaintenanceDetailSheet } from "./components/MaintenanceDetailSheet";
 import { UpdateMaintenanceDialog } from "./components/UpdateMaintenanceDialog";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
+import { MaintenanceActionsGuide } from "./components/MaintenanceActionsGuide";
 
 const STATUS_COLORS = {
   open: "bg-blue-100 text-blue-800",
@@ -49,7 +48,6 @@ const STATUS_LABELS = {
   rejected: "Đã từ chối",
 };
 
-
 const MaintenanceManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -58,10 +56,12 @@ const MaintenanceManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [buildingFilter, setBuildingFilter] = useState<string>("");
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [viewingMaintenance, setViewingMaintenance] = useState<IMaintenanceItem | null>(null);
+  const [viewingMaintenance, setViewingMaintenance] =
+    useState<IMaintenanceItem | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [updatingMaintenance, setUpdatingMaintenance] = useState<IMaintenanceItem | null>(null);
-  
+  const [updatingMaintenance, setUpdatingMaintenance] =
+    useState<IMaintenanceItem | null>(null);
+
   const formatDate = useFormatDate();
 
   // Debounce search với lodash
@@ -119,6 +119,7 @@ const MaintenanceManagement = () => {
             </div>
           </div>
         </div>
+        <MaintenanceActionsGuide />
 
         {/* Filter Section */}
         <Card>
@@ -249,12 +250,24 @@ const MaintenanceManagement = () => {
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tiêu đề</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">Người báo</TableHead>
-                        <TableHead className="font-semibold">Người được giao</TableHead>
-                        <TableHead className="font-semibold">Chi phí sửa chữa</TableHead>
-                        <TableHead className="font-semibold">Phải trả</TableHead>
-                        <TableHead className="font-semibold">Trạng thái</TableHead>
-                        <TableHead className="font-semibold">Ngày tạo</TableHead>
+                        <TableHead className="font-semibold">
+                          Người báo
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Người được giao
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Chi phí sửa chữa
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Phải trả
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Ngày tạo
+                        </TableHead>
                         <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
@@ -272,20 +285,28 @@ const MaintenanceManagement = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {maintenance.roomNumber || '—'}
+                            {maintenance.roomNumber || "—"}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {maintenance.reportedBy || '—'}
+                            {maintenance.reportedBy || "—"}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {maintenance.assignee?.name || '—'}
+                            {maintenance.assignee?.name || "—"}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {maintenance.repairCost ? `${maintenance.repairCost.toLocaleString("vi-VN")} VNĐ` : '—'}
+                            {maintenance.repairCost
+                              ? `${maintenance.repairCost.toLocaleString(
+                                  "vi-VN"
+                                )} VNĐ`
+                              : "—"}
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={maintenance.mustPay ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}
+                              className={
+                                maintenance.mustPay
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-green-100 text-green-800"
+                              }
                             >
                               {maintenance.mustPay ? "Có" : "Không"}
                             </Badge>
@@ -315,7 +336,9 @@ const MaintenanceManagement = () => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8"
-                                      onClick={() => handleOpenDetailSheet(maintenance)}
+                                      onClick={() =>
+                                        handleOpenDetailSheet(maintenance)
+                                      }
                                     >
                                       <Eye className="w-4 h-4 text-blue-600" />
                                     </Button>
@@ -332,7 +355,9 @@ const MaintenanceManagement = () => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8"
-                                      onClick={() => handleOpenUpdateDialog(maintenance)}
+                                      onClick={() =>
+                                        handleOpenUpdateDialog(maintenance)
+                                      }
                                     >
                                       <Edit2 className="w-4 h-4 text-orange-600" />
                                     </Button>
@@ -394,7 +419,9 @@ const MaintenanceManagement = () => {
                               <Button
                                 key={pageNum}
                                 variant={
-                                  currentPage === pageNum ? "default" : "outline"
+                                  currentPage === pageNum
+                                    ? "default"
+                                    : "outline"
                                 }
                                 size="sm"
                                 onClick={() => setCurrentPage(pageNum)}
@@ -411,7 +438,9 @@ const MaintenanceManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
                         }
                         disabled={currentPage === totalPages || isFetching}
                       >

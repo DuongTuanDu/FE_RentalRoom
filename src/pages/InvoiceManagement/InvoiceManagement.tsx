@@ -79,6 +79,7 @@ import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialo
 import { UpdateInvoiceDialog } from "./components/UpdateInvoiceDialog";
 import { SendDraftAllInvoicesDialog } from "./components/SendDraftAllInvoicesDialog";
 import _ from "lodash";
+import { InvoiceActionsGuide } from "./components/InvoiceActionsGuide";
 
 const InvoiceManagement = () => {
   const formatPrice = useFormatPrice();
@@ -418,6 +419,7 @@ const InvoiceManagement = () => {
           </Button>
         </div>
       </div>
+      <InvoiceActionsGuide />
 
       {/* Filters */}
       <Card>

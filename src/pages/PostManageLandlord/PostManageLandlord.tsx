@@ -45,6 +45,7 @@ import { DeletePostPopover } from "./components/DeletePostPopover";
 import { toast } from "sonner";
 import type { IPost } from "@/types/post";
 import { useNavigate } from "react-router-dom";
+import { PostActionsGuide } from "./components/PostActionsGuide";
 
 const PostManageLandlord = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -192,6 +193,7 @@ const PostManageLandlord = () => {
           </Button>
         </div>
       </div>
+      <PostActionsGuide />
 
       {/* Search */}
       <Card>
@@ -364,11 +366,11 @@ const PostManageLandlord = () => {
                   {/* Mô tả ngắn */}
                   <p className="text-sm text-muted-foreground line-clamp-1 mb-4">
                     <div
-              className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
-              dangerouslySetInnerHTML={{
-                __html: post.description,
-              }}
-            />
+                      className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0"
+                      dangerouslySetInnerHTML={{
+                        __html: post.description,
+                      }}
+                    />
                   </p>
 
                   {/* Actions */}

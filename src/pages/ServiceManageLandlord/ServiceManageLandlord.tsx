@@ -1,6 +1,20 @@
-import { Package, Check, Sparkles, CreditCard, X, Zap, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Package,
+  Check,
+  Sparkles,
+  CreditCard,
+  X,
+  Zap,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { useGetPackageServicesQuery } from "@/services/package-services/package-services.service";
-import { useBuySubscriptionMutation, useGetMySubscriptionsQuery, useStartTrialSubscriptionMutation } from "@/services/package-services/package-subscription.service";
+import {
+  useBuySubscriptionMutation,
+  useGetMySubscriptionsQuery,
+  useStartTrialSubscriptionMutation,
+} from "@/services/package-services/package-subscription.service";
 
 import {
   Card,
@@ -25,6 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { ServiceActionsGuide } from "./ServiceActionsGuide";
 
 const ServiceManageLandlord = () => {
   const formatPrice = useFormatPrice();
@@ -32,27 +47,34 @@ const ServiceManageLandlord = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading } = useGetPackageServicesQuery();
-  const { data: mySubscriptions } = useGetMySubscriptionsQuery() ;
-  const activeSubscription = mySubscriptions?.find(sub => sub.status === "active");
-  const upcomingSubscription = mySubscriptions?.find(sub => sub.status === "upcoming");
+  const { data: mySubscriptions } = useGetMySubscriptionsQuery();
+  const activeSubscription = mySubscriptions?.find(
+    (sub) => sub.status === "active"
+  );
+  const upcomingSubscription = mySubscriptions?.find(
+    (sub) => sub.status === "upcoming"
+  );
   const hasActiveOrUpcoming = !!activeSubscription || !!upcomingSubscription;
-  const [buySubscription, { isLoading: isBuying }] = useBuySubscriptionMutation();
-  const [useTrialSubscription, { isLoading: isStartingTrial }] = useStartTrialSubscriptionMutation();
+  const [buySubscription, { isLoading: isBuying }] =
+    useBuySubscriptionMutation();
+  const [useTrialSubscription, { isLoading: isStartingTrial }] =
+    useStartTrialSubscriptionMutation();
   const [isRiskConfirmOpen, setIsRiskConfirmOpen] = useState(false);
 
-  const [hasUsedTrial, setHasUsedTrial] = useState(false); 
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
 
-  const trialPackage = data?.data?.find(pkg => pkg.price === 0);
-  const paidPackages = data?.data?.filter(pkg => pkg.price > 0) || [];
+  const trialPackage = data?.data?.find((pkg) => pkg.price === 0);
+  const paidPackages = data?.data?.filter((pkg) => pkg.price > 0) || [];
 
   useEffect(() => {
-    const usedTrial = mySubscriptions?.some(sub => sub.isTrial === true) ?? false;
+    const usedTrial =
+      mySubscriptions?.some((sub) => sub.isTrial === true) ?? false;
     setHasUsedTrial(usedTrial);
 
-    const paidSub = mySubscriptions?.some(sub => sub.isTrial === false) ?? false;
+    const paidSub =
+      mySubscriptions?.some((sub) => sub.isTrial === false) ?? false;
     setHasPaid(paidSub);
-
   }, [mySubscriptions]);
 
   const handleOpenModal = (pkg: IPackage) => {
@@ -70,7 +92,7 @@ const ServiceManageLandlord = () => {
 
     try {
       const response = await useTrialSubscription().unwrap();
-      if(response.success) {
+      if (response.success) {
         toast.success("Kích hoạt gói dùng thử thành công!", {
           description: "Bạn có thể bắt đầu sử dụng các tính năng ngay bây giờ.",
         });
@@ -80,13 +102,14 @@ const ServiceManageLandlord = () => {
         }, 1500);
       }
     } catch (error) {
-         toast.error("Có lỗi xảy ra khi kích hoạt dùng thử, Vui lòng thử lại sau.");
+      toast.error(
+        "Có lỗi xảy ra khi kích hoạt dùng thử, Vui lòng thử lại sau."
+      );
     }
-  }
-
+  };
 
   const handleConfirmPayment = async () => {
-    if (!selectedPackage) return; 
+    if (!selectedPackage) return;
 
     if (hasActiveOrUpcoming) {
       setIsRiskConfirmOpen(true);
@@ -94,7 +117,9 @@ const ServiceManageLandlord = () => {
     }
 
     try {
-      const response = await buySubscription({ packageId: selectedPackage._id }).unwrap();
+      const response = await buySubscription({
+        packageId: selectedPackage._id,
+      }).unwrap();
       console.log("Mua gói thành công:", response);
 
       if (selectedPackage.price === 0) {
@@ -115,7 +140,8 @@ const ServiceManageLandlord = () => {
     } catch (error: any) {
       console.error("Lỗi khi mua gói:", error);
       toast.error("Có lỗi xảy ra khi thanh toán", {
-        description: error?.data?.message || error?.message || "Vui lòng thử lại sau.",
+        description:
+          error?.data?.message || error?.message || "Vui lòng thử lại sau.",
       });
     }
   };
@@ -138,6 +164,8 @@ const ServiceManageLandlord = () => {
             quy mô kinh doanh của bạn
           </p>
         </div>
+
+        <ServiceActionsGuide />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -175,16 +203,21 @@ const ServiceManageLandlord = () => {
                           </Badge>
                         </div>
                         <p className="text-sm text-gray-600">
-                          {trialPackage.description || "Dùng thử miễn phí các tính năng cơ bản"}
+                          {trialPackage.description ||
+                            "Dùng thử miễn phí các tính năng cơ bản"}
                         </p>
                         <div className="flex items-center gap-4 flex-wrap text-sm text-gray-700">
                           <div className="flex items-center gap-1">
                             <Check className="h-4 w-4 text-blue-600" />
-                            <span>Quản lý tối đa {trialPackage.roomLimit} phòng</span>
+                            <span>
+                              Quản lý tối đa {trialPackage.roomLimit} phòng
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Check className="h-4 w-4 text-blue-600" />
-                            <span>Sử dụng {trialPackage.durationDays} ngày</span>
+                            <span>
+                              Sử dụng {trialPackage.durationDays} ngày
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Check className="h-4 w-4 text-blue-600" />
@@ -244,7 +277,9 @@ const ServiceManageLandlord = () => {
                             </div>
                             <p className="text-xs text-muted-foreground">
                               ≈{" "}
-                              {formatPrice(Math.round(pkg.price / pkg.durationDays))}
+                              {formatPrice(
+                                Math.round(pkg.price / pkg.durationDays)
+                              )}
                               /ngày
                             </p>
                           </div>
@@ -285,7 +320,9 @@ const ServiceManageLandlord = () => {
                                 <Check className="h-3 w-3 text-blue-600" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-sm font-medium">Hỗ trợ 24/7</p>
+                                <p className="text-sm font-medium">
+                                  Hỗ trợ 24/7
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                   Đội ngũ hỗ trợ luôn sẵn sàng
                                 </p>
@@ -332,10 +369,12 @@ const ServiceManageLandlord = () => {
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               <Package className="h-6 w-6 text-primary" />
-              {selectedPackage?.price === 0 ? "Kích hoạt gói dùng thử" : "Xác nhận mua gói dịch vụ"}
+              {selectedPackage?.price === 0
+                ? "Kích hoạt gói dùng thử"
+                : "Xác nhận mua gói dịch vụ"}
             </DialogTitle>
             <DialogDescription>
-              {selectedPackage?.price === 0 
+              {selectedPackage?.price === 0
                 ? "Bạn sắp kích hoạt gói dùng thử miễn phí"
                 : "Vui lòng xem lại thông tin gói dịch vụ trước khi thanh toán"}
             </DialogDescription>
@@ -353,7 +392,13 @@ const ServiceManageLandlord = () => {
                       {selectedPackage.description}
                     </p>
                   </div>
-                  <Badge className={selectedPackage.price === 0 ? "bg-green-600 text-white" : "bg-blue-600 text-white"}>
+                  <Badge
+                    className={
+                      selectedPackage.price === 0
+                        ? "bg-green-600 text-white"
+                        : "bg-blue-600 text-white"
+                    }
+                  >
                     {selectedPackage.price === 0 ? "Miễn phí" : "Phổ biến"}
                   </Badge>
                 </div>
@@ -419,8 +464,9 @@ const ServiceManageLandlord = () => {
               {selectedPackage.price > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                    <span className="font-semibold">Lưu ý:</span> Sau khi bấm thanh toán, 
-                    bạn sẽ được chuyển đến cổng thanh toán VNPay để hoàn tất giao dịch.
+                    <span className="font-semibold">Lưu ý:</span> Sau khi bấm
+                    thanh toán, bạn sẽ được chuyển đến cổng thanh toán VNPay để
+                    hoàn tất giao dịch.
                   </p>
                 </div>
               )}
@@ -438,7 +484,11 @@ const ServiceManageLandlord = () => {
               Hủy bỏ
             </Button>
             <Button
-              onClick={selectedPackage?.price === 0 ? handleConfirmTrial : handleConfirmPayment}
+              onClick={
+                selectedPackage?.price === 0
+                  ? handleConfirmTrial
+                  : handleConfirmPayment
+              }
               disabled={isBuying}
               className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
@@ -463,94 +513,108 @@ const ServiceManageLandlord = () => {
                 </>
               )}
             </Button>
-
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-    <Dialog open={isRiskConfirmOpen} onOpenChange={setIsRiskConfirmOpen}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-            <AlertCircle className="h-7 w-7 text-orange-500" />
-            Không thể mua gói mới
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            Bạn hiện đang có gói dịch vụ đang hoạt động hoặc đã được gia hạn .
-          </DialogDescription>
-        </DialogHeader>
+      <Dialog open={isRiskConfirmOpen} onOpenChange={setIsRiskConfirmOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+              <AlertCircle className="h-7 w-7 text-orange-500" />
+              Không thể mua gói mới
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Bạn hiện đang có gói dịch vụ đang hoạt động hoặc đã được gia hạn .
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-5 py-4">
-          {activeSubscription && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-amber-600" />
-                <span className="font-semibold">Gói đang hoạt động</span>
-              </div>
-              <div className="ml-7 space-y-1 text-sm">
-                <p><strong>{activeSubscription.packageId.name}</strong></p>
-                  <p className="text-amber-700">
-                    Bắt đầu: {new Date(activeSubscription.startDate).toLocaleDateString("vi-VN")}
+          <div className="space-y-5 py-4">
+            {activeSubscription && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-amber-600" />
+                  <span className="font-semibold">Gói đang hoạt động</span>
+                </div>
+                <div className="ml-7 space-y-1 text-sm">
+                  <p>
+                    <strong>{activeSubscription.packageId.name}</strong>
                   </p>
-                <p className="text-amber-700">
-                  Hết hạn: {new Date(activeSubscription.endDate).toLocaleDateString("vi-VN")}
-                </p>
+                  <p className="text-amber-700">
+                    Bắt đầu:{" "}
+                    {new Date(activeSubscription.startDate).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </p>
+                  <p className="text-amber-700">
+                    Hết hạn:{" "}
+                    {new Date(activeSubscription.endDate).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {upcomingSubscription && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold">Gói đã gia hạn</span>
+            {upcomingSubscription && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold">Gói đã gia hạn</span>
+                </div>
+                <div className="ml-7 space-y-1 text-sm">
+                  <p>
+                    <strong>{upcomingSubscription.packageId.name}</strong>
+                  </p>
+                  <p className="text-blue-700">
+                    Bắt đầu:{" "}
+                    {new Date(
+                      upcomingSubscription.startDate
+                    ).toLocaleDateString("vi-VN")}
+                  </p>
+                  <p className="text-blue-700">
+                    Hết hạn:{" "}
+                    {new Date(upcomingSubscription.endDate).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="ml-7 space-y-1 text-sm">
-                <p><strong>{upcomingSubscription.packageId.name}</strong></p>
-                <p className="text-blue-700">
-                  Bắt đầu: {new Date(upcomingSubscription.startDate).toLocaleDateString("vi-VN")}
-                </p>
-                <p className="text-blue-700">
-                  Hết hạn: {new Date(upcomingSubscription.endDate).toLocaleDateString("vi-VN")}
-                </p>
-              </div>
-            </div>
-          )}
+            )}
 
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-red-800">
-                <p className="font-semibold mb-1">Yêu cầu:</p>
-                <p>
-                  Để mua gói dịch vụ mới, bạn cần <strong>hủy gói hiện tại</strong> hoặc <strong>hủy gia hạn tự động</strong> trước.
-                </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-red-800">
+                  <p className="font-semibold mb-1">Yêu cầu:</p>
+                  <p>
+                    Để mua gói dịch vụ mới, bạn cần{" "}
+                    <strong>hủy gói hiện tại</strong> hoặc{" "}
+                    <strong>hủy gia hạn tự động</strong> trước.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <DialogFooter className="!gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsRiskConfirmOpen(false)}
-            className="w-full sm:w-auto"
-          >
-            Đóng
-          </Button>
+          <DialogFooter className="!gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsRiskConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Đóng
+            </Button>
 
-        <Button
-            asChild
-            className="gap-2"
-          >
-            <Link to="/landlord/history-subscription">
-              <Package className="h-4 w-4" />
-              Xem lịch sử gói dịch vụ
-            </Link>
-          </Button>            
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <Button asChild className="gap-2">
+              <Link to="/landlord/history-subscription">
+                <Package className="h-4 w-4" />
+                Xem lịch sử gói dịch vụ
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

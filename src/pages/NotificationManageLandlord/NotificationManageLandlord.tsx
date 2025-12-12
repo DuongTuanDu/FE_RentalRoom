@@ -49,6 +49,7 @@ import { toText } from "@/utils/errors";
 
 import ModalCreateNotification from "./components/ModalCreateNotification";
 import ModalViewNotification from "./components/ModalViewNotification";
+import { NotificationActionsGuide } from "./components/NotificationActionsGuide";
 
 const NotificationManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,16 +58,20 @@ const NotificationManagement = () => {
   const [filterType, setFilterType] = useState("all");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingNotification, setEditingNotification] = useState<INotification | null>(null);
+  const [editingNotification, setEditingNotification] =
+    useState<INotification | null>(null);
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [viewingNotification, setViewingNotification] = useState<INotification | null>(null);
+  const [viewingNotification, setViewingNotification] =
+    useState<INotification | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingNotification, setDeletingNotification] = useState<INotification | null>(null);
+  const [deletingNotification, setDeletingNotification] =
+    useState<INotification | null>(null);
 
   const { data, isLoading, error, refetch } = useGetSentNotificationsQuery();
-  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
+  const [deleteNotification, { isLoading: isDeleting }] =
+    useDeleteNotificationMutation();
 
   const typeLabels: Record<string, string> = {
     general: "Thông báo chung",
@@ -83,7 +88,8 @@ const NotificationManagement = () => {
       const matchSearch =
         notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         notification.content.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchType = filterType === "all" || notification.type === filterType;
+      const matchType =
+        filterType === "all" || notification.type === filterType;
       return matchSearch && matchType && !notification.isDeleted;
     });
   }, [data, searchQuery, filterType]);
@@ -145,14 +151,19 @@ const NotificationManagement = () => {
       <div className="!max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Quản lý Thông báo</h1>
-            <p className="text-slate-600 mt-1">Quản lý các thông báo gửi đến cư dân</p>
+            <h1 className="text-3xl font-bold text-slate-900">
+              Quản lý Thông báo
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Quản lý các thông báo gửi đến cư dân
+            </p>
           </div>
           <Button onClick={handleOpenCreateModal} className="gap-2">
             <Plus className="w-4 h-4" />
             Tạo thông báo mới
           </Button>
         </div>
+        <NotificationActionsGuide />
 
         <Card>
           <CardContent className="pt-6">
@@ -218,7 +229,9 @@ const NotificationManagement = () => {
             ) : paginatedData.length === 0 ? (
               <div className="text-center py-16">
                 <Bell className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-medium">Không tìm thấy thông báo nào</p>
+                <p className="text-slate-600 font-medium">
+                  Không tìm thấy thông báo nào
+                </p>
               </div>
             ) : (
               <>
@@ -228,9 +241,15 @@ const NotificationManagement = () => {
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tiêu đề</TableHead>
                         <TableHead className="font-semibold">Loại</TableHead>
-                        <TableHead className="font-semibold">Người tạo</TableHead>
-                        <TableHead className="font-semibold">Ngày tạo</TableHead>
-                        <TableHead className="text-center font-semibold">Thao tác</TableHead>
+                        <TableHead className="font-semibold">
+                          Người tạo
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Ngày tạo
+                        </TableHead>
+                        <TableHead className="text-center font-semibold">
+                          Thao tác
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -260,10 +279,13 @@ const NotificationManagement = () => {
                           <TableCell>
                             <div className="text-sm">
                               <div className="font-medium">
-                                {noti.createBy?.userInfo?.fullName || "Hệ thống"}
+                                {noti.createBy?.userInfo?.fullName ||
+                                  "Hệ thống"}
                               </div>
                               <div className="text-xs text-slate-500">
-                                {noti.createByRole === "landlord" ? "Chủ trọ" : "Nhân viên"}
+                                {noti.createByRole === "landlord"
+                                  ? "Chủ trọ"
+                                  : "Nhân viên"}
                               </div>
                             </div>
                           </TableCell>
@@ -307,8 +329,11 @@ const NotificationManagement = () => {
                 <div className="flex items-center justify-between mt-6">
                   <p className="text-sm text-slate-600">
                     Hiển thị {(currentPage - 1) * pageLimit + 1} -{" "}
-                    {Math.min(currentPage * pageLimit, filteredNotifications.length)} trong{" "}
-                    {filteredNotifications.length} thông báo
+                    {Math.min(
+                      currentPage * pageLimit,
+                      filteredNotifications.length
+                    )}{" "}
+                    trong {filteredNotifications.length} thông báo
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -319,34 +344,35 @@ const NotificationManagement = () => {
                     >
                       Trước
                     </Button>
-                    {Array.from(
-                      { length: Math.min(5, totalPages) },
-                      (_, i) => {
-                        let pageNum =
-                          totalPages <= 5
-                            ? i + 1
-                            : currentPage <= 3
-                            ? i + 1
-                            : currentPage >= totalPages - 2
-                            ? totalPages - 4 + i
-                            : currentPage - 2 + i;
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      }
-                    )}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum =
+                        totalPages <= 5
+                          ? i + 1
+                          : currentPage <= 3
+                          ? i + 1
+                          : currentPage >= totalPages - 2
+                          ? totalPages - 4 + i
+                          : currentPage - 2 + i;
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            currentPage === pageNum ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                     >
                       Sau
                     </Button>
@@ -374,13 +400,17 @@ const NotificationManagement = () => {
         notification={viewingNotification}
       />
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa thông báo "<strong>{deletingNotification?.title}</strong>"?
-              Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa thông báo "
+              <strong>{deletingNotification?.title}</strong>"? Hành động này
+              không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

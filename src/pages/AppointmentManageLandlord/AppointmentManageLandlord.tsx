@@ -1,403 +1,568 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useGetBuildingsQuery } from "@/services/building/building.service";
 import {
-  useGetLandlordAppointmentsQuery,
-} from "@/services/room-appointment/room-appointment.service";
-import { Calendar, Search, Eye, Clock } from "lucide-react";
-import _ from "lodash";
+  useUpsertScheduleMutation,
+  useGetScheduleByBuildingQuery,
+  useDeleteScheduleMutation,
+} from "@/services/landlord-schedule/landlord-schedule.service";
+import { Calendar, Clock, Plus, Trash2, Save, X } from "lucide-react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { AppointmentStatus, IRoomAppointment } from "@/types/room-appointment";
-import AppointmentDetail from "./components/AppointmentDetail";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { toText } from "@/utils/errors";
+import type {
+  IDefaultSlot,
+  IScheduleOverride,
+  DayOfWeek,
+} from "@/types/landlord-schedule";
+import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
+import { ScheduleActionsGuide } from "./components/ScheduleActionsGuide";
 
-const AppointmentManageLandlord = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(20);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+const DAYS_OF_WEEK = [
+  { value: 1, label: "Thứ 2" },
+  { value: 2, label: "Thứ 3" },
+  { value: 3, label: "Thứ 4" },
+  { value: 4, label: "Thứ 5" },
+  { value: 5, label: "Thứ 6" },
+  { value: 6, label: "Thứ 7" },
+  { value: 0, label: "Chủ nhật" },
+];
 
-  const debouncedSetSearch = useMemo(
-    () =>
-      _.debounce((value: string) => {
-        setDebouncedSearch(value);
-        setCurrentPage(1);
-      }, 700),
-    []
-  );
-
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchQuery(value);
-      debouncedSetSearch(value);
-    },
-    [debouncedSetSearch]
-  );
-
-   const { data, error, isLoading } = useGetLandlordAppointmentsQuery({
-    page: currentPage,
-    limit: pageLimit,
-    status: statusFilter !== "all" ? statusFilter as AppointmentStatus : undefined,
+const LandlordScheduleManagement = () => {
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
+  const [defaultSlots, setDefaultSlots] = useState<IDefaultSlot[]>([]);
+  const [overrides, setOverrides] = useState<IScheduleOverride[]>([]);
+  const [isOverrideDialogOpen, setIsOverrideDialogOpen] = useState(false);
+  const [editingOverrideIndex, setEditingOverrideIndex] = useState<
+    number | null
+  >(null);
+  const [currentOverride, setCurrentOverride] = useState<IScheduleOverride>({
+    date: "",
+    isAvailable: false,
+    startTime: "",
+    endTime: "",
+    note: "",
   });
 
-  const totalPages = data?.pagination.total ? Math.ceil(data.pagination.total / pageLimit) : 0;
+  const { data: initialBuildingData } = useGetBuildingsQuery({
+    q: "",
+    page: 1,
+    limit: 10,
+    status: "active",
+  });
 
-  const handleOpenDetailModal = (appointmentId: string) => {
-    setSelectedAppointmentId(appointmentId);
-    setIsDetailModalOpen(true);
-  };
+  const { data: scheduleData, refetch: refetchSchedule } =
+    useGetScheduleByBuildingQuery(selectedBuildingId, {
+      skip: !selectedBuildingId,
+    });
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { label: "Chờ xác nhận", className: "bg-yellow-100 text-yellow-800" },
-      accepted: { label: "Đã xác nhận", className: "bg-green-100 text-green-800" },
-      rejected: { label: "Đã từ chối", className: "bg-red-100 text-red-800" },
-      cancelled: { label: "Đã hủy", className: "bg-gray-100 text-gray-800" },
-    };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    return (
-      <Badge className={config.className} variant="outline">
-        {config.label}
-      </Badge>
+  const [upsertSchedule, { isLoading: isSaving }] = useUpsertScheduleMutation();
+  const [deleteSchedule, { isLoading: isDeleting }] =
+    useDeleteScheduleMutation();
+
+  useEffect(() => {
+    if (initialBuildingData?.data?.[0]?._id && !selectedBuildingId) {
+      setSelectedBuildingId(initialBuildingData.data[0]._id);
+    }
+  }, [initialBuildingData, selectedBuildingId]);
+
+  useEffect(() => {
+    if (scheduleData?.data) {
+      setDefaultSlots(scheduleData.data.defaultSlots);
+      setOverrides(scheduleData.data.overrides || []);
+    } else {
+      setDefaultSlots(
+        DAYS_OF_WEEK.map((day) => ({
+          dayOfWeek: day.value as DayOfWeek,
+          isAvailable: false,
+          startTime: "08:00",
+          endTime: "17:00",
+        }))
+      );
+      setOverrides([]);
+    }
+  }, [scheduleData]);
+
+  const handleSlotToggle = (dayOfWeek: DayOfWeek) => {
+    setDefaultSlots((prev) =>
+      prev.map((slot) =>
+        slot.dayOfWeek === dayOfWeek
+          ? { ...slot, isAvailable: !slot.isAvailable }
+          : slot
+      )
     );
   };
 
-  const formatAppointmentDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', { 
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric'
-    });
+  const handleSlotTimeChange = (
+    dayOfWeek: DayOfWeek,
+    field: "startTime" | "endTime",
+    value: string
+  ) => {
+    setDefaultSlots((prev) =>
+      prev.map((slot) =>
+        slot.dayOfWeek === dayOfWeek ? { ...slot, [field]: value } : slot
+      )
+    );
   };
 
-  const filteredData = useMemo(() => {
-    if (!data?.data) return [];
-    
-    let filtered = [...data.data];
-    
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((appointment) => appointment.status === statusFilter);
+  const handleSaveSchedule = async () => {
+    if (!selectedBuildingId) {
+      toast.error("Vui lòng chọn tòa nhà");
+      return;
     }
-    
-    if (debouncedSearch) {
-      const searchLower = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((appointment) => {
-        const buildingName = typeof appointment.buildingId === 'object'
-          ? appointment.buildingId.name?.toLowerCase() || ''
-          : '';
-        const contactName = appointment.contactName?.toLowerCase() || '';
-        const contactPhone = appointment.contactPhone?.toLowerCase() || '';
 
-        return (
-          buildingName.includes(searchLower) ||
-          contactName.includes(searchLower) ||
-          contactPhone.includes(searchLower)
-        );
+    try {
+      await upsertSchedule({
+        buildingId: selectedBuildingId,
+        defaultSlots,
+        overrides,
+      }).unwrap();
+
+      toast.success("Lưu lịch thành công");
+      refetchSchedule();
+    } catch (error: any) {
+      const message = toText(error, "Đã xảy ra lỗi khi lưu lịch.");
+      toast.error("Lưu lịch thất bại", { description: message });
+    }
+  };
+
+  const handleDeleteSchedule = async () => {
+    if (!selectedBuildingId) return;
+
+    try {
+      await deleteSchedule(selectedBuildingId).unwrap();
+      toast.success("Xóa lịch thành công");
+      setDefaultSlots(
+        DAYS_OF_WEEK.map((day) => ({
+          dayOfWeek: day.value as DayOfWeek,
+          isAvailable: false,
+          startTime: "08:00",
+          endTime: "17:00",
+        }))
+      );
+      setOverrides([]);
+      refetchSchedule();
+    } catch (error: any) {
+      const message = toText(error, "Đã xảy ra lỗi khi xóa lịch.");
+      toast.error("Xóa lịch thất bại", { description: message });
+    }
+  };
+
+  const handleOpenOverrideDialog = (index?: number) => {
+    if (index !== undefined) {
+      setEditingOverrideIndex(index);
+      setCurrentOverride(overrides[index]);
+    } else {
+      setEditingOverrideIndex(null);
+      setCurrentOverride({
+        date: "",
+        isAvailable: true,
+        startTime: "",
+        endTime: "",
+        note: "",
       });
     }
-    
-    return filtered;
-  }, [data?.data, debouncedSearch, statusFilter]);
+    setIsOverrideDialogOpen(true);
+  };
 
+  const handleSaveOverride = () => {
+    if (!currentOverride.date) {
+      toast.error("Vui lòng chọn ngày");
+      return;
+    }
+
+    if (editingOverrideIndex !== null) {
+      setOverrides((prev) =>
+        prev.map((override, idx) =>
+          idx === editingOverrideIndex ? currentOverride : override
+        )
+      );
+    } else {
+      setOverrides((prev) => [...prev, currentOverride]);
+    }
+
+    setIsOverrideDialogOpen(false);
+    toast.success(
+      editingOverrideIndex !== null
+        ? "Cập nhật lịch thay đổi thành công"
+        : "Thêm lịch thay đổi thành công"
+    );
+  };
+
+  const handleDeleteOverride = (index: number) => {
+    setOverrides((prev) => prev.filter((_, idx) => idx !== index));
+    toast.success("Xóa lịch thay đổi thành công");
+  };
 
   return (
-    <div className="">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen">
+      <div className="container mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                Quản lý Lịch hẹn Xem phòng
-              </h1>
-              <p className="text-slate-600 mt-1">
-                Xử lý các lịch hẹn xem phòng từ khách thuê
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">
+              Quản lý Lịch Xem Phòng
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Thiết lập lịch rảnh để người thuê có thể đặt lịch xem phòng
+            </p>
           </div>
         </div>
 
-        <Card>
-          <CardContent className="">
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Tìm kiếm theo tên khách thuê, tòa nhà, số điện thoại..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <div>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-44">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                    <SelectItem value="accept">Đã xác nhận</SelectItem>
-                    <SelectItem value="reject">Đã từ chối</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Select
-                  value={pageLimit.toString()}
-                  onValueChange={(value) => {
-                    setPageLimit(Number(value));
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 / trang</SelectItem>
-                    <SelectItem value="20">20 / trang</SelectItem>
-                    <SelectItem value="50">50 / trang</SelectItem>
-                    <SelectItem value="100">100 / trang</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ScheduleActionsGuide />
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Danh sách lịch hẹn
+              Chọn Tòa Nhà
             </CardTitle>
+            <CardDescription>
+              Tìm kiếm và chọn tòa nhà để xem lịch rảnh/bận và thiết lập lịch
+              mới
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tòa nhà</label>
+                <BuildingSelectCombobox
+                  value={selectedBuildingId}
+                  onValueChange={setSelectedBuildingId}
+                />
               </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-600 font-medium">
-                  Có lỗi xảy ra khi tải dữ liệu
-                </p>
-                <p className="text-slate-600 text-sm mt-2">
-                  Vui lòng thử lại sau
-                </p>
-              </div>
-            ) : !filteredData || filteredData.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-medium">
-                  Không tìm thấy lịch hẹn nào
-                </p>
-                <p className="text-slate-500 text-sm mt-2">
-                  {searchQuery ? "Thử thay đổi từ khóa tìm kiếm" : "Chưa có lịch hẹn nào được tạo"}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <div className="rounded-lg border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50">
-                        <TableHead className="font-semibold">Khách thuê</TableHead>
-                        <TableHead className="font-semibold">Tòa nhà</TableHead>
-                        <TableHead className="font-semibold">Ngày hẹn</TableHead>
-                        <TableHead className="font-semibold">Giờ hẹn</TableHead>
-                        <TableHead className="font-semibold">Số điện thoại</TableHead>
-                        <TableHead className="font-semibold">Trạng thái</TableHead>
-                        <TableHead className="text-center font-semibold">
-                          Thao tác
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredData.map((appointment) => (
-                        <TableRow key={appointment._id} className="hover:bg-slate-50">
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-slate-900">
-                                {appointment.contactName}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {typeof appointment.buildingId === 'object'
-                              ? appointment.buildingId.name
-                              : '—'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-slate-400" />
-                              <span className="text-slate-900">
-                                {formatAppointmentDate(appointment.date)}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-slate-400" />
-                              <span className="font-medium text-blue-600">
-                                {appointment.timeSlot}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {appointment.contactPhone}
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(appointment.status)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8"
-                                      onClick={() => handleOpenDetailModal(appointment._id)}
-                                    >
-                                      <Eye className="w-4 h-4 text-blue-600" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Xem chi tiết</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {data && data.pagination.total > 0 && totalPages > 0 && (
-                  <div className="flex items-center justify-between pt-4">
-                    <p className="text-sm text-slate-600">
-                      Hiển thị{" "}
-                      <span className="font-medium">
-                        {(currentPage - 1) * pageLimit + 1}
-                      </span>{" "}
-                      đến{" "}
-                      <span className="font-medium">
-                        {Math.min(currentPage * pageLimit, data.pagination.total)}
-                      </span>{" "}
-                      trong tổng số{" "}
-                      <span className="font-medium">{data.pagination.total}</span> lịch hẹn
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        Trước
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from(
-                          { length: Math.min(5, totalPages) },
-                          (_, i) => {
-                            let pageNum;
-                            if (totalPages <= 5) {
-                              pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                              pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                              pageNum = totalPages - 4 + i;
-                            } else {
-                              pageNum = currentPage - 2 + i;
-                            }
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={
-                                  currentPage === pageNum ? "default" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => setCurrentPage(pageNum)}
-                                className="w-9"
-                              >
-                                {pageNum}
-                              </Button>
-                            );
-                          }
-                        )}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        Sau
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
+
+        {selectedBuildingId && (
+          <>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      Lịch Mặc Định Theo Tuần
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {DAYS_OF_WEEK.map((day) => {
+                        const slot = defaultSlots.find(
+                          (s) => s.dayOfWeek === day.value
+                        );
+                        return (
+                          <div
+                            key={day.value}
+                            className="flex items-center gap-4 p-4 border rounded-lg"
+                          >
+                            <div className="w-24">
+                              <Badge variant="outline" className="font-medium">
+                                {day.label}
+                              </Badge>
+                            </div>
+                            <Switch
+                              checked={slot?.isAvailable || false}
+                              onCheckedChange={() =>
+                                handleSlotToggle(day.value as DayOfWeek)
+                              }
+                            />
+                            <span className="text-sm text-slate-600 w-20">
+                              {slot?.isAvailable ? "Rảnh" : "Bận"}
+                            </span>
+                            {slot?.isAvailable && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-slate-400" />
+                                <Input
+                                  type="time"
+                                  value={slot.startTime || "08:00"}
+                                  onChange={(e) =>
+                                    handleSlotTimeChange(
+                                      day.value as DayOfWeek,
+                                      "startTime",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-32"
+                                />
+                                <span className="text-slate-400">đến</span>
+                                <Input
+                                  type="time"
+                                  value={slot.endTime || "17:00"}
+                                  onChange={(e) =>
+                                    handleSlotTimeChange(
+                                      day.value as DayOfWeek,
+                                      "endTime",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-32"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <Card className="h-fit">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5" />
+                        Lịch thay đổi (Ngày cụ thể)
+                      </CardTitle>
+                      <Button onClick={() => handleOpenOverrideDialog()}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Thêm thay đổi
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {overrides.length === 0 ? (
+                      <div className="text-center py-12 text-slate-500">
+                        <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                        <p>Chưa có lịch thay đổi nào</p>
+                        <p className="text-sm mt-1">
+                          Thêm lịch thay đổi cho các ngày đặc biệt
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {overrides.map((override, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-4 p-4 border rounded-lg"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              <span className="text-sm font-semibold">
+                                {override.date
+                                  ? new Date(override.date).toLocaleDateString(
+                                      "vi-VN",
+                                      {
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                        weekday: "short",
+                                      }
+                                    )
+                                  : ""}
+                              </span>
+                            </div>
+                            <Badge
+                              variant={
+                                override.isAvailable ? "default" : "secondary"
+                              }
+                              className={
+                                override.isAvailable
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }
+                            >
+                              {override.isAvailable ? "Rảnh" : "Bận"}
+                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-slate-400" />
+                              <span className="text-sm font-medium">
+                                {override.startTime} - {override.endTime}
+                              </span>
+                            </div>
+                            {override.note && (
+                              <span className="text-sm text-slate-600 flex-1 truncate">
+                                {override.note}
+                              </span>
+                            )}
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenOverrideDialog(index)}
+                              >
+                                Sửa
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteOverride(index)}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+            <div className="flex justify-center mt-6 gap-2">
+              <Button
+                size="lg"
+                onClick={handleSaveSchedule}
+                disabled={isSaving}
+              >
+                <Save className="w-5 h-5 mr-2" />
+                {isSaving ? "Đang lưu..." : "Lưu lịch"}
+              </Button>
+              <Button
+                variant="destructive"
+                size="lg"
+                onClick={handleDeleteSchedule}
+                disabled={isDeleting}
+              >
+                <Trash2 className="w-5 h-5 mr-2" />
+                {isDeleting ? "Đang xóa..." : "Xóa lịch"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
-      <AppointmentDetail
-        appointmentId={selectedAppointmentId}
-        open={isDetailModalOpen}
-        onOpenChange={setIsDetailModalOpen}
-      />
+      <Dialog
+        open={isOverrideDialogOpen}
+        onOpenChange={setIsOverrideDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingOverrideIndex !== null
+                ? "Chỉnh sửa lịch thay đổi"
+                : "Thêm lịch thay đổi"}
+            </DialogTitle>
+            <DialogDescription>
+              Thiết lập lịch rảnh/bận cho ngày cụ thể
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Chọn ngày</Label>
+              <Input
+                className="mt-2"
+                type="date"
+                value={currentOverride.date}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setCurrentOverride((prev) => ({
+                    ...prev,
+                    date: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Thời gian bắt đầu</Label>
+                <Input
+                  className="mt-2"
+                  type="time"
+                  value={currentOverride.startTime}
+                  onChange={(e) =>
+                    setCurrentOverride((prev) => ({
+                      ...prev,
+                      startTime: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Thời gian kết thúc</Label>
+                <Input
+                  className="mt-2"
+                  type="time"
+                  value={currentOverride.endTime}
+                  onChange={(e) =>
+                    setCurrentOverride((prev) => ({
+                      ...prev,
+                      endTime: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Label>Trạng thái</Label>
+              <Switch
+                checked={currentOverride.isAvailable}
+                onCheckedChange={(checked) =>
+                  setCurrentOverride((prev) => ({
+                    ...prev,
+                    isAvailable: checked,
+                  }))
+                }
+              />
+              <Badge
+                variant={currentOverride.isAvailable ? "default" : "secondary"}
+                className={
+                  currentOverride.isAvailable
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }
+              >
+                {currentOverride.isAvailable ? "Rảnh" : "Bận"}
+              </Badge>
+            </div>
+            <div>
+              <small className="text-gray-400">
+                Lưu ý: Nếu thay đổi bận/rảnh cả ngày thì không cần thêm thời
+                gian
+              </small>
+            </div>
+            <div>
+              <Label>Ghi chú (tùy chọn)</Label>
+              <Textarea
+                value={currentOverride.note}
+                onChange={(e) =>
+                  setCurrentOverride((prev) => ({
+                    ...prev,
+                    note: e.target.value,
+                  }))
+                }
+                placeholder="Nhập ghi chú cho lịch này..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsOverrideDialogOpen(false)}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Hủy
+            </Button>
+            <Button onClick={handleSaveOverride}>
+              <Save className="w-4 h-4 mr-2" />
+              Lưu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default AppointmentManageLandlord;
+export default LandlordScheduleManagement;
