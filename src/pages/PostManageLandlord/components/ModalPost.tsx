@@ -20,7 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
 import { BuildingSelectCombobox } from "../../FloorManageLandlord/components/BuildingSelectCombobox";
 import {
   useAiGeneratePostMutation,
@@ -32,7 +31,10 @@ import type { IPost } from "@/types/post";
 import { RoomMultiSelectCombobox } from "./RoomMultiSelectCombobox";
 import type { Element } from "slate";
 import { SlateEditor } from "../../TermManagement/components/SlateEditor";
-import { htmlToSlate, slateToHtml } from "../../TermManagement/components/slateHelpers";
+import {
+  htmlToSlate,
+  slateToHtml,
+} from "../../TermManagement/components/slateHelpers";
 
 const postSchema = z
   .object({
@@ -132,8 +134,12 @@ export const ModalPost = ({
   useEffect(() => {
     const rooms = (vacantInfo as any)?.data?.rooms;
     if (rooms && Array.isArray(rooms) && rooms.length > 0) {
-      const prices = rooms.map((room: any) => Number(room.price) || 0).filter((p: number) => p > 0);
-      const areas = rooms.map((room: any) => Number(room.area) || 0).filter((a: number) => a > 0);
+      const prices = rooms
+        .map((room: any) => Number(room.price) || 0)
+        .filter((p: number) => p > 0);
+      const areas = rooms
+        .map((room: any) => Number(room.area) || 0)
+        .filter((a: number) => a > 0);
 
       if (prices.length > 0) {
         const priceMin = Math.min(...prices);
@@ -286,17 +292,21 @@ export const ModalPost = ({
 
       if (result.success && result.data.aiDescription) {
         console.log("result", result.data);
-        
+
         let html = result.data.aiDescription.trim();
-        
+
         // Kiểm tra xem có phải là HTML hợp lệ không (có thẻ mở và đóng)
         // Nếu không có thẻ HTML hoặc chỉ có text, wrap trong <p> tag
         const hasHtmlTags = /<[^>]+>/g.test(html);
         if (!hasHtmlTags) {
           // Nếu là plain text, wrap trong <p> tag và giữ nguyên line breaks
-          html = html.split('\n').map(line => line.trim() ? `<p>${line.trim()}</p>` : '').filter(Boolean).join('');
+          html = html
+            .split("\n")
+            .map((line) => (line.trim() ? `<p>${line.trim()}</p>` : ""))
+            .filter(Boolean)
+            .join("");
           if (!html) {
-            html = '<p></p>';
+            html = "<p></p>";
           }
         }
         console.log("html", html);
@@ -304,7 +314,7 @@ export const ModalPost = ({
         try {
           const value = htmlToSlate(html);
           console.log("value", value);
-          
+
           setSlateValue(value);
           // Force re-mount SlateEditor để nhận giá trị mới
           setSlateKey((prev) => prev + 1);
@@ -482,13 +492,20 @@ export const ModalPost = ({
                 name="priceMin"
                 render={({ field }) => {
                   const rooms = (vacantInfo as any)?.data?.rooms;
-                  const prices = rooms && Array.isArray(rooms) && rooms.length > 0
-                    ? rooms.map((room: any) => Number(room.price) || 0).filter((p: number) => p > 0)
-                    : [];
-                  const priceMinValue = prices.length > 0 ? Math.min(...prices) : 0;
-                  const priceMaxValue = prices.length > 0 ? Math.max(...prices) : 20000000;
-                  const currentPriceMin = form.watch("priceMin") || priceMinValue;
-                  const currentPriceMax = form.watch("priceMax") || priceMaxValue;
+                  const prices =
+                    rooms && Array.isArray(rooms) && rooms.length > 0
+                      ? rooms
+                          .map((room: any) => Number(room.price) || 0)
+                          .filter((p: number) => p > 0)
+                      : [];
+                  const priceMinValue =
+                    prices.length > 0 ? Math.min(...prices) : 0;
+                  const priceMaxValue =
+                    prices.length > 0 ? Math.max(...prices) : 20000000;
+                  const currentPriceMin =
+                    form.watch("priceMin") || priceMinValue;
+                  const currentPriceMax =
+                    form.watch("priceMax") || priceMaxValue;
 
                   return (
                     <FormItem className="md:col-span-2">
@@ -520,14 +537,19 @@ export const ModalPost = ({
                                 onChange={(e) => {
                                   const value = Math.max(
                                     priceMinValue,
-                                    Math.min(priceMaxValue, Number(e.target.value))
+                                    Math.min(
+                                      priceMaxValue,
+                                      Number(e.target.value)
+                                    )
                                   );
                                   field.onChange(value);
                                   if (value > currentPriceMax) {
                                     form.setValue("priceMax", value);
                                   }
                                 }}
-                                disabled={!buildingIdWatch || prices.length === 0}
+                                disabled={
+                                  !buildingIdWatch || prices.length === 0
+                                }
                               />
                             </div>
                             <div className="flex items-center gap-2 flex-1">
@@ -543,11 +565,16 @@ export const ModalPost = ({
                                 onChange={(e) => {
                                   const value = Math.max(
                                     currentPriceMin,
-                                    Math.min(priceMaxValue, Number(e.target.value))
+                                    Math.min(
+                                      priceMaxValue,
+                                      Number(e.target.value)
+                                    )
                                   );
                                   form.setValue("priceMax", value);
                                 }}
-                                disabled={!buildingIdWatch || prices.length === 0}
+                                disabled={
+                                  !buildingIdWatch || prices.length === 0
+                                }
                               />
                             </div>
                           </div>
@@ -575,11 +602,16 @@ export const ModalPost = ({
                 name="areaMin"
                 render={({ field }) => {
                   const rooms = (vacantInfo as any)?.data?.rooms;
-                  const areas = rooms && Array.isArray(rooms) && rooms.length > 0
-                    ? rooms.map((room: any) => Number(room.area) || 0).filter((a: number) => a > 0)
-                    : [];
-                  const areaMinValue = areas.length > 0 ? Math.min(...areas) : 0;
-                  const areaMaxValue = areas.length > 0 ? Math.max(...areas) : 200;
+                  const areas =
+                    rooms && Array.isArray(rooms) && rooms.length > 0
+                      ? rooms
+                          .map((room: any) => Number(room.area) || 0)
+                          .filter((a: number) => a > 0)
+                      : [];
+                  const areaMinValue =
+                    areas.length > 0 ? Math.min(...areas) : 0;
+                  const areaMaxValue =
+                    areas.length > 0 ? Math.max(...areas) : 200;
                   const currentAreaMin = form.watch("areaMin") || areaMinValue;
                   const currentAreaMax = form.watch("areaMax") || areaMaxValue;
 
@@ -613,14 +645,19 @@ export const ModalPost = ({
                                 onChange={(e) => {
                                   const value = Math.max(
                                     areaMinValue,
-                                    Math.min(areaMaxValue, Number(e.target.value))
+                                    Math.min(
+                                      areaMaxValue,
+                                      Number(e.target.value)
+                                    )
                                   );
                                   field.onChange(value);
                                   if (value > currentAreaMax) {
                                     form.setValue("areaMax", value);
                                   }
                                 }}
-                                disabled={!buildingIdWatch || areas.length === 0}
+                                disabled={
+                                  !buildingIdWatch || areas.length === 0
+                                }
                               />
                             </div>
                             <div className="flex items-center gap-2 flex-1">
@@ -636,11 +673,16 @@ export const ModalPost = ({
                                 onChange={(e) => {
                                   const value = Math.max(
                                     currentAreaMin,
-                                    Math.min(areaMaxValue, Number(e.target.value))
+                                    Math.min(
+                                      areaMaxValue,
+                                      Number(e.target.value)
+                                    )
                                   );
                                   form.setValue("areaMax", value);
                                 }}
-                                disabled={!buildingIdWatch || areas.length === 0}
+                                disabled={
+                                  !buildingIdWatch || areas.length === 0
+                                }
                               />
                             </div>
                           </div>
