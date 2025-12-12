@@ -39,7 +39,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { ServiceActionsGuide } from "./ServiceActionsGuide";
 
 const ServiceManageLandlord = () => {
   const formatPrice = useFormatPrice();
@@ -164,8 +163,6 @@ const ServiceManageLandlord = () => {
             quy mô kinh doanh của bạn
           </p>
         </div>
-
-        <ServiceActionsGuide />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
