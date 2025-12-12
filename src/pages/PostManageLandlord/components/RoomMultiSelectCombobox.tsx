@@ -37,6 +37,8 @@ export const RoomMultiSelectCombobox = ({
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
+  const safeValue = Array.isArray(value) ? value : [];
+
   const debouncedSetSearch = useMemo(
     () =>
       _.debounce((v: string) => {
@@ -66,7 +68,25 @@ export const RoomMultiSelectCombobox = ({
     } as any
   );
 
-  const allRooms = useMemo(() => data?.data?.rooms ?? [], [data]);
+  const allRooms = useMemo(() => {
+    const rooms = data?.data?.rooms ?? [];
+
+    const filtered = rooms.filter((r: any) => {
+      return (
+        r.status === "available" ||
+        (r.status === "rented" && r.expectedAvailableDate)
+      );
+    });
+
+    return filtered.sort((a: any, b: any) => {
+      const isSoonA = a.status === "rented" && a.expectedAvailableDate;
+      const isSoonB = b.status === "rented" && b.expectedAvailableDate;
+
+      if (isSoonA && !isSoonB) return -1;
+      if (!isSoonA && isSoonB) return 1;
+      return 0;
+    });
+  }, [data]);
 
   const filteredRooms = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase();
@@ -87,8 +107,10 @@ export const RoomMultiSelectCombobox = ({
 
   const areAllFilteredSelected = useMemo(() => {
     if (filteredRooms.length === 0) return false;
-    return filteredRooms.every((room: any) => value.includes(room._id));
-  }, [filteredRooms, value]);
+    return filteredRooms.every((room: any) =>
+      safeValue.includes(String(room._id))
+    );
+  }, [filteredRooms, safeValue]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -100,26 +122,27 @@ export const RoomMultiSelectCombobox = ({
   };
 
   const toggleSelect = (id: string) => {
-    if (value.includes(id)) {
-      onValueChange(value.filter((x) => x !== id));
+    const strId = String(id);
+    if (safeValue.includes(strId)) {
+      onValueChange(safeValue.filter((x) => x !== strId));
     } else {
-      onValueChange([...value, id]);
+      onValueChange([...safeValue, strId]);
     }
   };
 
   const toggleSelectAll = () => {
     if (areAllFilteredSelected) {
-      const filteredIds = new Set(filteredRooms.map((r: any) => r._id));
-      const newValue = value.filter((id) => !filteredIds.has(id));
+      const filteredIds = new Set(filteredRooms.map((r: any) => String(r._id)));
+      const newValue = safeValue.filter((id) => !filteredIds.has(id));
       onValueChange(newValue);
     } else {
-      const filteredIds = filteredRooms.map((r: any) => r._id);
-      const newValue = Array.from(new Set([...value, ...filteredIds]));
+      const filteredIds = filteredRooms.map((r: any) => String(r._id));
+      const newValue = Array.from(new Set([...safeValue, ...filteredIds]));
       onValueChange(newValue);
     }
   };
 
-  const selectedCount = value.length;
+  const selectedCount = safeValue.length;
 
   const summaryLabel = useMemo(() => {
     if (!buildingId) return "Chọn phòng...";
@@ -132,6 +155,7 @@ export const RoomMultiSelectCombobox = ({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -165,11 +189,14 @@ export const RoomMultiSelectCombobox = ({
             )}
           </div>
 
-          {/* Nút Chọn tất cả / Bỏ chọn tất cả */}
           {!isLoading && filteredRooms.length > 0 && (
             <div className="border-b">
               <button
-                onClick={toggleSelectAll}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleSelectAll();
+                }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors font-medium text-primary"
               >
                 <div
@@ -210,14 +237,25 @@ export const RoomMultiSelectCombobox = ({
             ) : (
               <>
                 {visibleRooms.map((room: any) => {
-                  const checked = value.includes(room._id);
+                  const strId = String(room._id);
+                  const checked = safeValue.includes(strId);
+
+                  // Xác định xem có phải là phòng sắp trống không
+                  const isSoonAvailable =
+                    room.status === "rented" && room.expectedAvailableDate;
+
                   return (
                     <button
                       key={room._id}
-                      onClick={() => toggleSelect(room._id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleSelect(strId);
+                      }}
                       className={cn(
                         "flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors",
-                        checked && "bg-accent/50"
+                        checked && "bg-accent/50",
+                        isSoonAvailable
                       )}
                     >
                       <div
@@ -232,18 +270,32 @@ export const RoomMultiSelectCombobox = ({
                       </div>
 
                       <div className="flex items-center gap-2 min-w-0 w-full justify-between text-left">
-                        <span className="truncate font-medium">
-                          P.{room.roomNumber}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-3 shrink-0">
-                          <span className="inline-flex items-center gap-1">
-                            <Square className="h-3 w-3" />
-                            {room.area} m²
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate font-medium">
+                              P.{room.roomNumber}
+                            </span>
+
+                            {isSoonAvailable && (
+                              <span className="inline-flex items-center rounded-md bg-yellow-100 px-2 py-0.5 text-[11px] font-medium text-yellow-800 border border-yellow-200 whitespace-nowrap shadow-sm">
+                                Trống từ{" "}
+                                {new Date(
+                                  room.expectedAvailableDate
+                                ).toLocaleDateString("vi-VN")}
+                              </span>
+                            )}
+                          </div>
+
+                          <span className="text-xs text-muted-foreground flex items-center gap-3 shrink-0 mt-0.5">
+                            <span className="inline-flex items-center gap-1">
+                              <Square className="h-3 w-3" />
+                              {room.area} m²
+                            </span>
+                            <span className="inline-flex items-center gap-1 font-mono">
+                              ₫{room.price.toLocaleString("vi-VN")}
+                            </span>
                           </span>
-                          <span className="inline-flex items-center gap-1 font-mono">
-                            ₫{room.price.toLocaleString("vi-VN")}
-                          </span>
-                        </span>
+                        </div>
                       </div>
                     </button>
                   );
@@ -254,8 +306,12 @@ export const RoomMultiSelectCombobox = ({
                     <Button
                       variant="ghost"
                       size="sm"
+                      type="button"
                       className="w-full gap-2"
-                      onClick={() => setPage((p) => p + 1)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage((p) => p + 1);
+                      }}
                       disabled={isFetching}
                     >
                       {isFetching ? (

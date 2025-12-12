@@ -21,8 +21,6 @@ import {
   DoorOpen,
   ShieldCheck,
   Info,
-  Share2,
-  Heart,
   Star,
   Wifi,
 } from "lucide-react";
@@ -200,15 +198,6 @@ const PostDetail = () => {
               <span>Đăng ngày {formatDate(post.createdAt)}</span>
             </div>
 
-            <div className="flex gap-2 pt-1">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Share2 className="h-4 w-4" /> Chia sẻ
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Heart className="h-4 w-4" /> Lưu
-              </Button>
-            </div>
-
             <div className="h-px bg-border" />
 
             <div className="grid grid-cols-2 gap-3">
@@ -231,7 +220,9 @@ const PostDetail = () => {
             </div>
 
             <div className="pt-2">
-              <Button className="w-full">Liên hệ / Quan tâm</Button>
+              <Button className="w-full">
+                Những thông tin liên quan đến phòng
+              </Button>
             </div>
           </CardContent>
         </Card>

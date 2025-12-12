@@ -14,9 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Phone, User, FileText, DoorOpen } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-    useCreateContactRequestMutation,
-} from "@/services/contact-request/contact-request.service";
+import { useCreateContactRequestMutation } from "@/services/contact-request/contact-request.service";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetProfileQuery } from "@/services/profile/profile.service";
@@ -27,6 +25,8 @@ interface RoomOption {
   status?: string;
   price?: number;
   area?: number;
+  isSoonAvailable?: boolean;
+  expectedAvailableDate?: string | Date;
 }
 
 interface CreateContactModalProps {
@@ -36,7 +36,7 @@ interface CreateContactModalProps {
   buildingId: string;
   postTitle?: string;
   buildingName?: string;
-  rooms?: RoomOption[]; 
+  rooms?: RoomOption[];
 }
 
 const CreateContact = ({
@@ -51,20 +51,20 @@ const CreateContact = ({
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [tenantNote, setTenantNote] = useState("");
-  const [selectedRoomId, setSelectedRoomId] = useState(""); 
+  const [selectedRoomId, setSelectedRoomId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createContactRequest] = useCreateContactRequestMutation();
   const { isAuthenticated } = useSelector((state: any) => state.auth);
-    const { data: profileData } = useGetProfileQuery(undefined, {
-        skip: !isAuthenticated,
-      });
+  const { data: profileData } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
 
-      useEffect(() => {
-      if (profileData) {
-        setContactName(profileData.user.userInfo?.fullName || "");
-        setContactPhone(profileData.user.userInfo?.phoneNumber || "");
-      }
-    }, [profileData]);
+  useEffect(() => {
+    if (profileData) {
+      setContactName(profileData.user.userInfo?.fullName || "");
+      setContactPhone(profileData.user.userInfo?.phoneNumber || "");
+    }
+  }, [profileData]);
 
   const handleSubmit = async () => {
     if (!contactName.trim()) {
@@ -97,14 +97,14 @@ const CreateContact = ({
         roomId: selectedRoomId,
         contactName: contactName.trim(),
         contactPhone: contactPhone.trim().replace(/\s/g, ""),
-        tenantNote: tenantNote.trim() 
+        tenantNote: tenantNote.trim(),
       };
 
       console.log("Contact Request Payload:", payload);
 
       const res = await createContactRequest(payload).unwrap();
 
-      if(!res.success) {
+      if (!res.success) {
         toast.error("Có lỗi xảy ra", { description: res.message });
         throw new Error(res.message || "Đã xảy ra lỗi");
       }
@@ -121,8 +121,7 @@ const CreateContact = ({
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.data?.message ||
-          "Không thể gửi yêu cầu. Vui lòng thử lại",
+          error?.data?.message || "Không thể gửi yêu cầu. Vui lòng thử lại",
       });
     } finally {
       setIsSubmitting(false);
@@ -141,9 +140,9 @@ const CreateContact = ({
 
   const navigate = useNavigate();
 
-  const handleContactRequest = () =>{
+  const handleContactRequest = () => {
     navigate("/resident/contact-requests");
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -188,14 +187,27 @@ const CreateContact = ({
               >
                 <option value="">-- Chọn phòng --</option>
                 {rooms
-                  .filter((r) => r.status === "available" || !r.status)
-                  .map((room) => (
-                    <option key={room._id} value={room._id}>
-                      Phòng {room.roomNumber}{" "}
-                      {room.area && `(${room.area}m²)`}{" "}
-                      {room.price && `- ${room.price.toLocaleString()}đ`}
-                    </option>
-                  ))}
+                  .filter((r) => r.status === "available" || r.isSoonAvailable)
+                  .map((room) => {
+                    let soonText = "";
+                    if (room.isSoonAvailable) {
+                      const dateStr = room.expectedAvailableDate
+                        ? new Date(
+                            room.expectedAvailableDate
+                          ).toLocaleDateString("vi-VN")
+                        : "Sắp tới";
+                      soonText = ` (Trống từ ${dateStr})`;
+                    }
+
+                    return (
+                      <option key={room._id} value={room._id}>
+                        Phòng {room.roomNumber}
+                        {room.area ? ` (${room.area}m²)` : ""}
+                        {room.price ? ` - ${room.price.toLocaleString()}đ` : ""}
+                        {soonText}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
           )}
@@ -250,7 +262,7 @@ const CreateContact = ({
             </p>
           </div>
         </div>
-          
+
         <DialogFooter className="gap-2">
           <Button type="button" onClick={() => handleContactRequest()}>
             Xem các yêu cầu của bạn
