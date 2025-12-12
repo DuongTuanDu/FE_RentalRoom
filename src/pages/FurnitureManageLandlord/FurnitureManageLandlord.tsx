@@ -25,6 +25,7 @@ import type { IFurniture, IFurnitureRequest } from "@/types/furniture";
 import { ModalFurniture } from "./components/ModalFurniture";
 import { DeleteFurniturePopover } from "./components/DeleteFurniturePopover";
 import Permission from "@/layouts/Permission";
+import { FurnitureActionsGuide } from "./components/FurnitureActionsGuide";
 
 const FurnitureManageLandlord = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,6 +140,7 @@ const FurnitureManageLandlord = () => {
           </Button>
         </Permission>
       </div>
+      <FurnitureActionsGuide />
 
       {/* Furnitures Table */}
       <Card>

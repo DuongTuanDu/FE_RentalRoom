@@ -1,0 +1,179 @@
+import { useState } from "react";
+import {
+  HelpCircle,
+  ChevronUp,
+  ChevronDown,
+  FileText,
+  Calendar,
+  Send,
+  CreditCard,
+  Edit,
+  Trash2,
+  Eye,
+  Filter,
+} from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+
+export const InvoiceActionsGuide = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const actions = [
+    {
+      icon: Calendar,
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
+      title: "Tạo hóa đơn hàng loạt",
+      description:
+        "Tạo nhanh hóa đơn cho nhiều phòng cùng lúc trong một tháng cụ thể.",
+      availableWhen: "Luôn có sẵn",
+    },
+    {
+      icon: FileText,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600",
+      title: "Tạo hóa đơn lẻ",
+      description: "Tạo hóa đơn riêng lẻ cho từng phòng khi cần thiết.",
+      availableWhen: "Luôn có sẵn",
+    },
+    {
+      icon: Send,
+      iconBg: "bg-indigo-100",
+      iconColor: "text-indigo-600",
+      title: "Gửi hóa đơn nháp",
+      description:
+        "Gửi tất cả các hóa đơn đang ở trạng thái 'Nháp' đến khách thuê qua email.",
+      availableWhen: "Luôn có sẵn",
+    },
+    {
+      icon: CreditCard,
+      iconBg: "bg-emerald-100",
+      iconColor: "text-emerald-600",
+      title: "Thanh toán",
+      description:
+        "Xác nhận thanh toán cho hóa đơn khi khách thuê đã chuyển khoản hoặc trả tiền mặt.",
+      availableWhen:
+        "Tại dòng hóa đơn có trạng thái: Đã gửi (sent) hoặc Chờ chuyển tiền (transfer_pending)",
+    },
+    {
+      icon: Edit,
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
+      title: "Cập nhật",
+      description:
+        "Chỉnh sửa thông tin chi tiết của hóa đơn (số điện, nước, dịch vụ...).",
+      availableWhen:
+        "Tại dòng hóa đơn có trạng thái khác: Đã thanh toán (paid) và Đã hủy (cancelled)",
+    },
+    {
+      icon: Eye,
+      iconBg: "bg-sky-100",
+      iconColor: "text-sky-600",
+      title: "Xem chi tiết",
+      description:
+        "Xem toàn bộ thông tin chi tiết của hóa đơn bao gồm các khoản phí.",
+      availableWhen: "Luôn có sẵn tại mỗi dòng hóa đơn",
+    },
+    {
+      icon: Trash2,
+      iconBg: "bg-red-100",
+      iconColor: "text-red-600",
+      title: "Xóa hóa đơn",
+      description: "Xóa hóa đơn khỏi hệ thống (nếu hóa đơn bị sai hoặc hủy).",
+      availableWhen: "Tại dòng hóa đơn (cần xác nhận trước khi xóa)",
+    },
+    {
+      icon: Filter,
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-600",
+      title: "Bộ lọc nâng cao",
+      description:
+        "Lọc hóa đơn theo trạng thái, tòa nhà, tháng/năm để quản lý dễ dàng hơn.",
+      availableWhen: "Luôn có sẵn",
+    },
+  ];
+
+  return (
+    <Card className="border-blue-200 bg-blue-50/50 mb-6">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <HelpCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">
+                  Hướng dẫn quản lý hóa đơn
+                </CardTitle>
+                <CardDescription>
+                  Tìm hiểu về các chức năng tạo, gửi và quản lý thanh toán hóa
+                  đơn
+                </CardDescription>
+              </div>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {actions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <div
+                    key={index}
+                    className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${action.iconBg} ${action.iconColor}`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <h4 className="font-semibold text-sm">
+                          {action.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {action.description}
+                        </p>
+                        <div className="pt-2 border-t">
+                          <p className="text-xs font-medium text-blue-600">
+                            Có sẵn khi:
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {action.availableWhen}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+};

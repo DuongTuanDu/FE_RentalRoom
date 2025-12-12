@@ -32,6 +32,7 @@ import { ModalBuildingService } from "./components/ModalBuildingService";
 import { DeleteBuildingServicePopup } from "./components/DeleteBuildingServicePopup";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import Permission from "@/layouts/Permission";
+import { BuildingServiceActionsGuide } from "./components/BuildingServiceActionsGuide";
 
 const BuildingServiceManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -42,7 +43,6 @@ const BuildingServiceManageLandlord = () => {
     useState<IBuildingService | null>(null);
   const [isEdit, setIsEdit] = useState(false);
 
-  // Auto-select first building
   const { data: initialBuildingData } = useGetBuildingsQuery({
     q: "",
     page: 1,
@@ -56,7 +56,6 @@ const BuildingServiceManageLandlord = () => {
     }
   }, [initialBuildingData, selectedBuildingId]);
 
-  // API hooks
   const { data: services, isLoading } = useGetBuildingservicesQuery(
     { buildingId: selectedBuildingId, includeDeleted },
     { skip: !selectedBuildingId }
@@ -73,7 +72,6 @@ const BuildingServiceManageLandlord = () => {
 
   const formatPrice = useFormatPrice();
 
-  // Form state
   const [formData, setFormData] = useState<IBuildingServiceRequest>({
     name: "internet",
     label: "",
@@ -84,7 +82,6 @@ const BuildingServiceManageLandlord = () => {
   });
 
   const handleCreateService = async () => {
-    // Validation
     if (!formData.label?.trim()) {
       toast.error("Vui lòng nhập tên dịch vụ");
       return;
@@ -236,21 +233,25 @@ const BuildingServiceManageLandlord = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">Quản lý dịch vụ tòa nhà</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            Quản lý dịch vụ tòa nhà
+          </h1>
           <p className="text-muted-foreground">
             Quản lý các dịch vụ của tòa nhà
           </p>
         </div>
         <Permission permission="buildingService:create">
-        <Button
-          disabled={!selectedBuildingId || isCreating}
-          onClick={openCreateModal}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          {isCreating ? "Đang tạo..." : "Thêm dịch vụ"}
-        </Button>
+          <Button
+            disabled={!selectedBuildingId || isCreating}
+            onClick={openCreateModal}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {isCreating ? "Đang tạo..." : "Thêm dịch vụ"}
+          </Button>
         </Permission>
       </div>
+
+      <BuildingServiceActionsGuide />
 
       {/* Filters */}
       <Card>
@@ -369,7 +370,7 @@ const BuildingServiceManageLandlord = () => {
                             </Button>
                           ) : (
                             <>
-                              <Permission permission = "buildingService:edit">
+                              <Permission permission="buildingService:edit">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -379,15 +380,15 @@ const BuildingServiceManageLandlord = () => {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </Permission>
-                              <Permission permission = "buildingService:delete">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isDeleting}
-                                onClick={() => openDeletePopup(service)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <Permission permission="buildingService:delete">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isDeleting}
+                                  onClick={() => openDeletePopup(service)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </Permission>
                             </>
                           )}

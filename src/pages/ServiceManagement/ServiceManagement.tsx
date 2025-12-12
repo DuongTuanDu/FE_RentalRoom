@@ -24,12 +24,17 @@ import { DeletePackagePopover } from "./components/DeletePackagePopover";
 import { toast } from "sonner";
 import type { IPackage as PackageType } from "@/types/package-services";
 import type { CreatePackageRequest } from "@/services/package-services/package-services.service";
+import { ServicePackageActionsGuide } from "./components/ServicePackageActionsGuide";
 
 const ServiceManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPackage, setEditingPackage] = useState<PackageType | null>(null);
+  const [editingPackage, setEditingPackage] = useState<PackageType | null>(
+    null
+  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingPackage, setDeletingPackage] = useState<PackageType | null>(null);
+  const [deletingPackage, setDeletingPackage] = useState<PackageType | null>(
+    null
+  );
 
   const formatPrice = useFormatPrice();
   const formatDate = useFormatDate();
@@ -113,6 +118,8 @@ const ServiceManagement = () => {
         </Button>
       </div>
 
+      <ServicePackageActionsGuide />
+
       {/* Packages Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
@@ -125,7 +132,11 @@ const ServiceManagement = () => {
             <p className="text-lg font-medium text-muted-foreground">
               Chưa có gói dịch vụ nào
             </p>
-            <Button variant="outline" className="gap-2" onClick={handleOpenCreateModal}>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleOpenCreateModal}
+            >
               <Plus className="h-4 w-4" />
               Thêm gói dịch vụ đầu tiên
             </Button>
@@ -134,7 +145,10 @@ const ServiceManagement = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {data.data.map((pkg) => (
-            <Card key={pkg._id} className="relative flex flex-col transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl">
+            <Card
+              key={pkg._id}
+              className="relative flex flex-col transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
@@ -145,7 +159,10 @@ const ServiceManagement = () => {
                       </span>
                     </div>
                   </div>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-blue-50 text-blue-700 border-blue-200"
+                  >
                     {pkg.durationDays} ngày
                   </Badge>
                 </div>

@@ -51,6 +51,7 @@ import type {
 import { toast } from "sonner";
 import { toText } from "@/utils/errors";
 import Permission from "@/layouts/Permission";
+import { BuildingActionsGuide } from "./components/BuildingActionsGuide";
 
 const BuildingManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -350,6 +351,7 @@ const BuildingManageLandlord = () => {
             </div>
           </Permission>
         </div>
+        <BuildingActionsGuide />
 
         {/* Filter Section */}
         <Card>

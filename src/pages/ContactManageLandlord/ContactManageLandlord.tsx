@@ -3,7 +3,14 @@ import {
   useGetContactsQuery,
   useUpdateContactStatusMutation,
 } from "@/services/contact-request/contact-request.service";
-import { FileText, Search, Eye, CheckCircle, XCircle, Plus } from "lucide-react";
+import {
+  FileText,
+  Search,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Plus,
+} from "lucide-react";
 import _ from "lodash";
 import {
   Table,
@@ -46,6 +53,7 @@ import { Label } from "@/components/ui/label";
 import { SendContractModal } from "./components/SendContractModal";
 import { useCreateContractMutation } from "@/services/contract/contract.service";
 import type { IContractData } from "@/types/contract";
+import { ContactRequestActionsGuide } from "./components/ContactRequestActionsGuide";
 
 const ContactManageLandlord = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,17 +63,23 @@ const ContactManageLandlord = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<IContact | null>(null);
-  const [actionType, setActionType] = useState<"accepted" | "rejected" | null>(null);
+  const [actionType, setActionType] = useState<"accepted" | "rejected" | null>(
+    null
+  );
   const [landlordNote, setLandlordNote] = useState("");
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [viewingContact, setViewingContact] = useState<IContact | null>(null);
   const [isSendContractModalOpen, setIsSendContractModalOpen] = useState(false);
   const [contractData, setContractData] = useState<IContractData | null>(null);
-  const [acceptedContactIds, setAcceptedContactIds] = useState<Set<string>>(new Set());
+  const [acceptedContactIds, setAcceptedContactIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const formatDate = useFormatDate();
-  const [updateContactStatus, { isLoading: isUpdating }] = useUpdateContactStatusMutation();
-  const [createContract, { isLoading: isCreatingContract }] = useCreateContractMutation();
+  const [updateContactStatus, { isLoading: isUpdating }] =
+    useUpdateContactStatusMutation();
+  const [createContract, { isLoading: isCreatingContract }] =
+    useCreateContractMutation();
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -88,12 +102,18 @@ const ContactManageLandlord = () => {
   const { data, error, isLoading, refetch } = useGetContactsQuery({
     page: currentPage,
     limit: pageLimit,
-    status: statusFilter !== "all" ? statusFilter as ContactStatus : undefined,
+    status:
+      statusFilter !== "all" ? (statusFilter as ContactStatus) : undefined,
   });
 
-  const totalPages = data?.pagination.total ? Math.ceil(data.pagination.total / pageLimit) : 0;
+  const totalPages = data?.pagination.total
+    ? Math.ceil(data.pagination.total / pageLimit)
+    : 0;
 
-  const handleOpenActionDialog = (contact: IContact, action: "accepted" | "rejected") => {
+  const handleOpenActionDialog = (
+    contact: IContact,
+    action: "accepted" | "rejected"
+  ) => {
     setSelectedContact(contact);
     setActionType(action);
     setLandlordNote("");
@@ -150,21 +170,23 @@ const ContactManageLandlord = () => {
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
         description:
-          error?.message?.message ||
-          "Không thể tạo hợp đồng. Vui lòng thử lại",
+          error?.message?.message || "Không thể tạo hợp đồng. Vui lòng thử lại",
       });
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: "Chờ duyệt", className: "bg-yellow-100 text-yellow-800" },
+      pending: {
+        label: "Chờ duyệt",
+        className: "bg-yellow-100 text-yellow-800",
+      },
       accepted: { label: "Đã duyệt", className: "bg-green-100 text-green-800" },
       rejected: { label: "Đã từ chối", className: "bg-red-100 text-red-800" },
       cancelled: { label: "Đã hủy", className: "bg-red-100 text-red-800" },
-
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     return (
       <Badge className={config.className} variant="outline">
         {config.label}
@@ -174,26 +196,29 @@ const ContactManageLandlord = () => {
 
   const filteredData = useMemo(() => {
     if (!data?.data) return [];
-    
+
     let filtered = data.data;
-    
+
     if (statusFilter !== "all") {
       filtered = filtered.filter((contact) => contact.status === statusFilter);
     }
-    
+
     if (debouncedSearch) {
       const searchLower = debouncedSearch.toLowerCase();
       filtered = filtered.filter((contact) => {
-        const tenantName = typeof contact.tenantId === 'object' 
-          ? contact.tenantId.fullName?.toLowerCase() || ''
-          : '';
-        const buildingName = typeof contact.buildingId === 'object'
-          ? contact.buildingId.name?.toLowerCase() || ''
-          : '';
-        const roomName = typeof contact.roomId === 'object'
-          ? contact.roomId.roomNumber?.toLowerCase() || ''
-          : '';
-        const contactName = contact.contactName?.toLowerCase() || '';
+        const tenantName =
+          typeof contact.tenantId === "object"
+            ? contact.tenantId.fullName?.toLowerCase() || ""
+            : "";
+        const buildingName =
+          typeof contact.buildingId === "object"
+            ? contact.buildingId.name?.toLowerCase() || ""
+            : "";
+        const roomName =
+          typeof contact.roomId === "object"
+            ? contact.roomId.roomNumber?.toLowerCase() || ""
+            : "";
+        const contactName = contact.contactName?.toLowerCase() || "";
 
         return (
           tenantName.includes(searchLower) ||
@@ -203,7 +228,7 @@ const ContactManageLandlord = () => {
         );
       });
     }
-    
+
     return filtered;
   }, [data?.data, debouncedSearch, statusFilter]);
 
@@ -225,6 +250,8 @@ const ContactManageLandlord = () => {
             </div>
           </div>
         </div>
+
+        <ContactRequestActionsGuide />
 
         <Card>
           <CardContent>
@@ -318,10 +345,18 @@ const ContactManageLandlord = () => {
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tòa nhà</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">Người liên hệ</TableHead>
-                        <TableHead className="font-semibold">SĐT liên hệ</TableHead>
-                        <TableHead className="font-semibold">Trạng thái</TableHead>
-                        <TableHead className="font-semibold">Ngày tạo</TableHead>
+                        <TableHead className="font-semibold">
+                          Người liên hệ
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          SĐT liên hệ
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="font-semibold">
+                          Ngày tạo
+                        </TableHead>
                         <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
@@ -329,16 +364,19 @@ const ContactManageLandlord = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredData.map((contact) => (
-                        <TableRow key={contact._id} className="hover:bg-slate-50">
+                        <TableRow
+                          key={contact._id}
+                          className="hover:bg-slate-50"
+                        >
                           <TableCell className="text-slate-600">
-                            {typeof contact.buildingId === 'object'
+                            {typeof contact.buildingId === "object"
                               ? contact.buildingId.name
-                              : '—'}
+                              : "—"}
                           </TableCell>
                           <TableCell className="text-slate-600">
-                            {typeof contact.roomId === 'object'
+                            {typeof contact.roomId === "object"
                               ? contact.roomId.roomNumber
-                              : '—'}
+                              : "—"}
                           </TableCell>
                           <TableCell className="text-slate-600">
                             {contact.contactName}
@@ -350,7 +388,9 @@ const ContactManageLandlord = () => {
                             {getStatusBadge(contact.status)}
                           </TableCell>
                           <TableCell className="text-slate-600 text-sm">
-                            {contact.createdAt ? formatDate(contact.createdAt) : '—'}
+                            {contact.createdAt
+                              ? formatDate(contact.createdAt)
+                              : "—"}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
@@ -361,7 +401,9 @@ const ContactManageLandlord = () => {
                                       variant="ghost"
                                       size="icon"
                                       className="h-8 w-8"
-                                      onClick={() => handleOpenDetailDialog(contact)}
+                                      onClick={() =>
+                                        handleOpenDetailDialog(contact)
+                                      }
                                     >
                                       <Eye className="w-4 h-4 text-blue-600" />
                                     </Button>
@@ -382,7 +424,10 @@ const ContactManageLandlord = () => {
                                           size="icon"
                                           className="h-8 w-8"
                                           onClick={() =>
-                                            handleOpenActionDialog(contact, "accepted")
+                                            handleOpenActionDialog(
+                                              contact,
+                                              "accepted"
+                                            )
                                           }
                                         >
                                           <CheckCircle className="w-4 h-4 text-green-600" />
@@ -402,7 +447,10 @@ const ContactManageLandlord = () => {
                                           size="icon"
                                           className="h-8 w-8"
                                           onClick={() =>
-                                            handleOpenActionDialog(contact, "rejected")
+                                            handleOpenActionDialog(
+                                              contact,
+                                              "rejected"
+                                            )
                                           }
                                         >
                                           <XCircle className="w-4 h-4 text-red-600" />
@@ -416,26 +464,30 @@ const ContactManageLandlord = () => {
                                 </>
                               )}
 
-                              {((contact.status === "accepted" || acceptedContactIds.has(contact._id)) && contact.contractId === null) && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleCreateContract(contact._id)}
-                                        disabled={isCreatingContract}
-                                      >
-                                        <Plus className="w-4 h-4 text-blue-600" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Tạo hợp đồng</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
+                              {(contact.status === "accepted" ||
+                                acceptedContactIds.has(contact._id)) &&
+                                contact.contractId === null && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() =>
+                                            handleCreateContract(contact._id)
+                                          }
+                                          disabled={isCreatingContract}
+                                        >
+                                          <Plus className="w-4 h-4 text-blue-600" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Tạo hợp đồng</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -453,10 +505,16 @@ const ContactManageLandlord = () => {
                       </span>{" "}
                       đến{" "}
                       <span className="font-medium">
-                        {Math.min(currentPage * pageLimit, data.pagination.total)}
+                        {Math.min(
+                          currentPage * pageLimit,
+                          data.pagination.total
+                        )}
                       </span>{" "}
                       trong tổng số{" "}
-                      <span className="font-medium">{data.pagination.total}</span> yêu cầu
+                      <span className="font-medium">
+                        {data.pagination.total}
+                      </span>{" "}
+                      yêu cầu
                     </p>
                     <div className="flex items-center gap-2">
                       <Button
@@ -487,7 +545,9 @@ const ContactManageLandlord = () => {
                               <Button
                                 key={pageNum}
                                 variant={
-                                  currentPage === pageNum ? "default" : "outline"
+                                  currentPage === pageNum
+                                    ? "default"
+                                    : "outline"
                                 }
                                 size="sm"
                                 onClick={() => setCurrentPage(pageNum)}
@@ -503,7 +563,9 @@ const ContactManageLandlord = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
                         }
                         disabled={currentPage === totalPages}
                       >
@@ -522,7 +584,9 @@ const ContactManageLandlord = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionType === "accepted" ? "Chấp nhận yêu cầu" : "Từ chối yêu cầu"}
+              {actionType === "accepted"
+                ? "Chấp nhận yêu cầu"
+                : "Từ chối yêu cầu"}
             </DialogTitle>
             <DialogDescription>
               {actionType === "accepted"
@@ -576,33 +640,33 @@ const ContactManageLandlord = () => {
                 <div>
                   <Label className="text-slate-500">Bài đăng</Label>
                   <p className="font-medium">
-                    {typeof viewingContact.postId === 'object'
+                    {typeof viewingContact.postId === "object"
                       ? viewingContact.postId?.title
-                      : '—'}
+                      : "—"}
                   </p>
                 </div>
                 <div>
                   <Label className="text-slate-500">Email khách thuê</Label>
                   <p className="font-medium">
-                    {typeof viewingContact.tenantId === 'object'
+                    {typeof viewingContact.tenantId === "object"
                       ? viewingContact.tenantId.email
-                      : '—'}
+                      : "—"}
                   </p>
                 </div>
                 <div>
                   <Label className="text-slate-500">Tòa nhà</Label>
                   <p className="font-medium">
-                    {typeof viewingContact.buildingId === 'object'
+                    {typeof viewingContact.buildingId === "object"
                       ? viewingContact.buildingId.name
-                      : '—'}
+                      : "—"}
                   </p>
                 </div>
                 <div>
                   <Label className="text-slate-500">Phòng</Label>
                   <p className="font-medium">
-                    {typeof viewingContact.roomId === 'object'
+                    {typeof viewingContact.roomId === "object"
                       ? viewingContact.roomId.roomNumber
-                      : '—'}
+                      : "—"}
                   </p>
                 </div>
                 <div>
@@ -621,12 +685,18 @@ const ContactManageLandlord = () => {
                 </div>
                 <div>
                   <Label className="text-slate-500">Ngày tạo</Label>
-                  <p className="font-medium">{viewingContact.createdAt ? formatDate(viewingContact.createdAt) : '—'}</p>
+                  <p className="font-medium">
+                    {viewingContact.createdAt
+                      ? formatDate(viewingContact.createdAt)
+                      : "—"}
+                  </p>
                 </div>
               </div>
               {viewingContact.tenantNote && (
                 <div>
-                  <Label className="text-slate-500">Ghi chú từ khách thuê</Label>
+                  <Label className="text-slate-500">
+                    Ghi chú từ khách thuê
+                  </Label>
                   <p className="mt-1 p-3 bg-slate-50 rounded-lg">
                     {viewingContact.tenantNote}
                   </p>

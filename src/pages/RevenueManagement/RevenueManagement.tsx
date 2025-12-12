@@ -139,7 +139,11 @@ const RevenueManagement = () => {
       profitChange: number;
     }>
   >(() => {
-    if (!comparisonData || !comparisonData.data || comparisonData.data.length === 0) {
+    if (
+      !comparisonData ||
+      !comparisonData.data ||
+      comparisonData.data.length === 0
+    ) {
       return [];
     }
 
@@ -622,14 +626,18 @@ const RevenueManagement = () => {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell>{formatDate(revenue.recordedAt)}</TableCell>
+                          <TableCell>
+                            {formatDate(revenue.recordedAt)}
+                          </TableCell>
                           <TableCell>{formatDate(revenue.createdAt)}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleOpenDetailSheet(revenue._id)}
+                                onClick={() =>
+                                  handleOpenDetailSheet(revenue._id)
+                                }
                                 title="Xem chi tiết"
                               >
                                 <Eye className="h-4 w-4" />
@@ -669,8 +677,8 @@ const RevenueManagement = () => {
                   <span className="font-medium">
                     {Math.min(currentPage * pageLimit, totalItems)}
                   </span>{" "}
-                  trong tổng số <span className="font-medium">{totalItems}</span>{" "}
-                  bản ghi
+                  trong tổng số{" "}
+                  <span className="font-medium">{totalItems}</span> bản ghi
                 </p>
                 <div className="flex items-center gap-2">
                   <Button

@@ -18,12 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetAccountsQuery, useUpdateAccountStatusMutation } from "@/services/account/account.service";
+import {
+  useGetAccountsQuery,
+  useUpdateAccountStatusMutation,
+} from "@/services/account/account.service";
 import type { IAccount } from "@/types/account";
 import { toast } from "sonner";
 import AlertInactiveAccount from "./components/AlertInactiveAccount";
 import AccountDetailModal from "./components/ModalAccountDetail";
 import _ from "lodash";
+import { AccountActionsGuide } from "./components/AccountActionsGuide";
 
 const AccountManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,13 +39,19 @@ const AccountManagement = () => {
   const [selectedAccount, setSelectedAccount] = useState<IAccount | null>(null);
   const [isAccountDetailOpen, setIsAccountDetailOpen] = useState(false);
 
-  const { data: accountsData, isLoading, isFetching, refetch } = useGetAccountsQuery({
+  const {
+    data: accountsData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAccountsQuery({
     page: 1,
     limit: 1000,
     search: debouncedSearch,
   });
 
-  const [updateAccountStatus, { isLoading: isUpdatingStatus }] = useUpdateAccountStatusMutation();
+  const [updateAccountStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateAccountStatusMutation();
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -92,24 +102,24 @@ const AccountManagement = () => {
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
   const availableRoles = useMemo(() => {
     if (!accountsData?.users) return [];
-    
-    const roles = _.uniq(accountsData.users.map(user => user.role));
+
+    const roles = _.uniq(accountsData.users.map((user) => user.role));
     return roles.sort();
   }, [accountsData?.users]);
 
   const filteredAccounts = useMemo(() => {
     if (!accountsData?.users) return [];
-    
+
     let filtered = accountsData.users;
 
     if (roleFilter !== "all") {
-      filtered = filtered.filter(user => user.role === roleFilter);
+      filtered = filtered.filter((user) => user.role === roleFilter);
     }
 
     return filtered;
@@ -129,10 +139,10 @@ const AccountManagement = () => {
 
     const users = accountsData.users;
     const total = users.length;
-    const active = users.filter(u => u.isActivated).length;
-    
+    const active = users.filter((u) => u.isActivated).length;
+
     const byRole: Record<string, number> = {};
-    users.forEach(user => {
+    users.forEach((user) => {
       byRole[user.role] = (byRole[user.role] || 0) + 1;
     });
 
@@ -192,13 +202,17 @@ const AccountManagement = () => {
           </div>
         </div>
 
+        <AccountActionsGuide />
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Tổng tài khoản</p>
-                  <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.total}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <User className="w-6 h-6 text-blue-600" />
@@ -214,12 +228,16 @@ const AccountManagement = () => {
                 <CardContent className="pt-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600">{getRoleLabel(role)}</p>
+                      <p className="text-sm text-slate-600">
+                        {getRoleLabel(role)}
+                      </p>
                       <p className="text-2xl font-bold text-slate-900">
                         {stats.byRole[role] || 0}
                       </p>
                     </div>
-                    <div className={`w-12 h-12 ${roleIcon.bg} rounded-lg flex items-center justify-center`}>
+                    <div
+                      className={`w-12 h-12 ${roleIcon.bg} rounded-lg flex items-center justify-center`}
+                    >
                       <UserCheck className={`w-6 h-6 ${roleIcon.icon}`} />
                     </div>
                   </div>
@@ -233,7 +251,9 @@ const AccountManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Đang hoạt động</p>
-                  <p className="text-2xl font-bold text-slate-900">{stats.active}</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.active}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
                   <UserCheck className="w-6 h-6 text-emerald-600" />
@@ -330,11 +350,21 @@ const AccountManagement = () => {
                   <table className="w-full">
                     <thead className="bg-slate-50 border-b">
                       <tr>
-                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Email</th>
-                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Vai trò</th>
-                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Ngày tạo</th>
-                        <th className="text-center py-3 px-4 font-semibold text-slate-700">Trạng thái</th>
-                        <th className="text-center py-3 px-4 font-semibold text-slate-700">Thao tác</th>
+                        <th className="text-left py-3 px-4 font-semibold text-slate-700">
+                          Email
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-slate-700">
+                          Vai trò
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-slate-700">
+                          Ngày tạo
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-slate-700">
+                          Trạng thái
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-slate-700">
+                          Thao tác
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -347,10 +377,16 @@ const AccountManagement = () => {
                           >
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 ${roleIcon.bg} rounded-lg flex items-center justify-center`}>
-                                  <User className={`w-4 h-4 ${roleIcon.icon}`} />
+                                <div
+                                  className={`w-8 h-8 ${roleIcon.bg} rounded-lg flex items-center justify-center`}
+                                >
+                                  <User
+                                    className={`w-4 h-4 ${roleIcon.icon}`}
+                                  />
                                 </div>
-                                <span className="font-medium text-slate-900">{account.email}</span>
+                                <span className="font-medium text-slate-900">
+                                  {account.email}
+                                </span>
                               </div>
                             </td>
                             <td className="py-3 px-4">
@@ -367,14 +403,20 @@ const AccountManagement = () => {
                             <td className="py-3 px-4">
                               <div className="flex items-center justify-center gap-3">
                                 <Badge
-                                  variant={account.isActivated ? "default" : "secondary"}
+                                  variant={
+                                    account.isActivated
+                                      ? "default"
+                                      : "secondary"
+                                  }
                                   className={`${
                                     account.isActivated
                                       ? "bg-green-100 text-green-800 border-green-200"
                                       : "bg-gray-100 text-gray-600 border-gray-200"
                                   } font-medium`}
                                 >
-                                  {account.isActivated ? "Hoạt động" : "Vô hiệu hóa"}
+                                  {account.isActivated
+                                    ? "Hoạt động"
+                                    : "Vô hiệu hóa"}
                                 </Badge>
                               </div>
                             </td>
@@ -384,7 +426,9 @@ const AccountManagement = () => {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => handleOpenAccountDetail(account)} 
+                                  onClick={() =>
+                                    handleOpenAccountDetail(account)
+                                  }
                                 >
                                   <Eye className="w-4 h-4 text-blue-600" />
                                 </Button>
@@ -394,7 +438,9 @@ const AccountManagement = () => {
                                       <div className="flex items-center">
                                         <Switch
                                           checked={account.isActivated}
-                                          onClick={() => handleOpenActivatedDialog(account)}
+                                          onClick={() =>
+                                            handleOpenActivatedDialog(account)
+                                          }
                                           disabled={isUpdatingStatus}
                                           className="data-[state=checked]:bg-green-600"
                                         />
@@ -426,16 +472,24 @@ const AccountManagement = () => {
                     </span>{" "}
                     đến{" "}
                     <span className="font-medium">
-                      {Math.min(currentPage * pageLimit, filteredAccounts.length)}
+                      {Math.min(
+                        currentPage * pageLimit,
+                        filteredAccounts.length
+                      )}
                     </span>{" "}
                     trong tổng số{" "}
-                    <span className="font-medium">{filteredAccounts.length}</span> tài khoản
+                    <span className="font-medium">
+                      {filteredAccounts.length}
+                    </span>{" "}
+                    tài khoản
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       Trước
@@ -457,7 +511,9 @@ const AccountManagement = () => {
                           return (
                             <Button
                               key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
+                              variant={
+                                currentPage === pageNum ? "default" : "outline"
+                              }
                               size="sm"
                               onClick={() => setCurrentPage(pageNum)}
                               className="w-9"
@@ -471,7 +527,9 @@ const AccountManagement = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                      }
                       disabled={currentPage === totalPages}
                     >
                       Sau
@@ -493,7 +551,6 @@ const AccountManagement = () => {
           }
         }}
         accountId={selectedAccount?._id || ""}
-
       />
 
       <AlertInactiveAccount

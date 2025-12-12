@@ -1,0 +1,158 @@
+import { useState } from "react";
+import {
+  HelpCircle,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+  Edit,
+  Trash2,
+  RotateCcw,
+  ToggleLeft,
+  Filter,
+} from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+
+export const BuildingServiceActionsGuide = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const actions = [
+    {
+      icon: Plus,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600",
+      title: "Thêm dịch vụ",
+      description:
+        "Tạo mới một dịch vụ cho tòa nhà (ví dụ: Internet, Vệ sinh, Gửi xe).",
+      availableWhen: "Luôn có sẵn khi đã chọn tòa nhà",
+    },
+    {
+      icon: Edit,
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
+      title: "Chỉnh sửa",
+      description:
+        "Cập nhật thông tin dịch vụ như tên, mô tả, loại phí và mức phí.",
+      availableWhen:
+        "Tại mỗi dòng của dịch vụ đang hoạt động (cần quyền chỉnh sửa)",
+    },
+    {
+      icon: Trash2,
+      iconBg: "bg-red-100",
+      iconColor: "text-red-600",
+      title: "Xóa dịch vụ",
+      description:
+        "Xóa dịch vụ khỏi danh sách hoạt động (chuyển sang trạng thái đã xóa mềm).",
+      availableWhen: "Tại mỗi dòng của dịch vụ đang hoạt động (cần quyền xóa)",
+    },
+    {
+      icon: RotateCcw,
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
+      title: "Khôi phục dịch vụ",
+      description: "Khôi phục lại dịch vụ đã bị xóa trước đó.",
+      availableWhen:
+        "Tại mỗi dòng của dịch vụ đã xóa (khi bật bộ lọc 'Bao gồm dịch vụ đã xóa')",
+    },
+    {
+      icon: Filter,
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-600",
+      title: "Lọc theo tòa nhà",
+      description: "Chọn tòa nhà cụ thể để xem danh sách dịch vụ tương ứng.",
+      availableWhen: "Luôn có sẵn",
+    },
+    {
+      icon: ToggleLeft,
+      iconBg: "bg-slate-100",
+      iconColor: "text-slate-600",
+      title: "Xem dịch vụ đã xóa",
+      description:
+        "Bật/tắt chế độ hiển thị các dịch vụ đã bị xóa để quản lý hoặc khôi phục.",
+      availableWhen: "Luôn có sẵn",
+    },
+  ];
+
+  return (
+    <Card className="border-blue-200 bg-blue-50/50 mb-6">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <HelpCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">
+                  Hướng dẫn quản lý dịch vụ tòa nhà
+                </CardTitle>
+                <CardDescription>
+                  Tìm hiểu về các chức năng quản lý dịch vụ
+                </CardDescription>
+              </div>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {actions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <div
+                    key={index}
+                    className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`p-2 rounded-lg ${action.iconBg} ${action.iconColor}`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <h4 className="font-semibold text-sm">
+                          {action.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {action.description}
+                        </p>
+                        <div className="pt-2 border-t">
+                          <p className="text-xs font-medium text-blue-600">
+                            Có sẵn khi:
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {action.availableWhen}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+};
