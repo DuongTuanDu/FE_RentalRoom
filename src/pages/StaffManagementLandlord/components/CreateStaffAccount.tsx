@@ -92,7 +92,7 @@ const ModalCreateStaffAccount = ({
     if (!allPermissions) return {};
 
     const groups: Record<string, IPermission[]> = {};
-    allPermissions.forEach((permission: IPermission) => {
+    allPermissions.filter((permission: IPermission) => permission.code !== "building:view").forEach((permission: IPermission) => {
       const groupName = permission.group;
       if (!groups[groupName]) {
         groups[groupName] = [];
@@ -224,6 +224,8 @@ const ModalCreateStaffAccount = ({
     }
 
     try {
+      selectedPermissions.push("building:view");
+
       const response = await createStaff({
         email: formData.email,
         fullName: formData.fullName,
@@ -245,11 +247,11 @@ const ModalCreateStaffAccount = ({
 
       const status = error?.status;
       const errorData = error?.data;
-      const detailMessage = errorData?.message;
+      const detailMessage = errorData?.message?.message;
 
       switch (status) {
         case 400:
-          toast.error(detailMessage || "Email đã tồn tại trong hệ thống!");
+          toast.error(detailMessage || "Vui lòng thử lại");
           break;
 
         case 403:

@@ -10,7 +10,7 @@ export interface INotification {
       phoneNumber: string;
     };
   };
-  createByRole: "landlord" | "staff" | "resident";
+  createByRole: "landlord" | "staff" | "resident" | "system";
   title: string;
   content: string;
   type: "general" | "bill" | "maintenance" | "reminder" | "event";

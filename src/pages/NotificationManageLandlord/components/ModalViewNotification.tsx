@@ -105,8 +105,8 @@ const ModalViewNotification = ({
     if (notification.createBy?.userInfo?.fullName) {
       return notification.createBy.userInfo.fullName;
     }
-    if (notification.createBy?.username) {
-      return notification.createBy.username;
+    if (notification.createBy?.userInfo?.fullName) {
+      return notification.createBy.userInfo.fullName;
     }
 
     switch (notification.createByRole) {
@@ -224,7 +224,7 @@ const ModalViewNotification = ({
                 >
                   <Link2 className="h-4 w-4" />
                   <span className="flex-1 text-left truncate">
-                    {notification.link}
+                    Xem chi tiết
                   </span>
                   <ExternalLink className="h-4 w-4 text-gray-500" />
                 </Button>

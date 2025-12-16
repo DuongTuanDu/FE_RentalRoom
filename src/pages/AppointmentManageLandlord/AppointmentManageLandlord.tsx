@@ -36,6 +36,7 @@ import type {
 } from "@/types/landlord-schedule";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { ScheduleActionsGuide } from "./components/ScheduleActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const DAYS_OF_WEEK = [
   { value: 1, label: "Thứ 2" },
@@ -334,10 +335,13 @@ const LandlordScheduleManagement = () => {
                         <Calendar className="w-5 h-5" />
                         Lịch thay đổi (Ngày cụ thể)
                       </CardTitle>
+                      <Permission permission = "schedule:create">
                       <Button onClick={() => handleOpenOverrideDialog()}>
                         <Plus className="w-4 h-4 mr-2" />
                         Thêm thay đổi
                       </Button>
+                      </Permission>
+
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -420,6 +424,7 @@ const LandlordScheduleManagement = () => {
               </div>
             </div>
             <div className="flex justify-center mt-6 gap-2">
+              <Permission permission = "schedule:edit">
               <Button
                 size="lg"
                 onClick={handleSaveSchedule}
@@ -428,15 +433,18 @@ const LandlordScheduleManagement = () => {
                 <Save className="w-5 h-5 mr-2" />
                 {isSaving ? "Đang lưu..." : "Lưu lịch"}
               </Button>
-              <Button
-                variant="destructive"
-                size="lg"
-                onClick={handleDeleteSchedule}
-                disabled={isDeleting}
-              >
-                <Trash2 className="w-5 h-5 mr-2" />
-                {isDeleting ? "Đang xóa..." : "Xóa lịch"}
-              </Button>
+              </Permission>
+              <Permission permission = "schedule:delete">
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  onClick={handleDeleteSchedule}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  {isDeleting ? "Đang xóa..." : "Xóa lịch"}
+                </Button>
+              </Permission>
             </div>
           </>
         )}

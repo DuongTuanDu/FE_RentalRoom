@@ -48,6 +48,7 @@ import { RegulationDetailSheet } from "./components/RegulationDetailDrawer";
 import { toast } from "sonner";
 import type { IRegulation, IRegulationRequest } from "@/types/regulation";
 import { RegulationActionsGuide } from "./components/RegulationActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const RegulationManageLandlord = () => {
   const [selectedBuildingId, setSelectedBuildingId] = useState("");
@@ -188,14 +189,16 @@ const RegulationManageLandlord = () => {
             Quản lý các quy định và nội quy của tòa nhà
           </p>
         </div>
-        <Button
-          className="gap-2"
-          disabled={!selectedBuildingId}
-          onClick={handleOpenCreateModal}
-        >
-          <Plus className="h-4 w-4" />
-          Thêm Quy định Mới
-        </Button>
+        <Permission permission="regulation:create">
+          <Button
+            className="gap-2"
+            disabled={!selectedBuildingId}
+            onClick={handleOpenCreateModal}
+          >
+            <Plus className="h-4 w-4" />
+            Thêm Quy định Mới
+          </Button>
+        </Permission>
       </div>
       <RegulationActionsGuide />
 
@@ -294,22 +297,27 @@ const RegulationManageLandlord = () => {
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </Button>
                             </RegulationDetailSheet>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleOpenEditModal(regulation)}
-                            >
-                              <Edit className="h-4 w-4 text-amber-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleOpenDeleteDialog(regulation)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
+                            <Permission permission="regulation:edit">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleOpenEditModal(regulation)}
+                                >
+                                  <Edit className="h-4 w-4 text-amber-600" />
+                                </Button>
+                            </Permission>
+                            <Permission permission="regulation:delete">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleOpenDeleteDialog(regulation)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </Permission>
+
                           </div>
                         </TableCell>
                       </TableRow>

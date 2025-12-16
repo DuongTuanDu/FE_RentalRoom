@@ -58,6 +58,7 @@ import type { IRevenue, IRevenueRequest } from "@/types/revenue";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import type { ChartConfig } from "@/components/ui/chart";
+import Permission from "@/layouts/Permission";
 
 const RevenueManagement = () => {
   const formatPrice = useFormatPrice();
@@ -328,10 +329,13 @@ const RevenueManagement = () => {
             <Download className="h-4 w-4" />
             {isExporting ? "Đang xuất..." : "Xuất Excel"}
           </Button>
-          <Button className="gap-2" onClick={handleOpenCreateModal}>
-            <Plus className="h-4 w-4" />
-            Thêm Thu Chi
-          </Button>
+          <Permission permission="revenue-expenditure:create">
+            <Button className="gap-2" onClick={handleOpenCreateModal}>
+              <Plus className="h-4 w-4" />
+              Thêm Thu Chi
+            </Button>
+          </Permission>
+          
         </div>
       </div>
 
@@ -642,21 +646,25 @@ const RevenueManagement = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleOpenEditModal(revenue)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => handleOpenDeleteDialog(revenue)}
-                                disabled={isDeleting}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <Permission permission="revenue-expenditure:edit">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleOpenEditModal(revenue)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Permission>
+                              <Permission permission="revenue-expenditure:delete">
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={() => handleOpenDeleteDialog(revenue)}
+                                  disabled={isDeleting}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </Permission>
                             </div>
                           </TableCell>
                         </TableRow>

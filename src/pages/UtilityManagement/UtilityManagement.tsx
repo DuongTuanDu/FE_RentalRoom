@@ -56,6 +56,7 @@ import {
   useConfirmUtilityReadingMutation,
 } from "@/services/utility/utility.service";
 import { UtilityActionsGuide } from "./components/UtilityActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const UtilityManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -231,18 +232,20 @@ const UtilityManagement = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button
-              onClick={handleOpenCreateBulkDialog}
-              variant="outline"
-              className="gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Tạo hàng loạt
-            </Button>
-            <Button onClick={handleOpenCreateDialog} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Tạo chỉ số mới
-            </Button>
+            <Permission permission="utility:create">
+              <Button
+                onClick={handleOpenCreateBulkDialog}
+                variant="outline"
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo hàng loạt
+              </Button>
+              <Button onClick={handleOpenCreateDialog} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Tạo chỉ số mới
+              </Button>
+            </Permission>
           </div>
         </div>
 
@@ -487,6 +490,8 @@ const UtilityManagement = () => {
                                 </TooltipProvider>
                                 {(item.status === "draft" ||
                                   item.status === "confirmed") && (
+                                  <Permission permission = {"utility:edit"}>
+
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -506,6 +511,7 @@ const UtilityManagement = () => {
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
+                                  </Permission>  
                                 )}
 
                                 {item.status === "draft" && (
@@ -529,7 +535,7 @@ const UtilityManagement = () => {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
-
+                                    <Permission permission = {"utility:delete"}>        
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -549,6 +555,7 @@ const UtilityManagement = () => {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
+                                    </Permission>
                                   </>
                                 )}
                               </div>
