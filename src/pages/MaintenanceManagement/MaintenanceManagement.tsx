@@ -33,6 +33,7 @@ import { MaintenanceDetailSheet } from "./components/MaintenanceDetailSheet";
 import { UpdateMaintenanceDialog } from "./components/UpdateMaintenanceDialog";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
 import { MaintenanceActionsGuide } from "./components/MaintenanceActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const STATUS_COLORS = {
   open: "bg-blue-100 text-blue-800",
@@ -348,6 +349,7 @@ const MaintenanceManagement = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
+                              <Permission permission="maintenance:edit">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -367,6 +369,7 @@ const MaintenanceManagement = () => {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
+                              </Permission>
                             </div>
                           </TableCell>
                         </TableRow>

@@ -124,8 +124,8 @@ export default function NotificationDropdown() {
     if (noti.createBy?.userInfo?.fullName) {
       return noti.createBy.userInfo.fullName;
     }
-    if (noti.createBy?.username) {
-      return noti.createBy.username;
+    if (noti.createBy?.userInfo?.fullName) {
+      return noti.createBy.userInfo.fullName;
     }
 
     switch (noti.createByRole) {

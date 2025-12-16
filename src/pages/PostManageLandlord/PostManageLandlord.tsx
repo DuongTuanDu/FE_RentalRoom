@@ -46,6 +46,7 @@ import { toast } from "sonner";
 import type { IPost } from "@/types/post";
 import { useNavigate } from "react-router-dom";
 import { PostActionsGuide } from "./components/PostActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const PostManageLandlord = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -187,10 +188,12 @@ const PostManageLandlord = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button className="gap-2" onClick={handleOpenCreateModal}>
-            <Plus className="h-4 w-4" />
-            Tạo Bài đăng Mới
-          </Button>
+          <Permission permission = "post:create">
+              <Button className="gap-2" onClick={handleOpenCreateModal}>
+              <Plus className="h-4 w-4" />
+              Tạo Bài đăng Mới
+            </Button>
+          </Permission>
         </div>
       </div>
       <PostActionsGuide />
@@ -390,24 +393,30 @@ const PostManageLandlord = () => {
                     </Button>
 
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenEditModal(post)}
-                        className="gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Sửa
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenDeleteDialog(post)}
-                        className="gap-2 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Xóa
-                      </Button>
+                      <Permission permission="post:edit">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenEditModal(post)}
+                          className="gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Sửa
+                        </Button>
+                      </Permission>
+
+                      <Permission permission="post:delete">
+                          <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenDeleteDialog(post)}
+                          className="gap-2 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Xóa
+                        </Button>
+                      </Permission>
+                      
                     </div>
                   </div>
                 </CardContent>

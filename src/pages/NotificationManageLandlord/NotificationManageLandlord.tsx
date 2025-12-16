@@ -50,6 +50,7 @@ import { toText } from "@/utils/errors";
 import ModalCreateNotification from "./components/ModalCreateNotification";
 import ModalViewNotification from "./components/ModalViewNotification";
 import { NotificationActionsGuide } from "./components/NotificationActionsGuide";
+import Permission from "@/layouts/Permission";
 
 const NotificationManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -158,10 +159,12 @@ const NotificationManagement = () => {
               Quản lý các thông báo gửi đến cư dân
             </p>
           </div>
-          <Button onClick={handleOpenCreateModal} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Tạo thông báo mới
-          </Button>
+          <Permission permission = "notification:create">
+            <Button onClick={handleOpenCreateModal} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Tạo thông báo mới
+            </Button>
+          </Permission>
         </div>
         <NotificationActionsGuide />
 
@@ -302,14 +305,17 @@ const NotificationManagement = () => {
                               >
                                 <Eye className="w-4 h-4 text-blue-600" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleOpenEditModal(noti)}
-                              >
-                                <Edit className="w-4 h-4 text-amber-600" />
-                              </Button>
+                              <Permission permission="notification:edit">
+                                     <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => handleOpenEditModal(noti)}
+                                    >
+                                      <Edit className="w-4 h-4 text-amber-600" />
+                                    </Button>
+                              </Permission>
+                             <Permission permission="notification:delete">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -318,6 +324,7 @@ const NotificationManagement = () => {
                               >
                                 <Trash2 className="w-4 h-4 text-red-600" />
                               </Button>
+                             </Permission>
                             </div>
                           </TableCell>
                         </TableRow>

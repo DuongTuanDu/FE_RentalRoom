@@ -84,6 +84,10 @@ const ModalStaffDetail = ({ open, onOpenChange, staff }: ModalStaffDetailProps) 
       report: "Báo cáo",
       "building-furniture": "Nội thất tòa nhà",
       "room-furniture": "Nội thất phòng",
+      utility:"Điện nước",
+      rating: "Đánh giá",
+      notification: "Thống báo",
+      "revenue-expenditure": "Thu chi"
     };
     return labels[category] || category;
   };

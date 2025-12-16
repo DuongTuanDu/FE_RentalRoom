@@ -40,6 +40,7 @@ import {
 } from "@/services/term/term.service";
 import type { ITerm } from "@/types/term";
 import { TermActionsGuide } from "./components/TermActionsGuide";
+import Permission from "@/layouts/Permission";
 
 // Helper function để strip HTML tags và lấy text thuần (dùng cho tooltip)
 const stripHtmlTags = (html: string): string => {
@@ -166,13 +167,16 @@ const TermManagement = () => {
             Tạo và quản lý điều khoản cho từng tòa nhà
           </p>
         </div>
-        <Button
-          onClick={handleOpenCreateModal}
-          className="gap-2"
-          disabled={!selectedBuildingId}
-        >
-          <Plus className="h-4 w-4" /> Thêm điều khoản
-        </Button>
+        <Permission permission="term:create">
+          <Button
+            onClick={handleOpenCreateModal}
+            className="gap-2"
+            disabled={!selectedBuildingId}
+          >
+            <Plus className="h-4 w-4" /> Thêm điều khoản
+          </Button>
+        </Permission>
+        
       </div>
 
       <TermActionsGuide />
@@ -331,13 +335,17 @@ const TermManagement = () => {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleOpenEditModal(term)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <Permission permission = "term:edit">
+                               <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleOpenEditModal(term)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Permission>
+                              
+                            <Permission permission = "term:delete">  
                             <Button
                               variant="destructive"
                               size="icon"
@@ -346,6 +354,7 @@ const TermManagement = () => {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                            </Permission>
                           </div>
                         </TableCell>
                       </TableRow>

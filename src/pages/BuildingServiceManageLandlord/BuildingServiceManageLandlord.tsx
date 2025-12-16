@@ -240,7 +240,7 @@ const BuildingServiceManageLandlord = () => {
             Quản lý các dịch vụ của tòa nhà
           </p>
         </div>
-        <Permission permission="buildingService:create">
+        <Permission permission="service:create">
           <Button
             disabled={!selectedBuildingId || isCreating}
             onClick={openCreateModal}
@@ -370,7 +370,7 @@ const BuildingServiceManageLandlord = () => {
                             </Button>
                           ) : (
                             <>
-                              <Permission permission="buildingService:edit">
+                              <Permission permission="service:edit">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -380,7 +380,7 @@ const BuildingServiceManageLandlord = () => {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </Permission>
-                              <Permission permission="buildingService:delete">
+                              <Permission permission="service:delete">
                                 <Button
                                   variant="outline"
                                   size="sm"
