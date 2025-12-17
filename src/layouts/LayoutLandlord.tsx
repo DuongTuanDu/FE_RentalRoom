@@ -9,7 +9,6 @@ import {
 import AppSidebar from "./SiderLandlord";
 import NotificationDropdown from "./NotificationDropdown";
 
-// Main Layout Component
 export default function LayoutLandlord() {
   const navigate = useNavigate();
 
@@ -25,9 +24,8 @@ export default function LayoutLandlord() {
           {/* Header */}
           <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex-1 flex items-center gap-4">
-            </div>
-            
+            <div className="flex-1 flex items-center gap-4"></div>
+
             {/* Package Service Button */}
             <div className="flex items-center gap-2">
               <NotificationDropdown />
