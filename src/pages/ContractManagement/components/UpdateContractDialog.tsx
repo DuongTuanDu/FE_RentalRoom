@@ -51,6 +51,7 @@ interface ContractFormValues {
   deposit: string;
   startDate: string;
   endDate: string;
+  paymentCycleMonths: string;
   personAName: string;
   personADob: string;
   personACccd: string;
@@ -74,6 +75,14 @@ export const UpdateContractDialog = ({
   contractId,
   onSuccess,
 }: UpdateContractDialogProps) => {
+  const calculateContractMonths = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const years = endDate.getFullYear() - startDate.getFullYear();
+    const months = endDate.getMonth() - startDate.getMonth();
+    return years * 12 + months;
+  };
+
   // Form with react-hook-form
   const form = useForm<ContractFormValues>({
     defaultValues: {
@@ -84,6 +93,7 @@ export const UpdateContractDialog = ({
       deposit: "",
       startDate: "",
       endDate: "",
+      paymentCycleMonths: "1",
       personAName: "",
       personADob: "",
       personACccd: "",
@@ -112,6 +122,8 @@ export const UpdateContractDialog = ({
   const [regulationNames, setRegulationNames] = useState<
     Record<number, string>
   >({});
+  const [paymentCycleWarning, setPaymentCycleWarning] = useState<string>("");
+  const [depositWarning, setDepositWarning] = useState<string>("");
 
   const formatDate = useFormatDate();
   const { data: contractDetail, isLoading: isLoadingDetail } =
@@ -151,6 +163,7 @@ export const UpdateContractDialog = ({
         deposit: contractDetail.contract?.deposit?.toString() || "",
         startDate: formatDateForInput(contractDetail.contract?.startDate),
         endDate: formatDateForInput(contractDetail.contract?.endDate),
+        paymentCycleMonths: contractDetail.contract?.paymentCycleMonths?.toString() || "1",
         personAName: contractDetail.A?.name || "",
         personADob: formatDateForInput(contractDetail.A?.dob),
         personACccd: contractDetail.A?.cccd || "",
@@ -295,6 +308,7 @@ export const UpdateContractDialog = ({
           deposit: parseFloat(data.deposit),
           startDate: data.startDate,
           endDate: data.endDate,
+          paymentCycleMonths: parseFloat(data.paymentCycleMonths),
         },
         terms:
           sortedTerms.map((term, index) => ({
@@ -692,6 +706,31 @@ export const UpdateContractDialog = ({
                               {...field}
                               type="number"
                               placeholder="Nhập giá thuê"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Cập nhật cảnh báo tiền cọc khi giá thuê thay đổi
+                                const priceValue = parseFloat(e.target.value);
+                                const depositValue = parseFloat(
+                                  form.getValues("deposit")
+                                );
+                                if (
+                                  !isNaN(priceValue) &&
+                                  priceValue > 0 &&
+                                  !isNaN(depositValue) &&
+                                  depositValue > 0
+                                ) {
+                                  const ratio = depositValue / priceValue;
+                                  if (ratio > 1) {
+                                    setDepositWarning(
+                                      "Tiền cọc đang cao hơn giá thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên."
+                                    );
+                                  } else {
+                                    setDepositWarning("");
+                                  }
+                                } else {
+                                  setDepositWarning("");
+                                }
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -702,8 +741,38 @@ export const UpdateContractDialog = ({
                       control={form.control}
                       name="deposit"
                       rules={{
-                        validate: (value) =>
-                          validateNumber(value, "Tiền cọc") || true,
+                        validate: (value) => {
+                          const error =
+                            validateNumber(value, "Tiền cọc");
+                          if (error) {
+                            setDepositWarning("");
+                            return error;
+                          }
+
+                          const priceValue = parseFloat(
+                            form.getValues("price")
+                          );
+                          const depositValue = parseFloat(value);
+                          if (
+                            !isNaN(priceValue) &&
+                            priceValue > 0 &&
+                            !isNaN(depositValue) &&
+                            depositValue > 0
+                          ) {
+                            const ratio = depositValue / priceValue;
+                            if (ratio > 1) {
+                              setDepositWarning(
+                                "Tiền cọc đang cao hơn giá thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên."
+                              );
+                            } else {
+                              setDepositWarning("");
+                            }
+                          } else {
+                            setDepositWarning("");
+                          }
+
+                          return true;
+                        },
                       }}
                       render={({ field }) => (
                         <FormItem className="space-y-2">
@@ -716,6 +785,69 @@ export const UpdateContractDialog = ({
                             />
                           </FormControl>
                           <FormMessage />
+                          {!form.formState.errors.deposit && depositWarning && (
+                            <p className="text-xs text-amber-500 mt-1">
+                              {depositWarning}
+                            </p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="paymentCycleMonths"
+                      rules={{
+                        validate: (value) => {
+                          const error = validateNumber(value, "Chu kỳ thanh toán");
+                          if (error) return error;
+
+                          const cycleValue = parseFloat(value);
+                          if (cycleValue < 1) {
+                            return "Chu kỳ thanh toán phải từ 1 tháng trở lên";
+                          }
+
+                          const startDate = form.getValues("startDate")?.trim();
+                          const endDate = form.getValues("endDate")?.trim();
+
+                          if (startDate && endDate) {
+                            const totalMonths = calculateContractMonths(startDate, endDate);
+
+                            if (totalMonths > 0 && cycleValue > totalMonths) {
+                              setPaymentCycleWarning("");
+                              return "Chu kỳ thanh toán không được vượt quá thời hạn hợp đồng";
+                            }
+
+                            if (totalMonths > 0 && totalMonths % cycleValue !== 0) {
+                              setPaymentCycleWarning(
+                                "Chu kỳ thanh toán không chia hết cho thời hạn hợp đồng, có thể phát sinh kỳ thanh toán lẻ."
+                              );
+                            } else {
+                              setPaymentCycleWarning("");
+                            }
+                          } else {
+                            setPaymentCycleWarning("");
+                          }
+
+                          return true;
+                        },
+                      }}
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <Label>Chu kỳ thanh toán (tháng)</Label>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              placeholder="Nhập chu kỳ thanh toán"
+                              min="1"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                          {paymentCycleWarning && (
+                            <p className="text-xs text-amber-500 mt-1">
+                              {paymentCycleWarning}
+                            </p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -751,11 +883,13 @@ export const UpdateContractDialog = ({
                                 setTimeout(() => {
                                   form.trigger("startDate");
                                   form.trigger("endDate");
+                                  form.trigger("paymentCycleMonths");
                                 }, 0);
                               }}
                               onBlur={() => {
                                 field.onBlur();
                                 form.trigger("endDate");
+                                form.trigger("paymentCycleMonths");
                               }}
                             />
                           </FormControl>
@@ -795,11 +929,13 @@ export const UpdateContractDialog = ({
                                 setTimeout(() => {
                                   form.trigger("startDate");
                                   form.trigger("endDate");
+                                  form.trigger("paymentCycleMonths");
                                 }, 0);
                               }}
                               onBlur={() => {
                                 field.onBlur();
                                 form.trigger("startDate");
+                                form.trigger("paymentCycleMonths");
                               }}
                             />
                           </FormControl>
@@ -812,8 +948,8 @@ export const UpdateContractDialog = ({
 
                 {/* Terms and Regulations */}
                 {(contractDetail.terms && contractDetail.terms.length > 0) ||
-                (contractDetail.regulations &&
-                  contractDetail.regulations.length > 0) ? (
+                  (contractDetail.regulations &&
+                    contractDetail.regulations.length > 0) ? (
                   <div className="space-y-4">
                     {sortedTerms.length > 0 && (
                       <div className="space-y-2">
@@ -847,10 +983,9 @@ export const UpdateContractDialog = ({
                                 <div className="mt-1">
                                   {slateValue && termSlateValuesInitialized ? (
                                     <SlateEditor
-                                      key={`${termKey}-editor-${
-                                        term.description?.slice(0, 20) ||
+                                      key={`${termKey}-editor-${term.description?.slice(0, 20) ||
                                         "empty"
-                                      }`}
+                                        }`}
                                       value={slateValue}
                                       onChange={(value) => {
                                         setTermSlateValues((prev) => ({
@@ -905,11 +1040,10 @@ export const UpdateContractDialog = ({
                                 </div>
                                 <div className="mt-1">
                                   {slateValue &&
-                                  regulationSlateValuesInitialized ? (
+                                    regulationSlateValuesInitialized ? (
                                     <SlateEditor
-                                      key={`${regKey}-editor-${
-                                        reg.description?.slice(0, 20) || "empty"
-                                      }`}
+                                      key={`${regKey}-editor-${reg.description?.slice(0, 20) || "empty"
+                                        }`}
                                       value={slateValue}
                                       onChange={(value) => {
                                         setRegulationSlateValues((prev) => ({

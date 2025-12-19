@@ -177,7 +177,6 @@ export const UpdateTenantContractDialog = ({
       }).unwrap();
 
       toast.success("Cập nhật hợp đồng thành công");
-      onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
       toast.error(

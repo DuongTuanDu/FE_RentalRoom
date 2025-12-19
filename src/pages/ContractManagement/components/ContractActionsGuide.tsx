@@ -1,4 +1,4 @@
-import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy, ChevronDown, ChevronUp, HelpCircle, ThumbsUp, X } from "lucide-react";
+import { Eye, Send, CheckCircle, Edit, Ban, XCircle, Download, Copy, ChevronDown, ChevronUp, HelpCircle, ThumbsUp, X, Home } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,13 @@ export const ContractActionsGuide = () => {
       title: "Vô hiệu hóa hợp đồng",
       description: "Vô hiệu hóa hợp đồng khi có vấn đề phát sinh, hợp đồng sẽ không còn hiệu lực",
       availableWhen: "Khi hợp đồng ở trạng thái: Nháp, Đã ký bởi chủ trọ, Đã gửi cho khách thuê",
+    },
+    {
+      icon: Home,
+      iconColor: "text-emerald-600",
+      title: "Xác nhận người thuê đã vào ở",
+      description: "Xác nhận người thuê đã chuyển vào ở. Sau khi xác nhận, hợp đồng sẽ được đánh dấu là đang có hiệu lực",
+      availableWhen: "Khi hợp đồng ở trạng thái: Hoàn thành và chưa xác nhận vào ở",
     },
     {
       icon: Download,

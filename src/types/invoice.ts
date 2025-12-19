@@ -18,6 +18,7 @@ export interface InvoiceItem {
     roomNumber: string;
   };
   contractId: string;
+  invoiceKind: "periodic" | "deposit";
   periodMonth: number;
   periodYear: number;
   invoiceNumber: string;
@@ -47,7 +48,8 @@ export interface InvoiceItem {
     | "paid"
     | "transfer_pending"
     | "overdue"
-    | "cancelled";
+    | "cancelled"
+    | "replaced";
   paymentMethod: "cash" | "online_gateway" | null;
   emailStatus: "pending" | "sent" | "failed" | null;
   isDeleted: boolean;
@@ -114,7 +116,8 @@ export interface IUpdateInvoiceRequest {
     | "paid"
     | "transfer_pending"
     | "overdue"
-    | "cancelled";
+    | "cancelled"
+    | "replaced";
 }
 
 export interface ISendDraftInvoiceRequest {
@@ -175,6 +178,7 @@ export interface InvoiceDetailResponse {
         endDate: string;
       };
     };
+    invoiceKind: "periodic" | "deposit";
     periodMonth: number;
     periodYear: number;
     invoiceNumber: string;
@@ -188,7 +192,7 @@ export interface InvoiceDetailResponse {
       meta?: {
         previousIndex: number;
         currentIndex: number;
-      }
+      };
     }[];
     subtotal: number;
     discountAmount: number;
@@ -204,7 +208,8 @@ export interface InvoiceDetailResponse {
       | "paid"
       | "transfer_pending"
       | "overdue"
-      | "cancelled";
+      | "cancelled"
+      | "replaced";
     paymentMethod: "cash" | "online_gateway" | null;
     emailStatus: "pending" | "sent" | "failed";
     createdBy: string;
@@ -224,6 +229,9 @@ export interface InvoiceDetailResponse {
     transferProofImageUrl?: string;
     transferRequestedAt?: string;
     note: string;
+    replacedAt?: string;
+    replacedByInvoiceId?: string;
+    replacementOfInvoiceId?: string;
     history: {
       action: string;
       itemsDiff: {
@@ -484,4 +492,24 @@ export interface InvoiceHistoryResponse {
     updatedAt: string;
     _id: string;
   }[];
+}
+
+export interface CreateInvoiceReplaceRequest {
+  items: {
+    type: "rent" | "electric" | "water" | "service" | "other";
+    label: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+    utilityReadingId?: string;
+    meta?: {
+      previousIndex: number;
+      currentIndex: number;
+    };
+  }[];
+  note?: string;
+  discountAmount: number;
+  lateFee: number;
+  dueDate: string;
 }

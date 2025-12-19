@@ -65,7 +65,8 @@ interface UpdateInvoiceDialogProps {
       | "paid"
       | "transfer_pending"
       | "overdue"
-      | "cancelled";
+      | "cancelled"
+      | "replaced";
   };
   onSubmit: (invoiceId: string, data: IUpdateInvoiceRequest) => void;
   isLoading: boolean;
@@ -84,7 +85,7 @@ export const UpdateInvoiceDialog = ({
   const [discountAmount, setDiscountAmount] = useState("0");
   const [lateFee, setLateFee] = useState("0");
   const [status, setStatus] = useState<
-    "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled"
+    "draft" | "sent" | "paid" | "transfer_pending" | "overdue" | "cancelled" | "replaced"
   >("draft");
   const [items, setItems] = useState<InvoiceItem[]>([]);
 

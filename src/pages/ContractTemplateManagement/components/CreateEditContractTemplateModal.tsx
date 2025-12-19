@@ -199,7 +199,7 @@ export const CreateEditContractTemplateModal = ({
           <div className="border-l px-6">
             <div className="bg-muted/40 rounded-md px-5 pb-5">
               {previewHeader}
-              <div className="mt-4 space-y-4 text-sm">
+              <div className="my-4 space-y-4 text-sm">
                 {termIds.length > 0 && (
                   <div className="space-y-2">
                     <div className="font-semibold">Nội dung điều khoản</div>
@@ -220,6 +220,23 @@ export const CreateEditContractTemplateModal = ({
                     />
                   </div>
                 )}
+              </div>
+              <div className="space-y-2 border-t-2 pb-6 pt-2">
+                <div className="font-semibold">Chữ ký</div>
+                <div className="grid grid-cols-2 gap-4 h-40">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Chữ ký người thuê
+                    </div>
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 bg-white h-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Chữ ký chủ trọ
+                    </div>
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 bg-white h-full" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

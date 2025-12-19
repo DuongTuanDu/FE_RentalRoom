@@ -14,6 +14,7 @@ import type {
   IInvoicePaymentInfoResponse,
   IRequestTransferConfirmation,
   InvoiceHistoryResponse,
+  CreateInvoiceReplaceRequest,
 } from "@/types/invoice";
 
 export const invoiceApi = createApi({
@@ -27,7 +28,7 @@ export const invoiceApi = createApi({
     getInvoices: builder.query<
       InvoiceResponse,
       {
-        status?: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+        status?: "draft" | "sent" | "paid" | "overdue" | "cancelled" | "replaced";
         buildingId?: string;
         roomId?: string;
         tenantId?: string;
@@ -159,6 +160,15 @@ export const invoiceApi = createApi({
       }),
       providesTags: ["InvoiceHistory"],
     }),
+    replaceInvoice: builder.mutation<InvoiceResponse, { id: string, data: CreateInvoiceReplaceRequest }>({ // Tạo hóa đơn mới thay thế từ hóa đơn cũ
+      // Chỉ cho phép thay thế khi hóa đơn trạng thái hiện tại là sent
+      query: ({ id, data }) => ({
+        url: `/landlords/invoices/${id}/replace`,
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["Invoice"],
+    }),
 
     // Tenant
     getTenantInvoices: builder.query<
@@ -230,6 +240,7 @@ export const {
   useSendDraftAllInvoicesMutation,
   useDeleteInvoiceMutation,
   useHistoryUpdateInvoiceQuery,
+  useReplaceInvoiceMutation,
 
   // Tenant
   useGetTenantInvoicesQuery,
