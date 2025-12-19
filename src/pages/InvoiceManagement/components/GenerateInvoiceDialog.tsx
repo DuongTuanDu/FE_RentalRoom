@@ -164,14 +164,14 @@ export const GenerateInvoiceDialog = ({
 
   const getPeriodDateRange = () => {
     if (!periodMonth || !periodYear) return null;
-    
+
     const month = Number(periodMonth);
     const year = Number(periodYear);
-    
+
     const periodStart = new Date(year, month - 1, 1);
-    
+
     const periodEnd = new Date(year, month, 0);
-    
+
     return { periodStart, periodEnd };
   };
 
@@ -189,7 +189,7 @@ export const GenerateInvoiceDialog = ({
 
     const selectedDate = new Date(dateValue);
     selectedDate.setHours(0, 0, 0, 0);
-    
+
     const { periodStart } = range;
     const periodStartDate = new Date(periodStart);
     periodStartDate.setHours(0, 0, 0, 0);
@@ -375,7 +375,7 @@ export const GenerateInvoiceDialog = ({
 
           <div className="space-y-2 grid grid-cols-2 gap-2">
             {/* Period Month */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>
                 Tháng <span className="text-red-500">*</span>
               </Label>
@@ -395,6 +395,47 @@ export const GenerateInvoiceDialog = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div> */}
+
+            {/* Period Year */}
+            {/* <div className="space-y-2 !mt-0">
+              <Label>
+                Năm <span className="text-red-500">*</span>
+              </Label>
+              <Select value={periodYear} onValueChange={setPeriodYear} required>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn năm" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((year) => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div> */}
+
+            {/* Period Month */}
+            <div className="space-y-2">
+              <Label>
+                Tháng <span className="text-red-500">*</span>
+              </Label>
+              <Select value={periodMonth} disabled>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Tháng hiện tại" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((month) => (
+                    <SelectItem key={month} value={String(month)}>
+                      Tháng {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Chỉ được tạo hóa đơn cho tháng hiện tại.
+              </p>
             </div>
 
             {/* Period Year */}
@@ -402,9 +443,9 @@ export const GenerateInvoiceDialog = ({
               <Label>
                 Năm <span className="text-red-500">*</span>
               </Label>
-              <Select value={periodYear} onValueChange={setPeriodYear} required>
+              <Select value={periodYear} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn năm" />
+                  <SelectValue placeholder="Năm hiện tại" />
                 </SelectTrigger>
                 <SelectContent>
                   {yearOptions.map((year) => (
@@ -466,8 +507,8 @@ export const GenerateInvoiceDialog = ({
                     });
                   }
                   return "";
-                })()}
-                {" "}(có thể là bất kỳ ngày nào trong kỳ hoặc sau đó)
+                })()}{" "}
+                (có thể là bất kỳ ngày nào trong kỳ hoặc sau đó)
               </p>
             )}
           </div>

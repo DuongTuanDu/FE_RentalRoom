@@ -29,6 +29,13 @@ export interface IContract {
     requestedAt: string;
     requestedById: string;
   };
+  shouldShowMoveInActions: boolean;
+  depositInvoice: {
+    _id: string;
+    invoiceKind: "deposit";
+    status: "draft" | "sent" | "paid" | "overdue" | "cancelled" | "replaced";
+    totalAmount: number;
+  };
 }
 
 export interface IContractRenewal {
