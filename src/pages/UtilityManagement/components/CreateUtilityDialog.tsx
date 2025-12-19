@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Droplets, Loader2, Zap } from "lucide-react";
 import { RoomCompletedContractSelectCombobox } from "@/pages/InvoiceManagement/components/RoomCompletedContractSelectCombobox";
-import { useCreateUtilityReadingMutation } from "@/services/utility/utility.service";
+import { useCreateUtilityReadingMutation, useGetUtilityReadingsQuery } from "@/services/utility/utility.service";
 import { toast } from "sonner";
 
 interface CreateUtilityDialogProps {
@@ -42,8 +42,69 @@ export const CreateUtilityDialog = ({
     wCurrentIndex: "",
   });
 
+  const [errors, setErrors] = useState({
+    eCurrentIndex: "",
+    wCurrentIndex: "",
+  });
+
   const [createUtilityReading, { isLoading: isCreating }] =
     useCreateUtilityReadingMutation();
+
+  const { data: previousReadingsData, isLoading: isLoadingPrevious } = useGetUtilityReadingsQuery(
+    {
+      roomId: formData.roomId || undefined,
+      page: 1,
+      limit: 100,
+    },
+    {
+      skip: !formData.roomId,
+    }
+  );
+
+  const previousReading = (() => {
+    if (!previousReadingsData?.items || previousReadingsData.items.length === 0) {
+      return undefined;
+    }
+
+    const items = previousReadingsData.items;
+    
+    if (formData.periodMonth && formData.periodYear && 
+        formData.periodMonth !== "" && formData.periodYear !== "") {
+      const currentPeriodMonth = parseInt(formData.periodMonth);
+      const currentPeriodYear = parseInt(formData.periodYear);
+      
+      // Validate parsed values
+      if (!isNaN(currentPeriodMonth) && !isNaN(currentPeriodYear)) {
+        const filtered = items.filter((reading) => {
+          if (reading.periodYear < currentPeriodYear) {
+            return true;
+          }
+          if (reading.periodYear === currentPeriodYear && reading.periodMonth < currentPeriodMonth) {
+            return true;
+          }
+          return false;
+        });
+
+        if (filtered.length > 0) {
+          // Create a copy before sorting to avoid mutating the original array
+          return [...filtered].sort((a, b) => {
+            if (b.periodYear !== a.periodYear) {
+              return b.periodYear - a.periodYear;
+            }
+            return b.periodMonth - a.periodMonth;
+          })[0];
+        }
+      }
+    }
+
+    // Create a copy before sorting to avoid mutating the original array
+    return [...items].sort((a, b) => {
+      if (b.periodYear !== a.periodYear) {
+        return b.periodYear - a.periodYear;
+      }
+      return b.periodMonth - a.periodMonth;
+    })[0];
+  })();
 
   // Generate month and year options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -61,8 +122,70 @@ export const CreateUtilityDialog = ({
         eCurrentIndex: "",
         wCurrentIndex: "",
       });
+      setErrors({
+        eCurrentIndex: "",
+        wCurrentIndex: "",
+      });
     }
   }, [open]);
+
+  // Validate current index against previous reading
+  const validateIndex = (type: "electricity" | "water", value: string) => {
+    if (!previousReading || !value || value === "") {
+      return "";
+    }
+
+    const currentValue = parseFloat(value);
+    if (isNaN(currentValue)) {
+      return "";
+    }
+
+    const previousValue = type === "electricity" 
+      ? previousReading.eCurrentIndex 
+      : previousReading.wCurrentIndex;
+
+    if (currentValue < previousValue) {
+      return `Chỉ số ${type === "electricity" ? "điện" : "nước"} hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousValue.toLocaleString()})`;
+    }
+
+    return "";
+  };
+
+  // Reset errors when previousReading changes
+  useEffect(() => {
+    if (previousReading) {
+      // Re-validate current values
+      if (formData.eCurrentIndex) {
+        const currentValue = parseFloat(formData.eCurrentIndex);
+        if (!isNaN(currentValue) && currentValue < previousReading.eCurrentIndex) {
+          setErrors((prev) => ({
+            ...prev,
+            eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex.toLocaleString()})`,
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, eCurrentIndex: "" }));
+        }
+      }
+      if (formData.wCurrentIndex) {
+        const currentValue = parseFloat(formData.wCurrentIndex);
+        if (!isNaN(currentValue) && currentValue < previousReading.wCurrentIndex) {
+          setErrors((prev) => ({
+            ...prev,
+            wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, wCurrentIndex: "" }));
+        }
+      }
+    } else {
+      // Clear errors if no previous reading
+      setErrors({
+        eCurrentIndex: "",
+        wCurrentIndex: "",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previousReading]);
 
   const handleCreate = async () => {
     if (
@@ -88,6 +211,33 @@ export const CreateUtilityDialog = ({
       toast.error("Chỉ số nước hiện tại không được là số âm");
       return;
     }
+
+    // Validate against previous reading
+    if (previousReading) {
+      if (eCurrentIndexNum < previousReading.eCurrentIndex) {
+        setErrors((prev) => ({
+          ...prev,
+          eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex.toLocaleString()})`,
+        }));
+        toast.error("Vui lòng kiểm tra lại chỉ số điện");
+        return;
+      }
+
+      if (wCurrentIndexNum < previousReading.wCurrentIndex) {
+        setErrors((prev) => ({
+          ...prev,
+          wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
+        }));
+        toast.error("Vui lòng kiểm tra lại chỉ số nước");
+        return;
+      }
+    }
+
+    // Clear errors if validation passes
+    setErrors({
+      eCurrentIndex: "",
+      wCurrentIndex: "",
+    });
 
     try {
       await createUtilityReading({
@@ -177,6 +327,55 @@ export const CreateUtilityDialog = ({
               </Select>
             </div>
           </div>
+          {/* Previous indexes display */}
+          {formData.roomId && (
+            <>
+              {isLoadingPrevious ? (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">Đang tải chỉ số trước đó...</p>
+                </div>
+              ) : previousReading ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-medium text-blue-900 mb-2">
+                    {formData.periodMonth && formData.periodYear && formData.periodMonth !== "" && formData.periodYear !== ""
+                      ? "Chỉ số điện nước kỳ trước:"
+                      : "Chỉ số điện nước gần nhất:"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-blue-700">
+                        Chỉ số điện
+                      </Label>
+                      <div className="text-sm font-semibold text-blue-900 flex items-center gap-1">
+                        <Zap className="w-4 h-4 text-yellow-500" />
+                        {previousReading.eCurrentIndex.toLocaleString()}
+                        <span className="text-xs text-blue-600 font-normal ml-1">
+                          (Tháng {previousReading.periodMonth}/{previousReading.periodYear})
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-blue-700">
+                        Chỉ số nước
+                      </Label>
+                      <div className="text-sm font-semibold text-blue-900 flex items-center gap-1">
+                        <Droplets className="w-4 h-4 text-blue-500" />
+                        {previousReading.wCurrentIndex.toLocaleString()}
+                        <span className="text-xs text-blue-600 font-normal ml-1">
+                          (Tháng {previousReading.periodMonth}/{previousReading.periodYear})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">Chưa có chỉ số điện nước trước đó cho phòng này</p>
+                </div>
+              )}
+            </>
+          )}
+
           <div className="space-y-2 grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
@@ -195,10 +394,17 @@ export const CreateUtilityDialog = ({
                       ...prev,
                       eCurrentIndex: value,
                     }));
+                    // Validate immediately
+                    const error = validateIndex("electricity", value);
+                    setErrors((prev) => ({ ...prev, eCurrentIndex: error }));
                   }
                 }}
                 placeholder="Nhập chỉ số điện hiện tại"
+                className={errors.eCurrentIndex ? "border-red-500" : ""}
               />
+              {errors.eCurrentIndex && (
+                <p className="text-sm text-red-500 mt-1">{errors.eCurrentIndex}</p>
+              )}
             </div>
             <div className="space-y-2 !mt-0">
               <Label>
@@ -217,10 +423,17 @@ export const CreateUtilityDialog = ({
                       ...prev,
                       wCurrentIndex: value,
                     }));
+                    // Validate immediately
+                    const error = validateIndex("water", value);
+                    setErrors((prev) => ({ ...prev, wCurrentIndex: error }));
                   }
                 }}
                 placeholder="Nhập chỉ số nước hiện tại"
+                className={errors.wCurrentIndex ? "border-red-500" : ""}
               />
+              {errors.wCurrentIndex && (
+                <p className="text-sm text-red-500 mt-1">{errors.wCurrentIndex}</p>
+              )}
             </div>
           </div>
         </div>
@@ -232,7 +445,10 @@ export const CreateUtilityDialog = ({
           >
             Hủy
           </Button>
-          <Button onClick={handleCreate} disabled={isCreating}>
+          <Button 
+            onClick={handleCreate} 
+            disabled={isCreating || !!errors.eCurrentIndex || !!errors.wCurrentIndex}
+          >
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
