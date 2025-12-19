@@ -29,15 +29,12 @@ import {
   UserCheck,
   Trash2,
   Send,
-  History,
   RefreshCw,
   AlertCircle,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useGetInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 interface InvoiceDetailSheetProps {
@@ -527,12 +524,12 @@ export const InvoiceDetailSheet = ({
               </div>
               <div className="space-y-6">
                 {/* Bảng Tiền phòng */}
-                {invoiceData.items.filter((item: any) => item.type === "rent")
-                  .length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Tiền phòng
-                    </h4>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Tiền phòng
+                  </h4>
+                  {invoiceData.items.filter((item: any) => item.type === "rent")
+                    .length > 0 ? (
                     <div className="border rounded-lg overflow-x-auto border-slate-200 dark:border-slate-700">
                       <Table>
                         <TableHeader>
@@ -545,6 +542,29 @@ export const InvoiceDetailSheet = ({
                             <TableHead className="min-w-[120px] text-center">
                               Đơn giá
                             </TableHead>
+                            {invoiceData.items.some(
+                              (item: any) =>
+                                item.type === "rent" &&
+                                (item.meta?.paymentCycleMonths ||
+                                  item.meta?.billedMonths ||
+                                  item.meta?.from ||
+                                  item.meta?.to)
+                            ) && (
+                              <>
+                                <TableHead className="min-w-[120px] text-center">
+                                  Chu kỳ (tháng)
+                                </TableHead>
+                                <TableHead className="min-w-[120px] text-center">
+                                  Số tháng tính
+                                </TableHead>
+                                <TableHead className="min-w-[140px] text-center">
+                                  Từ tháng/năm
+                                </TableHead>
+                                <TableHead className="min-w-[140px] text-center">
+                                  Đến tháng/năm
+                                </TableHead>
+                              </>
+                            )}
                             <TableHead className="min-w-[120px]">
                               Thành tiền
                             </TableHead>
@@ -553,6 +573,11 @@ export const InvoiceDetailSheet = ({
                         <TableBody>
                           {invoiceData.items.map((item: any, index: number) => {
                             if (item.type !== "rent") return null;
+                            const hasMetaInfo =
+                              item.meta?.paymentCycleMonths ||
+                              item.meta?.billedMonths ||
+                              item.meta?.from ||
+                              item.meta?.to;
                             return (
                               <TableRow key={index}>
                                 <TableCell>
@@ -578,6 +603,38 @@ export const InvoiceDetailSheet = ({
                                     {formatPrice(item.unitPrice)}
                                   </span>
                                 </TableCell>
+                                {hasMetaInfo && (
+                                  <>
+                                    <TableCell className="text-center">
+                                      <span className="text-sm text-slate-900 dark:text-slate-100">
+                                        {item.meta?.paymentCycleMonths
+                                          ? `${item.meta.paymentCycleMonths} tháng`
+                                          : "—"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <span className="text-sm text-slate-900 dark:text-slate-100">
+                                        {item.meta?.billedMonths
+                                          ? `${item.meta.billedMonths} tháng`
+                                          : "—"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <span className="text-sm text-slate-900 dark:text-slate-100">
+                                        {item.meta?.from
+                                          ? `Tháng ${item.meta.from.month}/${item.meta.from.year}`
+                                          : "—"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <span className="text-sm text-slate-900 dark:text-slate-100">
+                                        {item.meta?.to
+                                          ? `Tháng ${item.meta.to.month}/${item.meta.to.year}`
+                                          : "—"}
+                                      </span>
+                                    </TableCell>
+                                  </>
+                                )}
                                 <TableCell>
                                   <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                     {formatPrice(item.amount)}
@@ -589,8 +646,14 @@ export const InvoiceDetailSheet = ({
                         </TableBody>
                       </Table>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="border rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
+                        Tiền phòng đã thu theo kỳ (tháng này không thu)
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Bảng Điện nước */}
                 {invoiceData.items.filter(
@@ -1007,263 +1070,6 @@ export const InvoiceDetailSheet = ({
                   {invoiceData.note}
                 </p>
               </div>
-            </div>
-          )}
-
-          {/* Lịch sử cập nhật */}
-          {invoiceData.history && invoiceData.history.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                <History className="w-4 h-4" />
-                Lịch sử cập nhật
-              </div>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {invoiceData.history.map((historyItem) => (
-                      <div
-                        key={historyItem._id}
-                        className="relative pl-6 pb-4 border-l-2 border-slate-200 dark:border-slate-700 last:border-l-0 last:pb-0"
-                      >
-                        <div className="absolute -left-[5px] top-0 w-3 h-3 rounded-full bg-blue-600 dark:bg-blue-400 border-2 border-background" />
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                {historyItem.updatedBy.email}
-                              </span>
-                            </div>
-                            <span className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(
-                                new Date(historyItem.updatedAt),
-                                "dd/MM/yyyy HH:mm",
-                                {
-                                  locale: vi,
-                                }
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Items Changes */}
-                          {(historyItem.itemsDiff.updated.length > 0 ||
-                            historyItem.itemsDiff.added.length > 0 ||
-                            historyItem.itemsDiff.removed.length > 0) && (
-                            <div className="space-y-2 mt-3">
-                              {/* Updated Items */}
-                              {historyItem.itemsDiff.updated.length > 0 && (
-                                <div className="space-y-1">
-                                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                    Đã cập nhật (
-                                    {historyItem.itemsDiff.updated.length}):
-                                  </p>
-                                  {historyItem.itemsDiff.updated.map(
-                                    (item, itemIdx) => (
-                                      <div
-                                        key={itemIdx}
-                                        className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-xs space-y-1"
-                                      >
-                                        <div className="font-medium text-slate-900 dark:text-slate-100">
-                                          {getTypeLabel(item.type)} -{" "}
-                                          {item.label}
-                                        </div>
-                                        <div className="space-y-0.5 pl-2">
-                                          {Object.entries(item.changes).map(
-                                            ([key, change]) => (
-                                              <div
-                                                key={key}
-                                                className="flex items-center gap-2 flex-wrap"
-                                              >
-                                                <span className="text-slate-600 dark:text-slate-400 min-w-[80px]">
-                                                  {key === "quantity"
-                                                    ? "Số lượng"
-                                                    : key === "unitPrice"
-                                                    ? "Đơn giá"
-                                                    : key === "amount"
-                                                    ? "Thành tiền"
-                                                    : key === "label"
-                                                    ? "Tên"
-                                                    : key === "description"
-                                                    ? "Mô tả"
-                                                    : key === "currentIndex"
-                                                    ? "Chỉ số hiện tại"
-                                                    : key === "previousIndex"
-                                                    ? "Chỉ số cũ"
-                                                    : key}
-                                                  :
-                                                </span>
-                                                <span className="line-through text-red-600 dark:text-red-400">
-                                                  {typeof change.before ===
-                                                    "number" &&
-                                                  (key === "unitPrice" ||
-                                                    key === "amount")
-                                                    ? formatPrice(change.before)
-                                                    : change.before}
-                                                </span>
-                                                <span className="text-green-600 dark:text-green-400 font-medium">
-                                                  →
-                                                </span>
-                                                <span className="text-green-600 dark:text-green-400 font-medium">
-                                                  {typeof change.after ===
-                                                    "number" &&
-                                                  (key === "unitPrice" ||
-                                                    key === "amount")
-                                                    ? formatPrice(change.after)
-                                                    : change.after}
-                                                </span>
-                                              </div>
-                                            )
-                                          )}
-                                        </div>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Added Items */}
-                              {historyItem.itemsDiff.added.length > 0 && (
-                                <div className="space-y-1">
-                                  <p className="text-xs font-semibold text-green-600 dark:text-green-400">
-                                    Đã thêm (
-                                    {historyItem.itemsDiff.added.length}):
-                                  </p>
-                                  {historyItem.itemsDiff.added.map(
-                                    (item, itemIdx) => (
-                                      <div
-                                        key={itemIdx}
-                                        className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-xs"
-                                      >
-                                        <div className="font-medium text-slate-900 dark:text-slate-100">
-                                          {getTypeLabel(item.type)} -{" "}
-                                          {item.label}
-                                        </div>
-                                        {item.description && (
-                                          <div className="text-slate-600 dark:text-slate-400 mt-1">
-                                            {item.description}
-                                          </div>
-                                        )}
-                                        {(item.quantity !== undefined ||
-                                          item.unitPrice !== undefined ||
-                                          item.amount !== undefined) && (
-                                          <div className="mt-1 space-x-2 text-slate-600 dark:text-slate-400">
-                                            {item.quantity !== undefined && (
-                                              <span>
-                                                Số lượng: {item.quantity}
-                                              </span>
-                                            )}
-                                            {item.unitPrice !== undefined && (
-                                              <span>
-                                                Đơn giá:{" "}
-                                                {formatPrice(item.unitPrice)}
-                                              </span>
-                                            )}
-                                            {item.amount !== undefined && (
-                                              <span>
-                                                Thành tiền:{" "}
-                                                {formatPrice(item.amount)}
-                                              </span>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Removed Items */}
-                              {historyItem.itemsDiff.removed.length > 0 && (
-                                <div className="space-y-1">
-                                  <p className="text-xs font-semibold text-red-600 dark:text-red-400">
-                                    Đã xóa (
-                                    {historyItem.itemsDiff.removed.length}):
-                                  </p>
-                                  {historyItem.itemsDiff.removed.map(
-                                    (item, itemIdx) => (
-                                      <div
-                                        key={itemIdx}
-                                        className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-xs"
-                                      >
-                                        <div className="font-medium line-through text-slate-900 dark:text-slate-100">
-                                          {getTypeLabel(item.type)} -{" "}
-                                          {item.label}
-                                        </div>
-                                        {item.description && (
-                                          <div className="text-slate-600 dark:text-slate-400 mt-1 line-through">
-                                            {item.description}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Meta Changes */}
-                          {historyItem.metaDiff &&
-                            Object.keys(historyItem.metaDiff).length > 0 && (
-                              <div className="space-y-1 mt-3">
-                                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400">
-                                  Thay đổi thông tin khác:
-                                </p>
-                                <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-xs space-y-0.5">
-                                  {Object.entries(historyItem.metaDiff).map(
-                                    ([key, change]) => (
-                                      <div
-                                        key={key}
-                                        className="flex items-center gap-2 flex-wrap"
-                                      >
-                                        <span className="text-slate-600 dark:text-slate-400 min-w-[100px]">
-                                          {key === "note"
-                                            ? "Ghi chú"
-                                            : key === "discountAmount"
-                                            ? "Giảm trừ"
-                                            : key === "lateFee"
-                                            ? "Phí trễ hạn"
-                                            : key === "status"
-                                            ? "Trạng thái"
-                                            : key}
-                                          :
-                                        </span>
-                                        <span className="line-through text-red-600 dark:text-red-400">
-                                          {change.before === null
-                                            ? "—"
-                                            : typeof change.before ===
-                                                "number" &&
-                                              (key === "discountAmount" ||
-                                                key === "lateFee")
-                                            ? formatPrice(change.before)
-                                            : String(change.before)}
-                                        </span>
-                                        <span className="text-green-600 dark:text-green-400 font-medium">
-                                          →
-                                        </span>
-                                        <span className="text-green-600 dark:text-green-400 font-medium">
-                                          {change.after === null
-                                            ? "—"
-                                            : typeof change.after ===
-                                                "number" &&
-                                              (key === "discountAmount" ||
-                                                key === "lateFee")
-                                            ? formatPrice(change.after)
-                                            : String(change.after)}
-                                        </span>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           )}
 

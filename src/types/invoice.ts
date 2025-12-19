@@ -190,8 +190,18 @@ export interface InvoiceDetailResponse {
       unitPrice: number;
       amount: number;
       meta?: {
-        previousIndex: number;
-        currentIndex: number;
+        previousIndex?: number;
+        currentIndex?: number;
+        paymentCycleMonths?: number;
+        billedMonths?: number;
+        from?: {
+          month: number;
+          year: number;
+        };
+        to?: {
+          month: number;
+          year: number;
+        };
       };
     }[];
     subtotal: number;

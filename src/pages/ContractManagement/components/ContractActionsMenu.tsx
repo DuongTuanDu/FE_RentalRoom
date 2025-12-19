@@ -45,6 +45,13 @@ interface ContractActionsMenuProps {
   isApprovingTerminate?: boolean;
   onApproveTerminateRequest?: (contractId: string) => void;
   onRejectTerminateRequest?: (contractId: string) => void;
+  shouldShowMoveInActions?: boolean;
+  depositInvoice?: {
+    _id: string;
+    invoiceKind: "deposit";
+    status: "draft" | "sent" | "paid" | "overdue" | "cancelled" | "replaced";
+    totalAmount: number;
+  };
 }
 
 export const ContractActionsMenu = ({
@@ -72,6 +79,8 @@ export const ContractActionsMenu = ({
   isApprovingTerminate,
   onApproveTerminateRequest,
   onRejectTerminateRequest,
+  shouldShowMoveInActions,
+  depositInvoice,
 }: ContractActionsMenuProps) => {
   return (
     <div className="flex items-center justify-center gap-2">
@@ -216,7 +225,8 @@ export const ContractActionsMenu = ({
       {onDisable &&
         (status === "draft" ||
           status === "signed_by_landlord" ||
-          status === "sent_to_tenant") && (
+          status === "sent_to_tenant" || (status === "completed" && shouldShowMoveInActions)) &&
+        depositInvoice?.status !== "paid" && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -236,7 +246,7 @@ export const ContractActionsMenu = ({
           </TooltipProvider>
         )}
 
-      {status === "completed" && !moveInConfirmedAt && (
+      {status === "completed" && shouldShowMoveInActions && !moveInConfirmedAt && depositInvoice?.status !== "paid" && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

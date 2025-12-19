@@ -229,7 +229,9 @@ export const ContractTable = ({
                         <ContractActionsMenu
                           contractId={contract._id}
                           status={contract.status}
+                          shouldShowMoveInActions={contract.shouldShowMoveInActions}
                           moveInConfirmedAt={contract.moveInConfirmedAt}
+                          depositInvoice={contract.depositInvoice}
                           onViewDetail={onViewDetail}
                           onUpdate={onUpdate}
                           onSign={onSign}
