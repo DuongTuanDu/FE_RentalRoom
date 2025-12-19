@@ -53,6 +53,12 @@ const CreateContact = ({
   const [tenantNote, setTenantNote] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({
+    contactName: "",
+    contactPhone: "",
+    selectedRoomId: "",
+    tenantNote: "",
+  });
   const [createContactRequest] = useCreateContactRequestMutation();
   const { isAuthenticated } = useSelector((state: any) => state.auth);
   const { data: profileData } = useGetProfileQuery(undefined, {
@@ -67,36 +73,67 @@ const CreateContact = ({
   }, [profileData]);
 
   const handleSubmit = async () => {
+    const newErrors = {
+      contactName: "",
+      contactPhone: "",
+      selectedRoomId: "",
+      tenantNote: "",
+    };
+
+    let hasError = false;
+
     if (!contactName.trim()) {
-      toast.error("Vui lòng nhập tên người liên hệ");
-      return;
+      newErrors.contactName = "Vui lòng nhập tên người liên hệ";
+      hasError = true;
     }
 
     if (!contactPhone.trim()) {
-      toast.error("Vui lòng nhập số điện thoại");
-      return;
-    }
-
-    const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-    if (!phoneRegex.test(contactPhone.replace(/\s/g, ""))) {
-      toast.error("Số điện thoại không hợp lệ");
-      return;
+      newErrors.contactPhone = "Vui lòng nhập số điện thoại";
+      hasError = true;
+    } else {
+      // Loại bỏ khoảng trắng và ký tự đặc biệt
+      const cleanedPhone = contactPhone.replace(/[\s\-()]/g, "");
+      
+      // Regex cho số điện thoại Việt Nam: 
+      // - Bắt đầu bằng 0 hoặc +84
+      // - Sau đó là mã nhà mạng (3, 5, 7, 8, 9)
+      // - Tiếp theo là 8 chữ số
+      const phoneRegex = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/;
+      
+      if (!phoneRegex.test(cleanedPhone)) {
+        newErrors.contactPhone = "Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (VD: 0901234567 hoặc +84901234567)";
+        hasError = true;
+      }
     }
 
     if (!selectedRoomId) {
-      toast.error("Vui lòng chọn phòng muốn thuê");
+      newErrors.selectedRoomId = "Vui lòng chọn phòng muốn thuê";
+      hasError = true;
+    }
+
+    if (!tenantNote.trim()) {
+      newErrors.tenantNote = "Vui lòng nhập ghi chú (ghi rõ tháng thuê hoặc thuê bao nhiêu tháng)";
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      // Làm sạch số điện thoại: loại bỏ khoảng trắng và ký tự đặc biệt
+      const cleanedPhone = contactPhone.replace(/[\s\-()]/g, "");
+      
       const payload = {
         postId: postId,
         buildingId: buildingId,
         roomId: selectedRoomId,
         contactName: contactName.trim(),
-        contactPhone: contactPhone.trim().replace(/\s/g, ""),
+        contactPhone: cleanedPhone,
         tenantNote: tenantNote.trim(),
       };
 
@@ -117,6 +154,12 @@ const CreateContact = ({
       setContactPhone("");
       setTenantNote("");
       setSelectedRoomId("");
+      setErrors({
+        contactName: "",
+        contactPhone: "",
+        selectedRoomId: "",
+        tenantNote: "",
+      });
       onOpenChange(false);
     } catch (error: any) {
       toast.error("Có lỗi xảy ra", {
@@ -134,6 +177,12 @@ const CreateContact = ({
       setContactPhone("");
       setTenantNote("");
       setSelectedRoomId("");
+      setErrors({
+        contactName: "",
+        contactPhone: "",
+        selectedRoomId: "",
+        tenantNote: "",
+      });
       onOpenChange(false);
     }
   };
@@ -180,9 +229,16 @@ const CreateContact = ({
               </Label>
               <select
                 id="roomSelect"
-                className="w-full border rounded-md p-2"
+                className={`w-full border rounded-md p-2 ${
+                  errors.selectedRoomId ? "border-red-500" : ""
+                }`}
                 value={selectedRoomId}
-                onChange={(e) => setSelectedRoomId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedRoomId(e.target.value);
+                  if (errors.selectedRoomId) {
+                    setErrors({ ...errors, selectedRoomId: "" });
+                  }
+                }}
                 disabled={isSubmitting}
               >
                 <option value="">-- Chọn phòng --</option>
@@ -209,6 +265,9 @@ const CreateContact = ({
                     );
                   })}
               </select>
+              {errors.selectedRoomId && (
+                <p className="text-xs text-red-500">{errors.selectedRoomId}</p>
+              )}
             </div>
           )}
 
@@ -221,9 +280,18 @@ const CreateContact = ({
               id="contactName"
               placeholder="Nhập họ tên của bạn"
               value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
+              onChange={(e) => {
+                setContactName(e.target.value);
+                if (errors.contactName) {
+                  setErrors({ ...errors, contactName: "" });
+                }
+              }}
               disabled={isSubmitting}
+              className={errors.contactName ? "border-red-500" : ""}
             />
+            {errors.contactName && (
+              <p className="text-xs text-red-500">{errors.contactName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -233,33 +301,53 @@ const CreateContact = ({
             </Label>
             <Input
               id="contactPhone"
-              type="tel"
+              type="number"
               placeholder="Nhập số điện thoại (VD: 0901234567)"
               value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
+              onChange={(e) => {
+                setContactPhone(e.target.value);
+                if (errors.contactPhone) {
+                  setErrors({ ...errors, contactPhone: "" });
+                }
+              }}
               disabled={isSubmitting}
+              className={errors.contactPhone ? "border-red-500" : ""}
             />
-            <p className="text-xs text-slate-500">
-              Chủ trọ sẽ liên hệ với bạn qua số điện thoại này
-            </p>
+            {errors.contactPhone ? (
+              <p className="text-xs text-red-500">{errors.contactPhone}</p>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Chủ trọ sẽ liên hệ với bạn qua số điện thoại này
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="tenantNote" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Ghi chú (không bắt buộc)
+              Ghi chú <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="tenantNote"
-              placeholder="VD: Tôi muốn thuê trong 6 tháng, bắt đầu từ tháng sau..."
+              placeholder="VD: Tôi muốn thuê trong 6 tháng, bắt đầu từ tháng 1/2024..."
               value={tenantNote}
-              onChange={(e) => setTenantNote(e.target.value)}
+              onChange={(e) => {
+                setTenantNote(e.target.value);
+                if (errors.tenantNote) {
+                  setErrors({ ...errors, tenantNote: "" });
+                }
+              }}
               disabled={isSubmitting}
               rows={4}
+              className={errors.tenantNote ? "border-red-500" : ""}
             />
-            <p className="text-xs text-slate-500">
-              Thêm thông tin về thời gian thuê, yêu cầu đặc biệt...
-            </p>
+            {errors.tenantNote ? (
+              <p className="text-xs text-red-500">{errors.tenantNote}</p>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Vui lòng ghi rõ tháng thuê hoặc thuê bao nhiêu tháng
+              </p>
+            )}
           </div>
         </div>
 

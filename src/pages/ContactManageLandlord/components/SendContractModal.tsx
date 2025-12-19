@@ -45,6 +45,14 @@ export const SendContractModal = ({
   onOpenChange,
   contractData,
 }: Props) => {
+  const calculateContractMonths = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const years = endDate.getFullYear() - startDate.getFullYear();
+    const months = endDate.getMonth() - startDate.getMonth();
+    return years * 12 + months;
+  };
+
   const signatureRef = useRef<SignatureCanvas>(null);
   const [signatureUrl, setSignatureUrl] = useState<string>("");
   const [isSigning, setIsSigning] = useState(false);
@@ -56,6 +64,7 @@ export const SendContractModal = ({
   const [deposit, setDeposit] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [paymentCycleMonths, setPaymentCycleMonths] = useState("");
   
   // Error states
   const [contractNoError, setContractNoError] = useState("");
@@ -63,8 +72,11 @@ export const SendContractModal = ({
   const [signPlaceError, setSignPlaceError] = useState("");
   const [priceError, setPriceError] = useState("");
   const [depositError, setDepositError] = useState("");
+  const [depositWarning, setDepositWarning] = useState("");
   const [startDateError, setStartDateError] = useState("");
   const [endDateError, setEndDateError] = useState("");
+  const [paymentCycleMonthsError, setPaymentCycleMonthsError] = useState("");
+  const [paymentCycleMonthsWarning, setPaymentCycleMonthsWarning] = useState("");
   const [personANameError, setPersonANameError] = useState("");
   const [personADobError, setPersonADobError] = useState("");
   const [personACccdError, setPersonACccdError] = useState("");
@@ -125,12 +137,14 @@ export const SendContractModal = ({
       setStartDate("");
       setEndDate("");
       setDeposit("");
+      setPaymentCycleMonths(contractData.contract.paymentCycleMonths?.toString() || "1");
       setContractNo("");
       setSignPlace("");
       setSignDate(new Date().toISOString().split("T")[0]);
       // Reset errors
       setStartDateError("");
       setEndDateError("");
+      setPaymentCycleMonthsError("");
       setPersonABankAccountError("");
 
       // Fill Person A (Landlord) - from contractData.A
@@ -197,6 +211,7 @@ export const SendContractModal = ({
       // Reset errors
       setStartDateError("");
       setEndDateError("");
+      setPaymentCycleMonthsError("");
       setPersonABankAccountError("");
     }
   }, [open, contractData, sortedTerms, sortedRegulations]);
@@ -254,6 +269,9 @@ export const SendContractModal = ({
     setDepositError("");
     setStartDateError("");
     setEndDateError("");
+    setPaymentCycleMonthsError("");
+    setPaymentCycleMonthsWarning("");
+    setDepositWarning("");
     setPersonANameError("");
     setPersonADobError("");
     setPersonACccdError("");
@@ -295,6 +313,7 @@ export const SendContractModal = ({
     const priceErrorMsg = validateNumber(price, "Giá thuê");
     if (priceErrorMsg) {
       setPriceError(priceErrorMsg);
+      setDepositWarning("");
       hasError = true;
       if (!firstErrorField) firstErrorField = "price";
     }
@@ -303,8 +322,28 @@ export const SendContractModal = ({
     const depositErrorMsg = validateNumber(deposit, "Tiền cọc");
     if (depositErrorMsg) {
       setDepositError(depositErrorMsg);
+      setDepositWarning("");
       hasError = true;
       if (!firstErrorField) firstErrorField = "deposit";
+    }
+
+    // Validate paymentCycleMonths
+    const paymentCycleMonthsErrorMsg = validateNumber(paymentCycleMonths, "Chu kỳ thanh toán");
+    if (paymentCycleMonthsErrorMsg) {
+      setPaymentCycleMonthsError(paymentCycleMonthsErrorMsg);
+      setPaymentCycleMonthsWarning("");
+      hasError = true;
+      if (!firstErrorField) firstErrorField = "paymentCycleMonths";
+    } else {
+      const cycleValue = parseFloat(paymentCycleMonths);
+      if (cycleValue < 1) {
+        setPaymentCycleMonthsError("Chu kỳ thanh toán phải từ 1 tháng trở lên");
+        setPaymentCycleMonthsWarning("");
+        hasError = true;
+        if (!firstErrorField) firstErrorField = "paymentCycleMonths";
+      } else {
+        setPaymentCycleMonthsError("");
+      }
     }
 
     // Validate startDate
@@ -330,9 +369,55 @@ export const SendContractModal = ({
       if (startDateTrimmed > endDateTrimmed) {
         setStartDateError("Ngày bắt đầu không được sau ngày kết thúc");
         setEndDateError("Ngày kết thúc không được trước ngày bắt đầu");
+        setPaymentCycleMonthsWarning("");
         hasError = true;
         if (!firstErrorField) firstErrorField = "startDate";
+      } else {
+        // Validate relationship giữa chu kỳ thanh toán và thời hạn hợp đồng
+        const cycleValue = parseFloat(paymentCycleMonths);
+        if (!isNaN(cycleValue) && cycleValue >= 1) {
+          const totalMonths = calculateContractMonths(startDateTrimmed, endDateTrimmed);
+
+          if (totalMonths > 0 && cycleValue > totalMonths) {
+            setPaymentCycleMonthsError("Chu kỳ thanh toán không được vượt quá thời hạn hợp đồng");
+            setPaymentCycleMonthsWarning("");
+            hasError = true;
+            if (!firstErrorField) firstErrorField = "paymentCycleMonths";
+          } else {
+            // Không lỗi nhưng có thể có cảnh báo nếu không chia hết
+            setPaymentCycleMonthsError("");
+            if (totalMonths > 0 && totalMonths % cycleValue !== 0) {
+              setPaymentCycleMonthsWarning(
+                "Chu kỳ thanh toán không chia hết cho thời hạn hợp đồng, có thể phát sinh kỳ thanh toán lẻ."
+              );
+            } else {
+              setPaymentCycleMonthsWarning("");
+            }
+          }
+        } else {
+          setPaymentCycleMonthsWarning("");
+        }
       }
+    }
+
+    // Validate mối quan hệ giữa Giá thuê và Tiền cọc (chỉ cảnh báo, không chặn)
+    const priceValue = parseFloat(price);
+    const depositValue = parseFloat(deposit);
+    if (!isNaN(priceValue) && priceValue > 0 && !isNaN(depositValue) && depositValue > 0) {
+      const ratio = depositValue / priceValue;
+      if (ratio > 3) {
+        setDepositWarning(
+          "⚠️ Tiền cọc đang lớn hơn 3 tháng tiền thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên để đảm bảo phù hợp."
+        );
+      } else if (ratio > 1) {
+        setDepositWarning(
+          "⚠️ Tiền cọc đang cao hơn 1 tháng tiền thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên."
+        );
+      } else {
+        setDepositWarning("");
+      }
+    } else {
+      setDepositWarning("");
     }
 
     // Validate personAName
@@ -445,6 +530,7 @@ export const SendContractModal = ({
           deposit: parseFloat(deposit),
           startDate: startDate,
           endDate: endDate,
+          paymentCycleMonths: parseFloat(paymentCycleMonths),
         },
         terms: sortedTerms.map((term, index) => ({
           name: termNames[index] || term.name,
@@ -834,6 +920,27 @@ export const SendContractModal = ({
                     setPrice(e.target.value);
                     const error = validateNumber(e.target.value, "Giá thuê");
                     setPriceError(error || "");
+
+                    // Cập nhật cảnh báo tiền cọc khi giá thuê thay đổi
+                    const priceValue = parseFloat(e.target.value);
+                    const depositValue = parseFloat(deposit);
+                    if (
+                      !isNaN(priceValue) &&
+                      priceValue > 0 &&
+                      !isNaN(depositValue) &&
+                      depositValue > 0
+                    ) {
+                      const ratio = depositValue / priceValue;
+                      if (ratio > 1) {
+                        setDepositWarning(
+                          "Tiền cọc đang cao hơn giá thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên."
+                        );
+                      } else {
+                        setDepositWarning("");
+                      }
+                    } else {
+                      setDepositWarning("");
+                    }
                   }}
                   onBlur={() => {
                     const error = validateNumber(price, "Giá thuê");
@@ -856,6 +963,27 @@ export const SendContractModal = ({
                     setDeposit(e.target.value);
                     const error = validateNumber(e.target.value, "Tiền cọc");
                     setDepositError(error || "");
+
+                    // Cập nhật cảnh báo dựa trên tỷ lệ giữa tiền cọc và giá thuê
+                    const priceValue = parseFloat(price);
+                    const depositValue = parseFloat(e.target.value);
+                    if (
+                      !isNaN(priceValue) &&
+                      priceValue > 0 &&
+                      !isNaN(depositValue) &&
+                      depositValue > 0
+                    ) {
+                      const ratio = depositValue / priceValue;
+                      if (ratio > 1) {
+                        setDepositWarning(
+                          "Tiền cọc đang cao hơn giá thuê. Vui lòng kiểm tra lại thỏa thuận giữa hai bên."
+                        );
+                      } else {
+                        setDepositWarning("");
+                      }
+                    } else {
+                      setDepositWarning("");
+                    }
                   }}
                   onBlur={() => {
                     const error = validateNumber(deposit, "Tiền cọc");
@@ -866,6 +994,93 @@ export const SendContractModal = ({
                 />
                 {depositError && (
                   <p className="text-sm text-red-500 mt-1">{depositError}</p>
+                )}
+                {!depositError && depositWarning && (
+                  <p className="text-sm text-amber-500 mt-1">{depositWarning}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Chu kỳ thanh toán (tháng)</Label>
+                <Input
+                  data-field="paymentCycleMonths"
+                  type="number"
+                  value={paymentCycleMonths}
+                  onChange={(e) => {
+                    setPaymentCycleMonths(e.target.value);
+                    const error = validateNumber(e.target.value, "Chu kỳ thanh toán");
+                    if (error) {
+                      setPaymentCycleMonthsError(error);
+                      setPaymentCycleMonthsWarning("");
+                    } else {
+                      const cycleValue = parseFloat(e.target.value);
+                      if (cycleValue < 1) {
+                        setPaymentCycleMonthsError("Chu kỳ thanh toán phải từ 1 tháng trở lên");
+                        setPaymentCycleMonthsWarning("");
+                      } else {
+                        setPaymentCycleMonthsError("");
+                        // Khi chu kỳ hợp lệ, kiểm tra mối quan hệ với thời hạn hợp đồng nếu đã có ngày
+                        if (startDate && endDate) {
+                          const totalMonths = calculateContractMonths(startDate, endDate);
+                          if (totalMonths > 0 && cycleValue > totalMonths) {
+                            setPaymentCycleMonthsError(
+                              "Chu kỳ thanh toán không được vượt quá thời hạn hợp đồng"
+                            );
+                            setPaymentCycleMonthsWarning("");
+                          } else if (totalMonths > 0 && totalMonths % cycleValue !== 0) {
+                            setPaymentCycleMonthsWarning(
+                              "Chu kỳ thanh toán không chia hết cho thời hạn hợp đồng, có thể phát sinh kỳ thanh toán lẻ."
+                            );
+                          } else {
+                            setPaymentCycleMonthsWarning("");
+                          }
+                        } else {
+                          setPaymentCycleMonthsWarning("");
+                        }
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    const error = validateNumber(paymentCycleMonths, "Chu kỳ thanh toán");
+                    if (error) {
+                      setPaymentCycleMonthsError(error);
+                      setPaymentCycleMonthsWarning("");
+                    } else {
+                      const cycleValue = parseFloat(paymentCycleMonths);
+                      if (cycleValue < 1) {
+                        setPaymentCycleMonthsError("Chu kỳ thanh toán phải từ 1 tháng trở lên");
+                        setPaymentCycleMonthsWarning("");
+                      } else {
+                        setPaymentCycleMonthsError("");
+                        // Khi blur cũng kiểm tra lại mối quan hệ với thời hạn hợp đồng
+                        if (startDate && endDate) {
+                          const totalMonths = calculateContractMonths(startDate, endDate);
+                          if (totalMonths > 0 && cycleValue > totalMonths) {
+                            setPaymentCycleMonthsError(
+                              "Chu kỳ thanh toán không được vượt quá thời hạn hợp đồng"
+                            );
+                            setPaymentCycleMonthsWarning("");
+                          } else if (totalMonths > 0 && totalMonths % cycleValue !== 0) {
+                            setPaymentCycleMonthsWarning(
+                              "Chu kỳ thanh toán không chia hết cho thời hạn hợp đồng, có thể phát sinh kỳ thanh toán lẻ."
+                            );
+                          } else {
+                            setPaymentCycleMonthsWarning("");
+                          }
+                        } else {
+                          setPaymentCycleMonthsWarning("");
+                        }
+                      }
+                    }
+                  }}
+                  placeholder="Nhập chu kỳ thanh toán"
+                  className={paymentCycleMonthsError ? "border-red-500" : ""}
+                  min="1"
+                />
+                {paymentCycleMonthsError && (
+                  <p className="text-sm text-red-500 mt-1">{paymentCycleMonthsError}</p>
+                )}
+                {!paymentCycleMonthsError && paymentCycleMonthsWarning && (
+                  <p className="text-sm text-amber-500 mt-1">{paymentCycleMonthsWarning}</p>
                 )}
               </div>
               <div className="space-y-2">

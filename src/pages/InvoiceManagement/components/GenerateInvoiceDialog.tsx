@@ -26,6 +26,7 @@ import {
   Building2,
   Zap,
   Droplets,
+  AlertCircle,
 } from "lucide-react";
 import { RoomCompletedContractSelectCombobox } from "./RoomCompletedContractSelectCombobox";
 import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/BuildingSelectCombobox";
@@ -81,6 +82,7 @@ export const GenerateInvoiceDialog = ({
   const [periodMonth, setPeriodMonth] = useState("");
   const [periodYear, setPeriodYear] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueDateError, setDueDateError] = useState("");
   const [includeRent, setIncludeRent] = useState(true);
   const [items, setItems] = useState<InvoiceItem[]>([]);
 
@@ -160,7 +162,54 @@ export const GenerateInvoiceDialog = ({
     }
   }, [roomId, roomsData?.data]);
 
-  // Set default to current month/year and due date
+  const getPeriodDateRange = () => {
+    if (!periodMonth || !periodYear) return null;
+    
+    const month = Number(periodMonth);
+    const year = Number(periodYear);
+    
+    const periodStart = new Date(year, month - 1, 1);
+    
+    const periodEnd = new Date(year, month, 0);
+    
+    return { periodStart, periodEnd };
+  };
+
+  const validateDueDate = (dateValue: string) => {
+    if (!dateValue) {
+      setDueDateError("");
+      return true;
+    }
+
+    const range = getPeriodDateRange();
+    if (!range) {
+      setDueDateError("");
+      return true;
+    }
+
+    const selectedDate = new Date(dateValue);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    const { periodStart } = range;
+    const periodStartDate = new Date(periodStart);
+    periodStartDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < periodStartDate) {
+      const startDateStr = periodStartDate.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      setDueDateError(
+        `Hạn thanh toán phải sau hoặc bằng ngày bắt đầu kỳ (${startDateStr})`
+      );
+      return false;
+    }
+
+    setDueDateError("");
+    return true;
+  };
+
   useEffect(() => {
     if (open) {
       const now = new Date();
@@ -173,6 +222,7 @@ export const GenerateInvoiceDialog = ({
       const month = String(lastDay.getMonth() + 1).padStart(2, "0");
       const day = String(lastDay.getDate()).padStart(2, "0");
       setDueDate(`${year}-${month}-${day}`);
+      setDueDateError("");
     }
   }, [open]);
 
@@ -226,6 +276,11 @@ export const GenerateInvoiceDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomId || !periodMonth || !periodYear || !dueDate) {
+      return;
+    }
+
+    // Validate before submit
+    if (!validateDueDate(dueDate)) {
       return;
     }
 
@@ -371,8 +426,50 @@ export const GenerateInvoiceDialog = ({
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
+              min={
+                periodMonth && periodYear
+                  ? (() => {
+                      const range = getPeriodDateRange();
+                      if (range) {
+                        const year = range.periodStart.getFullYear();
+                        const month = String(
+                          range.periodStart.getMonth() + 1
+                        ).padStart(2, "0");
+                        const day = String(
+                          range.periodStart.getDate()
+                        ).padStart(2, "0");
+                        return `${year}-${month}-${day}`;
+                      }
+                      return undefined;
+                    })()
+                  : undefined
+              }
               required
+              className={dueDateError ? "border-red-500" : ""}
             />
+            {dueDateError && (
+              <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{dueDateError}</span>
+              </div>
+            )}
+            {periodMonth && periodYear && !dueDateError && (
+              <p className="text-xs text-muted-foreground">
+                Hạn thanh toán phải sau hoặc bằng ngày bắt đầu kỳ{" "}
+                {(() => {
+                  const range = getPeriodDateRange();
+                  if (range) {
+                    return range.periodStart.toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    });
+                  }
+                  return "";
+                })()}
+                {" "}(có thể là bất kỳ ngày nào trong kỳ hoặc sau đó)
+              </p>
+            )}
           </div>
 
           {/* Building Services Info */}
@@ -855,7 +952,12 @@ export const GenerateInvoiceDialog = ({
             <Button
               type="submit"
               disabled={
-                isLoading || !roomId || !periodMonth || !periodYear || !dueDate
+                isLoading ||
+                !roomId ||
+                !periodMonth ||
+                !periodYear ||
+                !dueDate ||
+                !!dueDateError
               }
             >
               {isLoading ? (

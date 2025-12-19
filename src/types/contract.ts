@@ -115,6 +115,7 @@ export interface IContractInfo {
   deposit: number;
   startDate: string;
   endDate: string;
+  paymentCycleMonths: number;
 }
 
 export interface IUpdateContractRequest {
@@ -178,6 +179,7 @@ export interface IContractDetailResponse {
   buildingId: {
     _id: string;
     name: string;
+    address: string;
   };
   roomId: {
     _id: string;
@@ -212,6 +214,18 @@ export interface IContractDetailResponse {
   __v: number;
   landlordSignatureUrl: string;
   sentToTenantAt: string;
+  identityVerification?: {
+    cccdFrontUrl: string;
+    cccdBackUrl: string;
+    selfieUrl: string;
+    ocrData: {
+      name: string;
+      dob: string;
+      cccd: string;
+      permanentAddress: string;
+    }
+    faceMatchScore: number;
+  };
   tenantSignatureUrl: string;
   moveInConfirmedAt?: string | null;
   terminationRequest?: {
@@ -331,6 +345,7 @@ export interface ITenantContractDetailResponse {
   buildingId: {
     _id: string;
     name: string;
+    address: string;
   };
   roomId: {
     _id: string;
@@ -365,6 +380,18 @@ export interface ITenantContractDetailResponse {
   __v: number;
   landlordSignatureUrl: string;
   sentToTenantAt: string;
+  identityVerification?: {
+    cccdFrontUrl: string;
+    cccdBackUrl: string;
+    selfieUrl: string;
+    ocrData: {
+      name: string;
+      dob: string;
+      cccd: string;
+      permanentAddress: string;
+    }
+    faceMatchScore: number;
+  };
   completedAt: string;
   tenantSignatureUrl: string;
   renewalRequest: {

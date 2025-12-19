@@ -30,23 +30,28 @@ import {
   Trash2,
   Send,
   History,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useGetInvoiceDetailsQuery } from "@/services/invoice/invoice.service";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 interface InvoiceDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string | null;
+  onInvoiceIdChange?: (newInvoiceId: string) => void;
 }
 
 export const InvoiceDetailSheet = ({
   open,
   onOpenChange,
   invoiceId,
+  onInvoiceIdChange,
 }: InvoiceDetailSheetProps) => {
   const formatDate = useFormatDate();
   const formatPrice = useFormatPrice();
@@ -55,6 +60,17 @@ export const InvoiceDetailSheet = ({
     isLoading,
     isError,
   } = useGetInvoiceDetailsQuery(invoiceId || "", { skip: !invoiceId || !open });
+
+  // Fetch related invoices if they exist
+  const { data: replacedByInvoice } = useGetInvoiceDetailsQuery(
+    invoice?.data?.replacedByInvoiceId || "",
+    { skip: !invoice?.data?.replacedByInvoiceId || !open }
+  );
+
+  const { data: replacementOfInvoice } = useGetInvoiceDetailsQuery(
+    invoice?.data?.replacementOfInvoiceId || "",
+    { skip: !invoice?.data?.replacementOfInvoiceId || !open }
+  );
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -109,6 +125,25 @@ export const InvoiceDetailSheet = ({
     };
     const config =
       statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return (
+      <Badge className={config.className} variant="outline">
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getInvoiceKindBadge = (kind: "periodic" | "deposit") => {
+    const kindConfig = {
+      deposit: {
+        label: "Hóa đơn cọc",
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+      },
+      periodic: {
+        label: "Hóa đơn kỳ",
+        className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      },
+    };
+    const config = kindConfig[kind] || kindConfig.periodic;
     return (
       <Badge className={config.className} variant="outline">
         {config.label}
@@ -188,6 +223,19 @@ export const InvoiceDetailSheet = ({
 
   const invoiceData = invoice.data;
 
+  // Handler for navigating to related invoices
+  const handleViewReplacedInvoice = () => {
+    if (onInvoiceIdChange && invoiceData.replacementOfInvoiceId) {
+      onInvoiceIdChange(invoiceData.replacementOfInvoiceId);
+    }
+  };
+
+  const handleViewReplacementInvoice = () => {
+    if (onInvoiceIdChange && invoiceData.replacedByInvoiceId) {
+      onInvoiceIdChange(invoiceData.replacedByInvoiceId);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto pl-2 sm:pl-4">
@@ -200,8 +248,9 @@ export const InvoiceDetailSheet = ({
               <div>
                 <SheetTitle className="text-2xl font-bold">Hóa đơn</SheetTitle>
                 <SheetDescription className="flex flex-col gap-2 mt-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {getStatusBadge(invoiceData.status)}
+                    {invoiceData.invoiceKind && getInvoiceKindBadge(invoiceData.invoiceKind)}
                     {/* {getEmailStatusBadge(invoiceData.emailStatus)} */}
                     {invoiceData.invoiceNumber && (
                       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -217,6 +266,95 @@ export const InvoiceDetailSheet = ({
             </div>
           </div>
         </SheetHeader>
+
+        {/* Replacement Banners */}
+        {(invoiceData.replacementOfInvoiceId ||
+          invoiceData.replacedByInvoiceId) && (
+          <div className="space-y-3 mb-4">
+            {/* Banner: Hóa đơn này thay thế cho hóa đơn khác */}
+            {invoiceData.replacementOfInvoiceId && (
+              <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50">
+                    <RefreshCw className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+                        Hóa đơn thay thế
+                      </h4>
+                    </div>
+                    <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                      Hóa đơn này thay thế cho hóa đơn{" "}
+                      <span className="font-medium">
+                        {replacementOfInvoice?.data?.invoiceNumber ||
+                          invoiceData.replacementOfInvoiceId}
+                      </span>
+                      {replacementOfInvoice?.data?.replacedAt && (
+                        <span className="text-indigo-600 dark:text-indigo-400">
+                          {" "}
+                          (Thay thế vào{" "}
+                          {formatDate(replacementOfInvoice.data.replacedAt)})
+                        </span>
+                      )}
+                    </p>
+                    {replacementOfInvoice?.data && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="mt-2 h-auto p-0 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                        onClick={handleViewReplacedInvoice}
+                      >
+                        Xem hóa đơn đã bị thay thế →
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Banner: Hóa đơn này đã bị thay thế bởi hóa đơn khác */}
+            {invoiceData.replacedByInvoiceId && (
+              <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/50">
+                    <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">
+                        Hóa đơn đã bị thay thế
+                      </h4>
+                    </div>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      Hóa đơn này đã bị thay thế bởi hóa đơn{" "}
+                      <span className="font-medium">
+                        {replacedByInvoice?.data?.invoiceNumber ||
+                          invoiceData.replacedByInvoiceId}
+                      </span>
+                      {invoiceData.replacedAt && (
+                        <span className="text-orange-600 dark:text-orange-400">
+                          {" "}
+                          (Thay thế vào {formatDate(invoiceData.replacedAt)})
+                        </span>
+                      )}
+                    </p>
+                    {replacedByInvoice?.data && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="mt-2 h-auto p-0 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
+                        onClick={handleViewReplacementInvoice}
+                      >
+                        Xem hóa đơn thay thế →
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-6 pb-6">
           {/* Thông tin người thuê */}
@@ -335,6 +473,21 @@ export const InvoiceDetailSheet = ({
                 <CardTitle className="text-lg">Kỳ thanh toán</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div>
+                  <label className="text-sm text-slate-600 dark:text-slate-400">
+                    Loại hóa đơn
+                  </label>
+                  <div className="mt-1">
+                    {invoiceData.invoiceKind ? (
+                      getInvoiceKindBadge(invoiceData.invoiceKind)
+                    ) : (
+                      <span className="text-base font-medium text-slate-900 dark:text-slate-100">
+                        N/A
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Separator />
                 <div className="flex justify-between items-center">
                   <label className="text-sm text-slate-600 dark:text-slate-400">
                     Tháng/Năm

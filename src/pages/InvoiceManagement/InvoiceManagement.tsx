@@ -15,6 +15,7 @@ import {
   Edit,
   Clock,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -58,6 +59,7 @@ import {
   useUpdateInvoiceMutation,
   useSendDraftAllInvoicesMutation,
   useDeleteInvoiceMutation,
+  useReplaceInvoiceMutation,
 } from "@/services/invoice/invoice.service";
 import type {
   InvoiceItem,
@@ -66,6 +68,7 @@ import type {
   IUpdateInvoiceRequest,
   ISendDraftInvoiceRequest,
   IInvoicePaymentInfoResponse,
+  CreateInvoiceReplaceRequest,
 } from "@/types/invoice";
 import { BuildingSelectCombobox } from "../FloorManageLandlord/components/BuildingSelectCombobox";
 import { InvoiceDetailSheet } from "./components/InvoiceDetailSheet";
@@ -78,6 +81,7 @@ import { GenerateInvoiceDialog } from "./components/GenerateInvoiceDialog";
 import { InvoiceErrorDetailsDialog } from "./components/InvoiceErrorDetailsDialog";
 import { UpdateInvoiceDialog } from "./components/UpdateInvoiceDialog";
 import { SendDraftAllInvoicesDialog } from "./components/SendDraftAllInvoicesDialog";
+import { ReplaceInvoiceDialog } from "./components/ReplaceInvoiceDialog";
 import _ from "lodash";
 import { InvoiceActionsGuide } from "./components/InvoiceActionsGuide";
 
@@ -88,7 +92,7 @@ const InvoiceManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
-    "all" | "draft" | "sent" | "paid" | "overdue" | "cancelled"
+    "all" | "draft" | "sent" | "paid" | "overdue" | "cancelled" | "replaced"
   >("all");
   const [buildingId, setBuildingId] = useState("");
   const [roomId, setRoomId] = useState("");
@@ -126,6 +130,10 @@ const InvoiceManagement = () => {
   const [deleteInvoicePopoverOpen, setDeleteInvoicePopoverOpen] =
     useState(false);
   const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(
+    null
+  );
+  const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
+  const [replacingInvoiceId, setReplacingInvoiceId] = useState<string | null>(
     null
   );
 
@@ -186,6 +194,8 @@ const InvoiceManagement = () => {
   const [sendDraftAllInvoices, { isLoading: isSendingDrafts }] =
     useSendDraftAllInvoicesMutation();
   const [deleteInvoice, { isLoading: isDeleting }] = useDeleteInvoiceMutation();
+  const [replaceInvoice, { isLoading: isReplacing }] =
+    useReplaceInvoiceMutation();
 
   const totalItems = invoicesData?.total ?? 0;
   const totalPages = Math.ceil(totalItems / pageLimit);
@@ -206,7 +216,7 @@ const InvoiceManagement = () => {
         className: "bg-green-100 text-green-800 border-green-200",
       },
       transfer_pending: {
-        label: "Chờ chuyển tiền",
+        label: "Người thuê đã chuyển tiền",
         className: "bg-yellow-100 text-yellow-800 border-yellow-200",
         icon: Clock,
       },
@@ -218,8 +228,32 @@ const InvoiceManagement = () => {
         label: "Đã hủy",
         className: "bg-gray-100 text-gray-800 border-gray-200",
       },
+      replaced: {
+        label: "Đã bị thay thế",
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      },
     };
     const config = statusConfig[status] || statusConfig.draft;
+    return (
+      <Badge className={config.className} variant="outline">
+        {config.label}
+      </Badge>
+    );
+  };
+
+  // Invoice kind badge helper
+  const getInvoiceKindBadge = (kind: InvoiceItem["invoiceKind"]) => {
+    const kindConfig = {
+      deposit: {
+        label: "Hóa đơn cọc",
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+      },
+      periodic: {
+        label: "Hóa đơn kỳ",
+        className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      },
+    };
+    const config = kindConfig[kind] || kindConfig.periodic;
     return (
       <Badge className={config.className} variant="outline">
         {config.label}
@@ -381,6 +415,22 @@ const InvoiceManagement = () => {
     }
   };
 
+  const handleReplaceInvoice = async (
+    invoiceId: string,
+    data: CreateInvoiceReplaceRequest
+  ) => {
+    try {
+      await replaceInvoice({ id: invoiceId, data }).unwrap();
+      toast.success("Tạo hóa đơn thay thế thành công!");
+      setIsReplaceDialogOpen(false);
+      setReplacingInvoiceId(null);
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Tạo hóa đơn thay thế thất bại!"
+      );
+    }
+  };
+
   // Generate month options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   const currentYear = new Date().getFullYear();
@@ -460,6 +510,7 @@ const InvoiceManagement = () => {
                   <SelectItem value="paid">Đã thanh toán</SelectItem>
                   <SelectItem value="overdue">Quá hạn</SelectItem>
                   <SelectItem value="cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="replaced">Đã bị thay thế</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -567,6 +618,7 @@ const InvoiceManagement = () => {
                 <TableRow>
                   <TableHead className="w-[40px]">#</TableHead>
                   <TableHead>Số hóa đơn</TableHead>
+                  <TableHead>Loại hóa đơn</TableHead>
                   <TableHead>Người thuê</TableHead>
                   <TableHead>Tòa nhà</TableHead>
                   <TableHead>Phòng</TableHead>
@@ -580,7 +632,7 @@ const InvoiceManagement = () => {
                 {isLoading ? (
                   <TableRow>
                     <TableCell
-                      colSpan={11}
+                      colSpan={12}
                       className="text-center py-8 text-muted-foreground"
                     >
                       Đang tải...
@@ -589,7 +641,7 @@ const InvoiceManagement = () => {
                 ) : !invoicesData || invoicesData.data.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={11}
+                      colSpan={12}
                       className="text-center py-8 text-muted-foreground"
                     >
                       Không có dữ liệu hóa đơn
@@ -603,6 +655,9 @@ const InvoiceManagement = () => {
                       </TableCell>
                       <TableCell className="font-medium">
                         {invoice.invoiceNumber}
+                      </TableCell>
+                      <TableCell>
+                        {getInvoiceKindBadge(invoice.invoiceKind)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -657,9 +712,10 @@ const InvoiceManagement = () => {
                             </Tooltip>
                           </TooltipProvider>
                           {invoice.status !== "paid" &&
-                            invoice.status !== "cancelled" && (
+                            invoice.status !== "cancelled" &&
+                            invoice.status !== "replaced" && (
                               <>
-                                {invoice.status !== "transfer_pending" && (
+                                {invoice.status !== "transfer_pending" && invoice.status !== "sent" && (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -682,8 +738,50 @@ const InvoiceManagement = () => {
                                   </TooltipProvider>
                                 )}
 
-                                {(invoice.status === "sent" ||
-                                  invoice.status === "transfer_pending") && (
+                                {invoice.status === "sent" && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => {
+                                              setReplacingInvoiceId(invoice._id);
+                                              setIsReplaceDialogOpen(true);
+                                            }}
+                                            disabled={isReplacing}
+                                          >
+                                            <RefreshCw className="h-4 w-4 text-orange-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Thay thế hóa đơn</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() =>
+                                              handleOpenPayDialog(invoice._id)
+                                            }
+                                            disabled={isPaying}
+                                          >
+                                            <CreditCard className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Thanh toán</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
+                                )}
+                                {(invoice.status === "transfer_pending") && (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -958,6 +1056,10 @@ const InvoiceManagement = () => {
           if (!open) setSelectedInvoiceId(null);
         }}
         invoiceId={selectedInvoiceId}
+        onInvoiceIdChange={(newInvoiceId) => {
+          setSelectedInvoiceId(newInvoiceId);
+          setIsDetailSheetOpen(true);
+        }}
       />
 
       {/* Pay Invoice Dialog */}
@@ -1061,6 +1163,20 @@ const InvoiceManagement = () => {
         onSubmit={handleSendDraftAllInvoices}
         isLoading={isSendingDrafts}
       />
+
+      {/* Replace Invoice Dialog */}
+      {replacingInvoiceId && (
+        <ReplaceInvoiceDialog
+          open={isReplaceDialogOpen}
+          onOpenChange={(open) => {
+            setIsReplaceDialogOpen(open);
+            if (!open) setReplacingInvoiceId(null);
+          }}
+          invoiceId={replacingInvoiceId}
+          onSubmit={handleReplaceInvoice}
+          isLoading={isReplacing}
+        />
+      )}
     </div>
   );
 };

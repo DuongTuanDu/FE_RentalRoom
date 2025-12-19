@@ -324,7 +324,24 @@ export const contractApi = createApi({
         data
       }),
       invalidatesTags: ["TenantContract"],
-    })
+    }),
+    verifyIdentity: builder.mutation<{ verified: boolean }, { id: string; data: { cccdFront: File; cccdBack: File; selfie: File } }>({
+      // Xác thực danh tính người thuê
+      // Người thuê upload ảnh CCCD để xác thực danh tính trước khi ký hợp đồng.
+      query: ({ id, data }) => {
+        const formData = new FormData();
+        formData.append("cccdFront", data.cccdFront);
+        formData.append("cccdBack", data.cccdBack);
+        formData.append("selfie", data.selfie);
+
+        return {
+          url: `/contracts/${id}/verify-identity`,
+          method: "POST",
+          data: formData,
+        };
+      },
+      invalidatesTags: ["TenantContract"],
+    }),
   }),
 });
 
@@ -355,5 +372,6 @@ export const {
   useGetUpcomingExpireQuery,
   useRequestExtendMutation,
   useDownloadTenantContractMutation,
-  useRequestTerminateMutation
+  useRequestTerminateMutation,
+  useVerifyIdentityMutation,
 } = contractApi;

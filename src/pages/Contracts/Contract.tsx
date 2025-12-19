@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Download,
   Ban,
+  Shield,
 } from "lucide-react";
 import _ from "lodash";
 import { toast } from "sonner";
@@ -50,6 +51,7 @@ import { SignTenantDialog } from "./components/SignTenantDialog";
 import { RequestExtendDialog } from "./components/RequestExtendDialog";
 import { RequestTerminateDialog } from "./components/RequestTerminateDialog";
 import { TenantActionsGuide } from "./components/TenantActionsGuide";
+import { VerifyIdentityDialog } from "./components/VerifyIdentityDialog";
 
 const Contract = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +65,7 @@ const Contract = () => {
   const [isSignDialogOpen, setIsSignDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
   const [isTerminateDialogOpen, setIsTerminateDialogOpen] = useState(false);
+  const [isVerifyIdentityDialogOpen, setIsVerifyIdentityDialogOpen] = useState(false);
 
   const formatDate = useFormatDate();
   const { data, error, isLoading } = useGetTenantContractsQuery({
@@ -127,6 +130,11 @@ const Contract = () => {
   const handleOpenTerminateDialog = (contractId: string) => {
     setSelectedContractId(contractId);
     setIsTerminateDialogOpen(true);
+  };
+
+  const handleOpenVerifyIdentityDialog = (contractId: string) => {
+    setSelectedContractId(contractId);
+    setIsVerifyIdentityDialogOpen(true);
   };
 
   const handleDownloadContract = async (contractId: string) => {
@@ -434,6 +442,26 @@ const Contract = () => {
                                             size="icon"
                                             className="h-8 w-8"
                                             onClick={() =>
+                                              handleOpenVerifyIdentityDialog(contract._id)
+                                            }
+                                          >
+                                            <Shield className="w-4 h-4 text-purple-600" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Xác thực danh tính</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
                                               handleOpenSignDialog(contract._id)
                                             }
                                           >
@@ -646,7 +674,15 @@ const Contract = () => {
         }}
         contractId={selectedContractId}
         onSuccess={() => {
-          setSelectedContractId(null);
+          // Sau khi cập nhật thông tin hợp đồng thành công,
+          // tự động chuyển sang bước Xác thực danh tính
+          if (selectedContractId) {
+            setIsUpdateDialogOpen(false);
+            setIsVerifyIdentityDialogOpen(true);
+          } else {
+            setIsUpdateDialogOpen(false);
+            setSelectedContractId(null);
+          }
         }}
       />
 
@@ -692,6 +728,30 @@ const Contract = () => {
         contractId={selectedContractId}
         onSuccess={() => {
           setSelectedContractId(null);
+        }}
+      />
+
+      {/* Dialog Xác thực danh tính */}
+      <VerifyIdentityDialog
+        open={isVerifyIdentityDialogOpen}
+        onOpenChange={(open: boolean) => {
+          setIsVerifyIdentityDialogOpen(open);
+          if (!open) {
+            setSelectedContractId(null);
+          }
+        }}
+        contractId={selectedContractId}
+        onSuccess={() => {
+          // Sau khi xác thực danh tính thành công,
+          // tự động chuyển sang bước Ký hợp đồng
+          if (selectedContractId) {
+            setIsVerifyIdentityDialogOpen(false);
+            setIsSignDialogOpen(true);
+          } else {
+            // Trường hợp không còn contractId (phòng thủ), chỉ đóng dialog hiện tại
+            setIsVerifyIdentityDialogOpen(false);
+            setSelectedContractId(null);
+          }
         }}
       />
     </div>

@@ -165,7 +165,7 @@ const Invoice = () => {
         icon: CheckCircle,
       },
       transfer_pending: {
-        label: "Chờ chuyển tiền",
+        label: "Chờ xác nhận chuyển tiền",
         className: "bg-yellow-100 text-yellow-800 border-yellow-200",
         icon: Clock,
       },

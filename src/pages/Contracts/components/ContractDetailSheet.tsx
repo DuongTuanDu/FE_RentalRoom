@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, IdCard, User, CheckCircle2, XCircle } from "lucide-react";
 import { useGetTenantContractDetailsQuery } from "@/services/contract/contract.service";
 
 interface ContractDetailSheetProps {
@@ -149,6 +150,39 @@ export const ContractDetailSheet = ({
             </div>
           </div>
 
+          {/* Building and Room Info */}
+          <div className="space-y-4">
+            <div className="font-semibold">Thông tin phòng và tòa nhà</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-slate-500">Tòa nhà</Label>
+                <p className="font-medium">
+                  {contractDetail.buildingId?.name || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Số phòng</Label>
+                <p className="font-medium">
+                  {contractDetail.roomId?.roomNumber || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Địa chỉ tòa nhà</Label>
+                <p className="font-medium">
+                  {contractDetail.buildingId?.address || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Số người ở tối đa</Label>
+                <p className="font-medium">
+                  {contractDetail.roomId?.maxTenants
+                    ? `${contractDetail.roomId.maxTenants} người`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Contract Details */}
           <div className="space-y-4">
             <div className="font-semibold">Thông tin hợp đồng</div>
@@ -227,10 +261,7 @@ export const ContractDetailSheet = ({
                       {[...contractDetail.regulations]
                         .sort((a, b) => a.order - b.order)
                         .map((reg, index) => (
-                          <div
-                            key={index}
-                            className="p-3 border rounded-lg"
-                          >
+                          <div key={index} className="p-3 border rounded-lg">
                             <div className="font-medium">{reg.title}</div>
                             <div className="text-muted-foreground mt-1 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_p]:mb-2 [&_p]:mt-0">
                               <div
@@ -311,6 +342,202 @@ export const ContractDetailSheet = ({
                 </div>
               </div>
             )}
+
+          {/* Identity Verification */}
+          {contractDetail.identityVerification && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <IdCard className="h-5 w-5 text-blue-600" />
+                <div className="font-semibold">Xác minh danh tính</div>
+              </div>
+
+              {/* Images Section */}
+              <div className="bg-slate-50 rounded-lg p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {contractDetail.identityVerification.cccdFrontUrl && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <IdCard className="h-4 w-4 text-blue-600" />
+                        CCCD mặt trước
+                      </div>
+                      <div className="relative group">
+                        <img
+                          src={contractDetail.identityVerification.cccdFrontUrl}
+                          alt="CCCD mặt trước"
+                          className="w-full h-48 object-contain border rounded-lg bg-white p-2 cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() =>
+                            window.open(
+                              contractDetail.identityVerification?.cccdFrontUrl,
+                              "_blank"
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {contractDetail.identityVerification.cccdBackUrl && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <IdCard className="h-4 w-4 text-blue-600" />
+                        CCCD mặt sau
+                      </div>
+                      <div className="relative group">
+                        <img
+                          src={contractDetail.identityVerification.cccdBackUrl}
+                          alt="CCCD mặt sau"
+                          className="w-full h-48 object-contain border rounded-lg bg-white p-2 cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() =>
+                            window.open(
+                              contractDetail.identityVerification?.cccdBackUrl,
+                              "_blank"
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {contractDetail.identityVerification.selfieUrl && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <User className="h-4 w-4 text-green-600" />
+                        Ảnh selfie
+                      </div>
+                      <div className="relative group">
+                        <img
+                          src={contractDetail.identityVerification.selfieUrl}
+                          alt="Ảnh selfie"
+                          className="w-full h-48 object-contain border rounded-lg bg-white p-2 cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() =>
+                            window.open(
+                              contractDetail.identityVerification?.selfieUrl,
+                              "_blank"
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* OCR Data Section */}
+                {contractDetail.identityVerification.ocrData && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <FileText className="h-4 w-4" />
+                      Dữ liệu OCR từ CCCD
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white rounded-lg p-4 border">
+                      <div>
+                        <Label className="text-slate-500 text-xs">
+                          Họ và tên
+                        </Label>
+                        <p className="font-medium text-sm mt-1">
+                          {contractDetail.identityVerification.ocrData.name ||
+                            "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-slate-500 text-xs">
+                          Ngày sinh
+                        </Label>
+                        <p className="font-medium text-sm mt-1">
+                          {contractDetail.identityVerification.ocrData.dob
+                            ? contractDetail.identityVerification.ocrData.dob
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-slate-500 text-xs">
+                          Số CCCD
+                        </Label>
+                        <p className="font-medium text-sm mt-1">
+                          {contractDetail.identityVerification.ocrData.cccd ||
+                            "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-slate-500 text-xs">
+                          Địa chỉ thường trú
+                        </Label>
+                        <p className="font-medium text-sm mt-1">
+                          {contractDetail.identityVerification.ocrData
+                            .permanentAddress || "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Face Match Score */}
+                {contractDetail.identityVerification.faceMatchScore !==
+                  undefined && (
+                  <div className="space-y-2 pt-4 border-t">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Độ khớp khuôn mặt
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="w-full bg-slate-200 rounded-full h-2.5">
+                          <div
+                            className={`h-2.5 rounded-full transition-all ${
+                              contractDetail.identityVerification
+                                .faceMatchScore >= 80
+                                ? "bg-green-600"
+                                : contractDetail.identityVerification
+                                    .faceMatchScore >= 60
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                contractDetail.identityVerification
+                                  .faceMatchScore
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <Badge
+                        variant={
+                          contractDetail.identityVerification.faceMatchScore >=
+                          80
+                            ? "default"
+                            : contractDetail.identityVerification
+                                .faceMatchScore >= 60
+                            ? "secondary"
+                            : "destructive"
+                        }
+                        className="flex items-center gap-1.5 min-w-[100px] justify-center"
+                      >
+                        {contractDetail.identityVerification.faceMatchScore >=
+                        80 ? (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5" />
+                        )}
+                        {contractDetail.identityVerification.faceMatchScore.toFixed(
+                          1
+                        )}
+                        %
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {contractDetail.identityVerification.faceMatchScore >= 80
+                        ? "Khớp cao - Xác minh thành công"
+                        : contractDetail.identityVerification.faceMatchScore >=
+                          60
+                        ? "Khớp trung bình - Cần kiểm tra thêm"
+                        : "Khớp thấp - Cần xác minh lại"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Signatures */}
           {(contractDetail.landlordSignatureUrl ||
@@ -416,11 +643,14 @@ export const ContractDetailSheet = ({
                     <p className="font-medium">
                       {contractDetail.terminationRequest.status === "pending"
                         ? "Đang chờ"
-                        : contractDetail.terminationRequest.status === "approved"
+                        : contractDetail.terminationRequest.status ===
+                          "approved"
                         ? "Đã chấp nhận"
-                        : contractDetail.terminationRequest.status === "rejected"
+                        : contractDetail.terminationRequest.status ===
+                          "rejected"
                         ? "Đã từ chối"
-                        : contractDetail.terminationRequest.status === "cancelled"
+                        : contractDetail.terminationRequest.status ===
+                          "cancelled"
                         ? "Đã hủy"
                         : contractDetail.terminationRequest.status}
                     </p>
