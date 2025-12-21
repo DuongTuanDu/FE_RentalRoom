@@ -519,7 +519,7 @@ export const ContractDetailSheet = ({
                         ) : (
                           <XCircle className="h-3.5 w-3.5" />
                         )}
-                        {contractDetail.identityVerification.faceMatchScore.toFixed(
+                        {contractDetail.identityVerification.faceMatchScore?.toFixed(
                           1
                         )}
                         %

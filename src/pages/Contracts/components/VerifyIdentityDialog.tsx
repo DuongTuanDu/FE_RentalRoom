@@ -142,7 +142,7 @@ export const VerifyIdentityDialog = ({
       }
     } catch (error: any) {
       toast.error(
-        error?.data?.message || "Có lỗi xảy ra khi xác thực danh tính"
+        error?.message?.message || "Có lỗi xảy ra khi xác thực danh tính"
       );
     }
   };
