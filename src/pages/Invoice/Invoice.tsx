@@ -7,7 +7,7 @@ import {
   FileText,
   Search,
   Eye,
-  CreditCard,
+  // CreditCard,
   Calendar,
   Building2,
   DoorOpen,
@@ -196,10 +196,10 @@ const Invoice = () => {
     setIsDetailSheetOpen(true);
   };
 
-  const handleOpenPayDialog = (invoiceId: string) => {
-    setPayingInvoiceId(invoiceId);
-    setIsPayDialogOpen(true);
-  };
+  // const handleOpenPayDialog = (invoiceId: string) => {
+  //   setPayingInvoiceId(invoiceId);
+  //   setIsPayDialogOpen(true);
+  // };
 
   const handleOpenRequestTransferDialog = (invoiceId: string) => {
     setRequestTransferInvoiceId(invoiceId);
@@ -657,7 +657,7 @@ const Invoice = () => {
 
                               {!shouldHideActions(invoice.status) && (
                                 <>
-                                  <TooltipProvider>
+                                  {/* <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <Button
@@ -676,7 +676,7 @@ const Invoice = () => {
                                         <p>Thanh toán</p>
                                       </TooltipContent>
                                     </Tooltip>
-                                  </TooltipProvider>
+                                  </TooltipProvider> */}
 
                                   <TooltipProvider>
                                     <Tooltip>

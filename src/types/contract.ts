@@ -230,7 +230,7 @@ export interface IContractDetailResponse {
       dob: string;
       cccd: string;
       permanentAddress: string;
-    }
+    };
     faceMatchScore: number;
   };
   tenantSignatureUrl: string;
@@ -396,7 +396,7 @@ export interface ITenantContractDetailResponse {
       dob: string;
       cccd: string;
       permanentAddress: string;
-    }
+    };
     faceMatchScore: number;
   };
   completedAt: string;
@@ -434,4 +434,23 @@ export interface ITerminateContractRequest {
 export interface IRequestTerminateRequest {
   reason: string;
   note: string;
+}
+
+export interface IIdentityVerificationResponse {
+  message: string;
+  identityVerification?: {
+    cccdFrontUrl: string;
+    cccdBackUrl: string;
+    selfieUrl: string;
+    ocrData: {
+      name: string;
+      dob: string;
+      cccd: string;
+      permanentAddress: string;
+    };
+    faceMatchScore: number;
+    status: "pending" | "verified" | "failed";
+    verifiedAt?: string;
+    rejectedReason?: string;
+  };
 }

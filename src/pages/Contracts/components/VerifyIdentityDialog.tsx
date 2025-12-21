@@ -122,7 +122,7 @@ export const VerifyIdentityDialog = ({
     }
 
     try {
-      await verifyIdentity({
+      const res = await verifyIdentity({
         id: contractId,
         data: {
           cccdFront,
@@ -131,8 +131,15 @@ export const VerifyIdentityDialog = ({
         },
       }).unwrap();
 
-      toast.success("Xác thực danh tính thành công!");
-      onSuccess?.();
+      if (res.identityVerification?.status === "failed") {
+        toast.error(
+          res.identityVerification.rejectedReason ||
+            "Xác thực danh tính thất bại"
+        );
+      } else if (res.identityVerification?.status === "verified") {
+        toast.success("Xác thực danh tính thành công!");
+        onSuccess?.();
+      }
     } catch (error: any) {
       toast.error(
         error?.data?.message || "Có lỗi xảy ra khi xác thực danh tính"

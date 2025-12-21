@@ -169,7 +169,7 @@ const RoomManageLandlord = () => {
         `Phòng đã được ${newActive ? "kích hoạt" : "ngừng hoạt động"}!`
       );
     } catch (error: any) {
-      toast.error("Cập nhật trạng thái hoạt động thất bại!");
+      toast.error(error?.message?.message || "Cập nhật trạng thái hoạt động thất bại!");
     }
   };
 

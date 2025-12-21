@@ -11,12 +11,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, X, UploadCloud } from "lucide-react";
-import { useRequestTransferConfirmationMutation } from "@/services/invoice/invoice.service";
+import { Loader2, X, UploadCloud, Building2, Copy, Check } from "lucide-react";
+import {
+  useRequestTransferConfirmationMutation,
+  usePayTenantInvoiceMutation,
+} from "@/services/invoice/invoice.service";
 import { uploadFile, UPLOAD_CLINSKIN_PRESET } from "@/helpers/cloudinary";
 import { toast } from "sonner";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
-import type { ITenantInvoiceDetailResponse } from "@/types/invoice";
+import type {
+  ITenantInvoiceDetailResponse,
+  IInvoicePaymentInfoResponse,
+} from "@/types/invoice";
 
 interface RequestTransferConfirmationDialogProps {
   open: boolean;
@@ -32,12 +38,17 @@ export const RequestTransferConfirmationDialog = ({
   const formatPrice = useFormatPrice();
   const [requestConfirmation, { isLoading }] =
     useRequestTransferConfirmationMutation();
+  const [payInvoice, { isLoading: isLoadingPaymentInfo }] =
+    usePayTenantInvoiceMutation();
 
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [proofImagePreview, setProofImagePreview] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [paymentInfo, setPaymentInfo] =
+    useState<IInvoicePaymentInfoResponse | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when dialog closes
@@ -47,12 +58,46 @@ export const RequestTransferConfirmationDialog = ({
       setProofImagePreview("");
       setAmount("");
       setNote("");
+      setPaymentInfo(null);
+      setCopiedField(null);
     } else if (invoice) {
       // Set default amount to remaining amount
       const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
       setAmount(remainingAmount.toString());
     }
   }, [open, invoice]);
+
+  // Fetch payment info when dialog opens
+  useEffect(() => {
+    if (open && invoice) {
+      const fetchPaymentInfo = async () => {
+        try {
+          const response = await payInvoice({
+            id: invoice._id,
+            data: {
+              paymentMethod: "bank_transfer",
+              note: "",
+            },
+          }).unwrap();
+
+          if (response && response.bankInfo) {
+            setPaymentInfo(response);
+          }
+        } catch (error: any) {
+          // Silently fail - payment info is optional
+          console.error("Failed to fetch payment info:", error);
+        }
+      };
+
+      fetchPaymentInfo();
+    }
+  }, [open, invoice, payInvoice]);
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -189,6 +234,139 @@ export const RequestTransferConfirmationDialog = ({
             </div>
           </div>
 
+          {/* Bank Info */}
+          {isLoadingPaymentInfo ? (
+            <div className="border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center justify-center gap-2 py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-slate-600">
+                  Đang tải thông tin ngân hàng...
+                </span>
+              </div>
+            </div>
+          ) : paymentInfo?.bankInfo ? (
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-4 w-4 text-slate-600" />
+                <Label className="text-base font-semibold">
+                  Thông tin tài khoản
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs text-slate-500">Tên ngân hàng</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm font-medium flex-1">
+                      {paymentInfo.bankInfo.bankName}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() =>
+                        handleCopy(paymentInfo.bankInfo.bankName, "bankName")
+                      }
+                    >
+                      {copiedField === "bankName" ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Số tài khoản</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm font-medium flex-1 font-mono">
+                      {paymentInfo.bankInfo.accountNumber}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() =>
+                        handleCopy(
+                          paymentInfo.bankInfo.accountNumber,
+                          "accountNumber"
+                        )
+                      }
+                    >
+                      {copiedField === "accountNumber" ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">
+                    Tên chủ tài khoản
+                  </Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm font-medium flex-1">
+                      {paymentInfo.bankInfo.accountName}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() =>
+                        handleCopy(
+                          paymentInfo.bankInfo.accountName,
+                          "accountName"
+                        )
+                      }
+                    >
+                      {copiedField === "accountName" ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR Code */}
+              {paymentInfo.bankInfo.qrImageUrl && (
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <Label className="text-base font-semibold mb-3 block">
+                    Mã QR chuyển khoản
+                  </Label>
+                  <div className="flex justify-center">
+                    <img
+                      src={paymentInfo.bankInfo.qrImageUrl}
+                      alt="QR Code"
+                      className="w-48 h-48 object-contain border rounded-lg bg-white p-2"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Transfer Note */}
+              {paymentInfo.transferNote && (
+                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                    <Label className="text-xs text-slate-500 mb-1 block">
+                      Nội dung chuyển khoản
+                    </Label>
+                    <p className="text-sm font-medium">
+                      {paymentInfo.transferNote}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+
           {/* Proof Image Upload */}
           <div className="space-y-2">
             <Label htmlFor="proofImage">Ảnh chứng từ chuyển khoản *</Label>
@@ -283,11 +461,14 @@ export const RequestTransferConfirmationDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isLoading || isUploading}
+              disabled={isLoading || isUploading || isLoadingPaymentInfo}
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={isLoading || isUploading}>
+            <Button
+              type="submit"
+              disabled={isLoading || isUploading || isLoadingPaymentInfo}
+            >
               {isLoading || isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
