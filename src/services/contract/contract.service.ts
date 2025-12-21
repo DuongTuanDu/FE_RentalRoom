@@ -4,6 +4,7 @@ import type {
   IContractCreateResponse,
   IContractDetailResponse,
   IContractResponse,
+  IIdentityVerificationResponse,
   IRequestExtendRequest,
   IRequestTerminateRequest,
   ITenantContractDetailResponse,
@@ -325,7 +326,7 @@ export const contractApi = createApi({
       }),
       invalidatesTags: ["TenantContract"],
     }),
-    verifyIdentity: builder.mutation<{ verified: boolean }, { id: string; data: { cccdFront: File; cccdBack: File; selfie: File } }>({
+    verifyIdentity: builder.mutation<IIdentityVerificationResponse, { id: string; data: { cccdFront: File; cccdBack: File; selfie: File } }>({
       // Xác thực danh tính người thuê
       // Người thuê upload ảnh CCCD để xác thực danh tính trước khi ký hợp đồng.
       query: ({ id, data }) => {
