@@ -214,6 +214,8 @@ const menuItems = [
         title: "Quản lý hợp đồng",
         icon: ScrollText,
         path: "/landlord/contracts",
+        staffAccess: true,
+
       },
     ],
   },

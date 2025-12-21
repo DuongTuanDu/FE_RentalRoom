@@ -107,10 +107,10 @@ const attachSocketListeners = (storeAPI: any) => {
 
   socket.on("connect_error", (err) => {
     console.error("Socket connect error:", err.message);
-    toast.error("Mất kết nối real-time", {
-      description: "Đang thử kết nối lại...",
-      duration: 5000,
-    });
+    // toast.error("Mất kết nối real-time", {
+    //   description: "Đang thử kết nối lại...",
+    //   duration: 5000,
+    // });
   });
 };
 

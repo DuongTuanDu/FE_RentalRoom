@@ -53,34 +53,13 @@ const menuItems = [
     path: "/admin/dashboard",
   },
   {
-    title: "Người thuê",
+    title: "Tài khoản",
     icon: Users,
     items: [
       {
-        title: "Danh sách người thuê",
+        title: "Danh sách tài khoản",
         icon: UserCheck,
         path: "/admin/account-management",
-      },
-    ],
-  },
-  {
-    title: "Tài chính",
-    icon: DollarSign,
-    items: [
-      {
-        title: "Hóa đơn",
-        icon: FileText,
-        path: "/admin/invoices",
-      },
-      {
-        title: "Thu chi",
-        icon: ClipboardList,
-        path: "/admin/transactions",
-      },
-      {
-        title: "Báo cáo doanh thu",
-        icon: BarChart3,
-        path: "/admin/revenue-reports",
       },
     ],
   },
@@ -94,16 +73,6 @@ const menuItems = [
         path: "/admin/package-services",
       },
     ],
-  },
-  {
-    title: "Thông báo",
-    icon: Bell,
-    path: "/admin/notifications",
-  },
-  {
-    title: "Cài đặt",
-    icon: Settings,
-    path: "/admin/settings",
   },
 ];
 

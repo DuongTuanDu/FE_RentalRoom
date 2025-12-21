@@ -388,7 +388,7 @@ const SendOtp: React.FC = () => {
 
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-2">
-                Mã OTP có hiệu lực trong 10 phút
+                Mã OTP có hiệu lực trong 5 phút
               </p>
               <p className="text-sm text-gray-500">Không nhận được mã?</p>
               <button

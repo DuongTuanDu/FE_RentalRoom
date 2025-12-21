@@ -471,6 +471,37 @@ const InvoiceManagement = () => {
       </div>
       <InvoiceActionsGuide />
 
+       <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              Hướng dẫn gửi hóa đơn cho người thuê
+            </h3>
+            <ul className="space-y-2 text-blue-800 text-sm leading-relaxed">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span><strong>Gửi tất cả hóa đơn nháp</strong> → Chỉ cần bấm 1 lần là toàn bộ hóa đơn nháp được gửi đi</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>Hóa đơn được gửi qua <strong>cả hệ thống và email</strong> </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>Sau khi gửi, trạng thái sẽ chuyển từ <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Nháp</span> → <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Đã gửi</span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -589,6 +620,8 @@ const InvoiceManagement = () => {
           )}
         </CardContent>
       </Card>
+
+     
 
       {/* Table */}
       <Card>
@@ -832,7 +865,7 @@ const InvoiceManagement = () => {
                                             </PopoverTrigger>
                                           </TooltipTrigger>
                                           <TooltipContent>
-                                            <p>Gửi email</p>
+                                            <p>Gửi hóa đơn</p>
                                           </TooltipContent>
                                         </Tooltip>
                                       </TooltipProvider>

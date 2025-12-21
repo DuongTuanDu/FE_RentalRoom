@@ -70,10 +70,11 @@ const Login = () => {
         if (res.role === config.roleAdmin) {
           navigate(config.adminDashboardPath);
         } else if (
-          res.role === config.roleLandlord ||
-          res.role === config.roleStaff
+          res.role === config.roleLandlord 
         ) {
           navigate(config.landlordDashboardPath);
+        }   else if (res.role === config.roleStaff) {
+          navigate("/landlord/buildings");
         } else {
           navigate(config.homePath);
         }
