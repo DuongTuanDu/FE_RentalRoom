@@ -13,7 +13,7 @@ import {
   Receipt,
   WashingMachine,
 } from "lucide-react";
-import LanguageSelector from "@/components/language/LanguageSelector";
+// import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -134,9 +134,9 @@ const Header = () => {
           {/* Right Section */}
           <div className="flex items-center space-x-4">
             {/* Language Selector */}
-            <div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <LanguageSelector isScrolled={isScrolled} />
-            </div>
+            </div> */}
             <NotificationDropdown />
 
             {isAuthenticated ? (
@@ -280,9 +280,9 @@ const Header = () => {
                   </nav>
 
                   {/* Language Selector */}
-                  <div className="pt-4 pl-2 border-t">
+                  {/* <div className="pt-4 pl-2 border-t">
                     <LanguageSelector isScrolled={true} />
-                  </div>
+                  </div> */}
 
                   {/* Auth Section */}
                   {isAuthenticated ? (

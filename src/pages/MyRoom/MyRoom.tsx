@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetMyRoomQuery } from "@/services/room/room.service";
+import { useGetPostRoomDetailsQuery } from "@/services/post/post.service";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import type { IMyRoom, IMyRoomResponse } from "@/types/room";
 import type { IPerson } from "@/types/contract";
@@ -37,8 +38,79 @@ const MyRoom = () => {
   const [isCreateMaintenanceOpen, setIsCreateMaintenanceOpen] = useState(false);
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<string>("");
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>("");
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
 
-  if (isLoading) {
+  const room = data?.data?.room;
+  const availableRooms = data?.data?.availableRooms || [];
+
+  // Phòng hiện tại được hiển thị (mặc định là phòng trong response)
+  const currentRoomId = selectedRoomId || room?._id;
+
+  // Luôn gọi API getPostRoomDetails cho phòng hiện tại (cả phòng mặc định và phòng được chọn)
+  const { data: defaultRoomDetailData, isLoading: isLoadingDefaultRoomDetail } =
+    useGetPostRoomDetailsQuery(room?._id || "", {
+      skip: !room?._id || !!selectedRoomId, // Skip nếu đã có selectedRoomId
+    });
+
+  // Gọi API lấy thông tin chi tiết phòng khi có selectedRoomId
+  const { data: roomDetailData, isLoading: isLoadingRoomDetail } =
+    useGetPostRoomDetailsQuery(selectedRoomId || "", {
+      skip: !selectedRoomId,
+    });
+
+  // Luôn sử dụng dữ liệu từ useGetPostRoomDetailsQuery cho tất cả thông tin phòng
+  // (Thông tin tòa nhà, Thông tin phòng, Chỉ số điện nước, Đồ đạc)
+  const displayData = useMemo(() => {
+    // Ưu tiên dữ liệu từ phòng được chọn, nếu không có thì dùng phòng mặc định
+    const roomDetail = selectedRoomId
+      ? roomDetailData?.data
+      : defaultRoomDetailData?.data;
+
+    if (roomDetail) {
+      return {
+        room: {
+          _id: roomDetail._id,
+          building: roomDetail.buildingId,
+          roomNumber: roomDetail.roomNumber,
+          images: roomDetail.images,
+          area: roomDetail.area,
+          price: roomDetail.price,
+          maxTenants: roomDetail.maxTenants,
+          status: roomDetail.status,
+          eStart: roomDetail.eStart,
+          wStart: roomDetail.wStart,
+          currentCount: roomDetail.currentTenantIds?.length || 0,
+          // Giữ lại các thông tin từ useGetMyRoomQuery nếu không có trong roomDetail
+          currentContract: room?.currentContract,
+          tenants: room?.tenants,
+          contractRoommates: room?.contractRoommates,
+        },
+        furnitures: roomDetail.furnitures || [],
+        building: roomDetail.buildingId,
+      };
+    }
+
+    // Fallback về dữ liệu từ useGetMyRoomQuery nếu chưa có roomDetail (chỉ dùng cho các thông tin không có trong roomDetail)
+    // Không sử dụng building từ useGetMyRoomQuery nữa, chỉ dùng từ useGetPostRoomDetailsQuery
+    return {
+      room: room,
+      furnitures: [],
+      building: undefined, // Không có building nếu chưa có roomDetail
+    };
+  }, [selectedRoomId, roomDetailData, defaultRoomDetailData, room]);
+
+  const displayRoom = displayData.room;
+  console.log("displayRoom:", displayRoom);
+
+  const furnitures = displayData.furnitures;
+  const displayBuilding = displayData.building;
+
+  // Early returns sau khi đã gọi tất cả hooks
+  if (
+    isLoading ||
+    (selectedRoomId && isLoadingRoomDetail) ||
+    (!selectedRoomId && isLoadingDefaultRoomDetail)
+  ) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -68,9 +140,7 @@ const MyRoom = () => {
     );
   }
 
-  const room = data?.room;
-  console.log("room", room);
-  if (!room) {
+  if (!displayRoom) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="max-w-md border-0 shadow-lg">
@@ -89,15 +159,16 @@ const MyRoom = () => {
   }
 
   const nextImage = () => {
-    if (room.images && room.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % room.images.length);
+    if (displayRoom?.images && displayRoom.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % displayRoom.images.length);
     }
   };
 
   const prevImage = () => {
-    if (room.images && room.images.length > 0) {
+    if (displayRoom?.images && displayRoom.images.length > 0) {
       setCurrentImageIndex(
-        (prev) => (prev - 1 + room.images.length) % room.images.length
+        (prev) =>
+          (prev - 1 + displayRoom.images.length) % displayRoom.images.length
       );
     }
   };
@@ -145,54 +216,161 @@ const MyRoom = () => {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Image Gallery */}
-            {room?.images && room.images.length > 0 && (
-              <Card className="border-0 shadow-xl overflow-hidden">
-                <CardContent className="px-6">
-                  {room?.images && room.images.length > 0 ? (
-                    <div className="space-y-4">
-                      {/* Main Image */}
-                      <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
-                        <img
-                          src={
-                            room.images?.[currentImageIndex] ||
-                            room.images?.[0] ||
-                            ""
+            {/* Available Rooms Selector - Hiển thị nếu có nhiều phòng */}
+            {availableRooms.length > 1 && (
+              <Card className="border-0 shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="p-2 bg-primary/20 rounded-lg">
+                      <Home className="h-5 w-5 text-primary" />
+                    </div>
+                    Phòng của tôi
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {availableRooms.map((availableRoom) => (
+                      <button
+                        key={availableRoom._id}
+                        type="button"
+                        onClick={() => {
+                          // Nếu click vào phòng đang được chọn, reset về phòng mặc định
+                          if (
+                            availableRoom._id === currentRoomId &&
+                            selectedRoomId
+                          ) {
+                            setSelectedRoomId(null);
+                          } else {
+                            setSelectedRoomId(availableRoom._id);
                           }
-                          alt={`Phòng ${room?.roomNumber || ""} - Ảnh ${
-                            currentImageIndex + 1
-                          }`}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        {room.images && room.images.length > 1 && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={prevImage}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                              aria-label="Ảnh trước"
-                            >
-                              <ChevronLeft className="h-6 w-6" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={nextImage}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
-                              aria-label="Ảnh sau"
-                            >
-                              <ChevronRight className="h-6 w-6" />
-                            </button>
-                            <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
-                              {currentImageIndex + 1}/{room.images.length}
-                            </div>
-                          </>
-                        )}
-                      </div>
+                          setCurrentImageIndex(0); // Reset image index khi chuyển phòng
+                        }}
+                        className={`group relative p-5 rounded-xl border-2 transition-all duration-300 text-left bg-card hover:shadow-lg ${
+                          availableRoom._id === currentRoomId
+                            ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        {/* Header với Room Number và Status */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-xl text-foreground mb-1">
+                              {availableRoom.roomNumber}
+                            </h3>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {availableRoom.buildingName}
+                            </p>
+                          </div>
+                          <Badge
+                            variant={
+                              availableRoom.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="text-xs shrink-0 ml-2"
+                          >
+                            {availableRoom.status === "active"
+                              ? "Hoạt động"
+                              : "Không hoạt động"}
+                          </Badge>
+                        </div>
 
-                      {/* Thumbnails */}
-                      {room.images && room.images.length > 1 && (
-                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
-                          {room.images.map((image: string, index: number) => (
+                        {/* Contract Information */}
+                        {availableRoom.contract && (
+                          <div className="mt-4 pt-4 border-t border-border/50 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Số hợp đồng</span>
+                              <span className="text-xs font-semibold text-foreground">
+                                {availableRoom.contract.contractNo}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Trạng thái</span>
+                              <Badge
+                                variant={
+                                  availableRoom.contract.status === "active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs h-5"
+                              >
+                                {availableRoom.contract.status === "active"
+                                  ? "Đang hoạt động"
+                                  : "Sắp tới"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between text-xs pt-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-muted-foreground">Từ</span>
+                                <span className="font-medium text-foreground">
+                                  {formatDate(availableRoom.contract.startDate)}
+                                </span>
+                              </div>
+                              <span className="text-muted-foreground/50">→</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-muted-foreground">Đến</span>
+                                <span className="font-medium text-foreground">
+                                  {formatDate(availableRoom.contract.endDate)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Image Gallery */}
+            <Card className="border-0 shadow-xl overflow-hidden">
+              <CardContent className="px-6">
+                {displayRoom?.images && displayRoom.images.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Main Image */}
+                    <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg group">
+                      <img
+                        src={
+                          displayRoom.images?.[currentImageIndex] ||
+                          displayRoom.images?.[0] ||
+                          ""
+                        }
+                        alt={`Phòng ${displayRoom?.roomNumber || ""} - Ảnh ${
+                          currentImageIndex + 1
+                        }`}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {displayRoom.images && displayRoom.images.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={prevImage}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                            aria-label="Ảnh trước"
+                          >
+                            <ChevronLeft className="h-6 w-6" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={nextImage}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white rounded-full h-12 w-12 flex items-center justify-center transition-all shadow-lg hover:scale-110"
+                            aria-label="Ảnh sau"
+                          >
+                            <ChevronRight className="h-6 w-6" />
+                          </button>
+                          <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full shadow-lg">
+                            {currentImageIndex + 1}/{displayRoom.images.length}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Thumbnails */}
+                    {displayRoom.images && displayRoom.images.length > 1 && (
+                      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide p-2">
+                        {displayRoom.images.map(
+                          (image: string, index: number) => (
                             <button
                               key={index}
                               type="button"
@@ -209,30 +387,30 @@ const MyRoom = () => {
                                 className="h-24 w-32 object-cover"
                               />
                             </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
-                      <div className="text-center">
-                        <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
-                        <p className="text-sm text-muted-foreground">
-                          Chưa có hình ảnh
-                        </p>
+                          )
+                        )}
                       </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-2xl flex items-center justify-center shadow-inner">
+                    <div className="text-center">
+                      <ImageIcon className="h-16 w-16 mx-auto mb-3 text-muted-foreground/50" />
+                      <p className="text-sm text-muted-foreground">
+                        Chưa có hình ảnh
+                      </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Roommates */}
-            {room?._id && (
+            {displayRoom?._id && (
               <RoommateList
-                roomId={room._id}
-                maxTenants={room.maxTenants}
-                currentCount={room.currentCount}
+                roomId={displayRoom._id}
+                maxTenants={displayRoom.maxTenants}
+                currentCount={displayRoom.currentCount}
               />
             )}
 
@@ -247,11 +425,11 @@ const MyRoom = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {data?.furnitures && data.furnitures.length > 0 ? (
+                {furnitures && furnitures.length > 0 ? (
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {data.furnitures.map(
+                    {furnitures.map(
                       (
-                        furniture: IMyRoomResponse["furnitures"][0],
+                        furniture: IMyRoomResponse["data"]["furnitures"][0],
                         index: number
                       ) => (
                         <div
@@ -305,7 +483,7 @@ const MyRoom = () => {
             </Card>
 
             {/* Laundry Devices */}
-            <LaundryDevicesCard />
+            <LaundryDevicesCard buildingId={displayBuilding?._id} />
           </div>
 
           {/* Right Column - Sidebar */}
@@ -325,8 +503,8 @@ const MyRoom = () => {
                     size="sm"
                     className="text-primary"
                     onClick={() =>
-                      room?.building?._id &&
-                      setSelectedBuildingId(room.building._id)
+                      displayBuilding?._id &&
+                      setSelectedBuildingId(displayBuilding._id)
                     }
                   >
                     Xem chi tiết
@@ -341,7 +519,7 @@ const MyRoom = () => {
                       Tên tòa nhà
                     </p>
                     <p className="font-bold text-lg text-primary">
-                      {room?.building?.name || "Chưa có thông tin"}
+                      {displayBuilding?.name || "Chưa có thông tin"}
                     </p>
                   </div>
 
@@ -350,7 +528,7 @@ const MyRoom = () => {
                       Số phòng
                     </p>
                     <p className="font-bold text-lg">
-                      {room?.roomNumber || "N/A"}
+                      {displayRoom?.roomNumber || "N/A"}
                     </p>
                   </div>
 
@@ -359,7 +537,7 @@ const MyRoom = () => {
                       Địa chỉ
                     </p>
                     <p className="font-bold text-md">
-                      {room?.building?.address || "N/A"}
+                      {displayBuilding?.address || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -382,7 +560,9 @@ const MyRoom = () => {
                     <p className="text-sm text-muted-foreground mb-2">
                       Diện tích
                     </p>
-                    <p className="font-bold text-lg">{room?.area ?? 0} m²</p>
+                    <p className="font-bold text-lg">
+                      {displayRoom?.area ?? 0} m²
+                    </p>
                   </div>
 
                   <div>
@@ -390,7 +570,7 @@ const MyRoom = () => {
                       Giá thuê
                     </p>
                     <p className="font-bold text-lg">
-                      {formatPrice(room?.price ?? 0)}
+                      {formatPrice(displayRoom?.price ?? 0)}
                     </p>
                   </div>
 
@@ -399,9 +579,9 @@ const MyRoom = () => {
                       Số người ở
                     </p>
                     <p className="font-bold text-md">
-                      {room?.currentCount ?? 0}
+                      {displayRoom?.currentCount ?? 0}
                       <span className="text-lg text-muted-foreground">
-                        /{room?.maxTenants ?? 0}
+                        /{displayRoom?.maxTenants ?? 0}
                       </span>
                     </p>
                   </div>
@@ -411,7 +591,7 @@ const MyRoom = () => {
                       Trạng thái
                     </p>
                     <p className="font-bold text-lg">
-                      {getStatusBadge(room?.status || "available")}
+                      {getStatusBadge(displayRoom?.status || "available")}
                     </p>
                   </div>
                 </div>
@@ -443,7 +623,9 @@ const MyRoom = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Điện</p>
-                      <p className="text-2xl font-bold">{room?.eStart ?? 0}</p>
+                      <p className="text-2xl font-bold">
+                        {displayRoom?.eStart ?? 0}
+                      </p>
                     </div>
                   </div>
                   <span className="text-xs text-muted-foreground font-medium">
@@ -458,7 +640,9 @@ const MyRoom = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Nước</p>
-                      <p className="text-2xl font-bold">{room?.wStart ?? 0}</p>
+                      <p className="text-2xl font-bold">
+                        {displayRoom?.wStart ?? 0}
+                      </p>
                     </div>
                   </div>
                   <span className="text-xs text-muted-foreground font-medium">
@@ -469,7 +653,7 @@ const MyRoom = () => {
             </Card>
 
             {/* Current Contract */}
-            {room?.currentContract && (
+            {displayRoom?.currentContract && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20 pt-0">
                 <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b-0 py-2 rounded-t-xl gap-0">
                   <CardTitle className="flex items-center gap-3 text-xl">
@@ -486,13 +670,13 @@ const MyRoom = () => {
                         Số hợp đồng
                       </p>
                       <p className="text-lg font-bold">
-                        {room.currentContract.no}
+                        {displayRoom.currentContract.no}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Giá thuê</p>
                       <p className="text-lg font-bold text-green-600">
-                        {formatPrice(room.currentContract.price)}
+                        {formatPrice(displayRoom.currentContract.price)}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -500,7 +684,7 @@ const MyRoom = () => {
                         Ngày bắt đầu
                       </p>
                       <p className="text-lg font-semibold">
-                        {formatDate(room.currentContract.startDate)}
+                        {formatDate(displayRoom.currentContract.startDate)}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -508,20 +692,21 @@ const MyRoom = () => {
                         Ngày kết thúc
                       </p>
                       <p className="text-lg font-semibold">
-                        {formatDate(room.currentContract.endDate)}
+                        {formatDate(displayRoom.currentContract.endDate)}
                       </p>
                     </div>
                   </div>
 
-                  {room.currentContract.roommates &&
-                    room.currentContract.roommates.length > 0 && (
+                  {displayRoom.currentContract.roommates &&
+                    displayRoom.currentContract.roommates.length > 0 && (
                       <div className="pt-6 border-t border-border/50">
                         <p className="text-sm font-semibold mb-4 flex items-center gap-2">
                           <Users className="h-4 w-4" />
-                          Người ở cùng ({room.currentContract.roommates.length})
+                          Người ở cùng (
+                          {displayRoom.currentContract.roommates.length})
                         </p>
                         <div className="grid gap-3 sm:grid-cols-2">
-                          {room.currentContract.roommates.map(
+                          {displayRoom.currentContract.roommates.map(
                             (roommate: IPerson, index: number) => (
                               <div
                                 key={index}
@@ -606,6 +791,7 @@ const MyRoom = () => {
             }
           }}
           defaultFurnitureId={selectedFurnitureId}
+          roomId={displayRoom?._id}
         />
       </div>
 

@@ -269,192 +269,333 @@ export const UpdateTenantContractDialog = ({
                     <div className="font-semibold pt-2">
                       BÊN THUÊ NHÀ (BÊN B):
                     </div>
-                    <FormField
-                      control={form.control}
-                      name="personBName"
-                      rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Tên bên thuê nhà") || true,
-                      }}
-                      render={({ field }) => (
-                        <FormItem className="flex items-start">
-                          <div>Đại diện (Ông/Bà): </div>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Nhập tên"
-                                className="inline-block w-48 h-6 text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs mt-1" />
+                    {contractDetail.identityVerification?.status === "verified" ? (
+                      // Read-only mode khi đã verified (trừ trường Điện thoại)
+                      <>
+                        <div className="space-y-1 text-sm">
+                          <div>
+                            Đại diện (Ông/Bà):{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.name || "—"}
+                            </span>
                           </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="personBDob"
-                      rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Ngày sinh") || true,
-                      }}
-                      render={({ field }) => (
-                        <FormItem className="flex items-start">
-                          <div>Ngày sinh: </div>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="date"
-                                className="inline-block w-32 h-6 text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs mt-1" />
+                          <div>
+                            Ngày sinh:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.dob
+                                ? formatDate(contractDetail.B.dob)
+                                : "—"}
+                            </span>
                           </div>
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name="personBCccd"
-                        rules={{
-                          validate: (value) => validateCCCD(value) || true,
-                        }}
-                        render={({ field }) => (
-                          <FormItem className="flex items-start">
-                            <div>CCCD: </div>
-                            <div className="flex flex-col items-start">
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Nhập số CCCD"
-                                  className="inline-block w-40 h-6 text-sm"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs mt-1" />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="personBCccdIssuedDate"
-                        rules={{
-                          validate: (value) =>
-                            validateRequired(value, "Ngày cấp CCCD") || true,
-                        }}
-                        render={({ field }) => (
-                          <FormItem className="flex items-start">
-                            <div>
-                              <span>Cấp ngày: </span>
-                            </div>
-                            <div className="flex flex-col items-start">
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="date"
-                                  className="inline-block w-32 h-6 text-sm"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs mt-1" />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="personBCccdIssuedPlace"
-                        rules={{
-                          validate: (value) =>
-                            validateRequired(value, "Nơi cấp CCCD") || true,
-                        }}
-                        render={({ field }) => (
-                          <FormItem>
-                            <div>
-                              <span>, Nơi cấp: </span>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Nhập nơi cấp"
-                                  className="inline-block w-36 h-6 text-sm"
-                                />
-                              </FormControl>
-                            </div>
-                            <FormMessage className="text-xs mt-1 ml-0" />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="personBPermanentAddress"
-                      rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Hộ khẩu thường trú") || true,
-                      }}
-                      render={({ field }) => (
-                        <FormItem className="flex items-start">
-                          <div>Hộ khẩu thường trú: </div>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Nhập địa chỉ"
-                                className="inline-block w-64 h-6 text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs mt-1" />
+                          <div>
+                            CCCD:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.cccd || "—"}
+                            </span>{" "}
+                            Cấp ngày:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.cccdIssuedDate
+                                ? formatDate(contractDetail.B.cccdIssuedDate)
+                                : "—"}
+                            </span>
+                            , Nơi cấp:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.cccdIssuedPlace || "—"}
+                            </span>
                           </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="personBPhone"
-                      rules={{
-                        validate: (value) => validatePhone(value) || true,
-                      }}
-                      render={({ field }) => (
-                        <FormItem className="flex items-start">
-                          <div>Điện thoại: </div>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Nhập số điện thoại"
-                                className="inline-block w-40 h-6 text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs mt-1 ml-0" />
+                          <div>
+                            Hộ khẩu thường trú:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.permanentAddress || "—"}
+                            </span>
                           </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="personBEmail"
-                      rules={{
-                        validate: (value) => validateEmail(value) || true,
-                      }}
-                      render={({ field }) => (
-                        <FormItem className="flex items-start">
-                          <div>Email: </div>
-                          <div className="flex flex-col">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="email"
-                                placeholder="Nhập email"
-                                className="inline-block w-48 h-6 text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs mt-1 ml-0" />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="personBPhone"
+                          rules={{
+                            validate: (value) => validatePhone(value) || true,
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Điện thoại: </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Nhập số điện thoại"
+                                    className="inline-block w-40 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1 ml-0" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="space-y-1 text-sm">
+                          <div>
+                            Email:{" "}
+                            <span className="font-medium">
+                              {contractDetail.B?.email || "—"}
+                            </span>
                           </div>
-                        </FormItem>
-                      )}
-                    />
+                        </div>
+                      </>
+                    ) : (
+                      // Editable mode khi chưa verified
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="personBName"
+                          rules={{
+                            validate: (value) =>
+                              validateRequired(value, "Tên bên thuê nhà") || true,
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Đại diện (Ông/Bà): </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Nhập tên"
+                                    className="inline-block w-48 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="personBDob"
+                          rules={{
+                            validate: (value) => {
+                              const requiredError = validateRequired(value, "Ngày sinh");
+                              if (requiredError) return requiredError;
+                              // Validate không được sau ngày hiện tại
+                              const today = new Date().toISOString().split('T')[0];
+                              if (value && value > today) {
+                                return "Ngày sinh không được sau ngày hiện tại";
+                              }
+                              // Validate relationship với ngày cấp
+                              const issuedDate = form.getValues("personBCccdIssuedDate");
+                              if (value && issuedDate && value > issuedDate) {
+                                return "Ngày sinh không được sau ngày cấp CCCD";
+                              }
+                              return true;
+                            },
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Ngày sinh: </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="date"
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      // Trigger validation của ngày cấp khi ngày sinh thay đổi
+                                      const issuedDate = form.getValues("personBCccdIssuedDate");
+                                      if (e.target.value && issuedDate) {
+                                        setTimeout(() => {
+                                          form.trigger("personBDob");
+                                          form.trigger("personBCccdIssuedDate");
+                                        }, 0);
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      field.onBlur();
+                                      // Trigger validation của ngày cấp khi blur
+                                      const issuedDate = form.getValues("personBCccdIssuedDate");
+                                      if (field.value && issuedDate) {
+                                        form.trigger("personBCccdIssuedDate");
+                                      }
+                                    }}
+                                    className="inline-block w-32 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex items-center gap-2">
+                          <FormField
+                            control={form.control}
+                            name="personBCccd"
+                            rules={{
+                              validate: (value) => validateCCCD(value) || true,
+                            }}
+                            render={({ field }) => (
+                              <FormItem className="flex items-start">
+                                <div>CCCD: </div>
+                                <div className="flex flex-col items-start">
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      placeholder="Nhập số CCCD"
+                                      className="inline-block w-40 h-6 text-sm"
+                                    />
+                                  </FormControl>
+                                  <FormMessage className="text-xs mt-1" />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="personBCccdIssuedDate"
+                            rules={{
+                              validate: (value) => {
+                                const requiredError = validateRequired(value, "Ngày cấp CCCD");
+                                if (requiredError) return requiredError;
+                                // Validate không được sau ngày hiện tại
+                                const today = new Date().toISOString().split('T')[0];
+                                if (value && value > today) {
+                                  return "Ngày cấp không được sau ngày hiện tại";
+                                }
+                                // Validate relationship với ngày sinh
+                                const dob = form.getValues("personBDob");
+                                if (value && dob && value < dob) {
+                                  return "Ngày cấp không được trước ngày sinh";
+                                }
+                                return true;
+                              },
+                            }}
+                            render={({ field }) => (
+                              <FormItem className="flex items-start">
+                                <div>
+                                  <span>Cấp ngày: </span>
+                                </div>
+                                <div className="flex flex-col items-start">
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      type="date"
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        // Trigger validation của ngày sinh khi ngày cấp thay đổi
+                                        const dob = form.getValues("personBDob");
+                                        if (e.target.value && dob) {
+                                          setTimeout(() => {
+                                            form.trigger("personBDob");
+                                            form.trigger("personBCccdIssuedDate");
+                                          }, 0);
+                                        }
+                                      }}
+                                      onBlur={() => {
+                                        field.onBlur();
+                                        // Trigger validation của ngày sinh khi blur
+                                        const dob = form.getValues("personBDob");
+                                        if (field.value && dob) {
+                                          form.trigger("personBDob");
+                                        }
+                                      }}
+                                      className="inline-block w-32 h-6 text-sm"
+                                    />
+                                  </FormControl>
+                                  <FormMessage className="text-xs mt-1" />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="personBCccdIssuedPlace"
+                            rules={{
+                              validate: (value) =>
+                                validateRequired(value, "Nơi cấp CCCD") || true,
+                            }}
+                            render={({ field }) => (
+                              <FormItem>
+                                <div>
+                                  <span>, Nơi cấp: </span>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      placeholder="Nhập nơi cấp"
+                                      className="inline-block w-36 h-6 text-sm"
+                                    />
+                                  </FormControl>
+                                </div>
+                                <FormMessage className="text-xs mt-1 ml-0" />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="personBPermanentAddress"
+                          rules={{
+                            validate: (value) =>
+                              validateRequired(value, "Hộ khẩu thường trú") || true,
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Hộ khẩu thường trú: </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Nhập địa chỉ"
+                                    className="inline-block w-64 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="personBPhone"
+                          rules={{
+                            validate: (value) => validatePhone(value) || true,
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Điện thoại: </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Nhập số điện thoại"
+                                    className="inline-block w-40 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1 ml-0" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="personBEmail"
+                          rules={{
+                            validate: (value) => validateEmail(value) || true,
+                          }}
+                          render={({ field }) => (
+                            <FormItem className="flex items-start">
+                              <div>Email: </div>
+                              <div className="flex flex-col">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="email"
+                                    placeholder="Nhập email"
+                                    className="inline-block w-48 h-6 text-sm"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs mt-1 ml-0" />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
 

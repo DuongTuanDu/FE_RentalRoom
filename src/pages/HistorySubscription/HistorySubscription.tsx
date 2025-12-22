@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Package,
   Calendar,
@@ -54,7 +54,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import moment from 'moment';
 import type { ISubscription } from "@/types/package-subscription";
-import { set } from "lodash";
 
 export const HistorySubscription = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,7 +127,7 @@ export const HistorySubscription = () => {
       refetch();
       setCancelDialogOpen(false);
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể hủy gói dịch vụ lúc này.");
+      toast.error(err?.message?.message || "Không thể hủy gói dịch vụ lúc này.");
     }
   };
 

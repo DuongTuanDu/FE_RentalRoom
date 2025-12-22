@@ -111,7 +111,7 @@ export const ModalQuickFloor = ({
       if (error.status === 409) {
         toast.warning(`Tầng này đã tồn tại`);
       } else {
-        toast.error(error?.data?.message || "Tạo nhanh tầng thất bại!");
+        toast.error(error?.message?.message || "Tạo nhanh tầng thất bại!");
       }
     }
   };

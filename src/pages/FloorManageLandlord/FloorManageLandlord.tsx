@@ -137,31 +137,7 @@ const FloorManageLandlord = () => {
       setIsModalOpen(false);
       setSelectedFloor(null);
     } catch (error: any) {
-      const errorTitle = "Lỗi!";
-      let errorDescription = "Đã xảy ra lỗi không xác định.";
-
-      if (error?.status === 409) {
-        errorDescription = "Số tầng này đã tồn tại trong tòa nhà.";
-      } else if (error?.status === 400) {
-        errorDescription =
-          error?.data?.message ||
-          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
-      } else if (error?.status === 403) {
-        errorDescription = "Bạn không có quyền thực hiện thao tác này.";
-      } else if (error?.status === 404) {
-        errorDescription = selectedFloor
-          ? "Không tìm thấy tầng cần cập nhật."
-          : "Không tìm thấy tòa nhà.";
-      } else if (error?.data?.message) {
-        errorDescription = error.data.message;
-      } else if (error?.message) {
-        errorDescription = error.message;
-      }
-
-      toast.error(errorTitle, {
-        description: errorDescription,
-      });
-      console.error("error", error);
+      console.log(error.message.message || "Đã xảy ra lỗi!");
     }
   };
 
@@ -189,8 +165,8 @@ const FloorManageLandlord = () => {
       toast.success(
         `Tầng đã được ${newStatus === "active" ? "kích hoạt" : "vô hiệu hóa"}!`
       );
-    } catch (error) {
-      toast.error("Cập nhật trạng thái thất bại!");
+    } catch (error: any) {
+      toast.error(error.message.message || "Cập nhật trạng thái thất bại!");
       console.error(error);
     }
   };

@@ -6,6 +6,7 @@ import type {
   IGetPostDetailResponse,
   IGetPostResidentDetailResponse,
   IGetPostsResponse,
+  IGetRoomDetailResponse,
 } from "@/types/post";
 import type { IVacantRoomResponse } from "@/types/room";
 
@@ -120,7 +121,7 @@ export const postApi = createApi({
         method: "GET",
       }),
     }),
-    getPostRoomDetails: builder.query<IGetPostDetailResponse, string>({
+    getPostRoomDetails: builder.query<IGetRoomDetailResponse, string>({
       query: (roomId) => ({
         url: `/posts/rooms/${roomId}`,
         method: "GET",

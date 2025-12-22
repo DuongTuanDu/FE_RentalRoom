@@ -439,25 +439,27 @@ const Contract = () => {
                                       </Tooltip>
                                     </TooltipProvider>
 
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8"
-                                            onClick={() =>
-                                              handleOpenVerifyIdentityDialog(contract._id)
-                                            }
-                                          >
-                                            <Shield className="w-4 h-4 text-purple-600" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Xác thực danh tính</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                    {!contract.identityVerification && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8"
+                                              onClick={() =>
+                                                handleOpenVerifyIdentityDialog(contract._id)
+                                              }
+                                            >
+                                              <Shield className="w-4 h-4 text-purple-600" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Xác thực danh tính</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
 
                                     <TooltipProvider>
                                       <Tooltip>
