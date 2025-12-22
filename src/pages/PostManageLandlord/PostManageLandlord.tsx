@@ -11,6 +11,8 @@ import {
   Square,
   Calendar,
   Image as ImageIcon,
+  Clock,
+  Info,
 } from "lucide-react";
 import _ from "lodash";
 import { Button } from "@/components/ui/button";
@@ -165,6 +167,10 @@ const PostManageLandlord = () => {
     }
   };
 
+  const handleGotoSettings = () => {
+    navigate("/landlord/availability-management");
+  }
+
   if (error) {
     return (
       <div className="container mx-auto space-y-6">
@@ -197,6 +203,24 @@ const PostManageLandlord = () => {
         </div>
       </div>
       <PostActionsGuide />
+
+      <Card className="border-yellow-200 bg-blue-50/50 dark:bg-blue-950/30">
+        <CardHeader >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-yellow-100 dark:bg-blue-800 rounded-full">
+              <Clock className="h-6 w-6" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">
+                Để nhận đặt lịch xem phòng từ người thuê
+              </CardTitle>
+              <CardDescription className="">
+                Người thuê sẽ đặt lịch xem phòng thông qua các bài đăng này, nếu chưa thiết lập lịch xem phòng, hãy bấm vào đây để <strong className="cursor-pointer text-black" onClick={() => handleGotoSettings()} >thiết lập lịch xem phòng</strong>
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Search */}
       <Card>

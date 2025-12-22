@@ -344,11 +344,16 @@ const Contract = () => {
                     </TableHeader>
                     <TableBody>
                       {data.items.map((contract) => {
-                        const daysUntilExpire = contract.contract?.endDate
+                        const isActiveContract = 
+                          contract.status === "completed";
+
+                        const daysUntilExpire = isActiveContract && contract.contract?.endDate
                           ? getDaysUntilExpire(contract.contract.endDate)
                           : null;
-                        const isExpiringSoon = daysUntilExpire !== null && daysUntilExpire <= 30 && daysUntilExpire >= 0;
 
+                        const isExpiringSoon = daysUntilExpire !== null && 
+                                                daysUntilExpire <= 30 && 
+                                                daysUntilExpire >= 0;
                         return (
                           <TableRow
                             key={contract._id}

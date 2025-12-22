@@ -405,6 +405,50 @@ export interface ITenantInvoiceDetailResponse {
   transferProofImageUrl?: string;
   transferRequestedAt?: string;
   paymentNote?: string;
+   history: {
+      action: string;
+      itemsDiff: {
+        updated: {
+          type: string;
+          key: string;
+          label: string;
+          changes: {
+            [key: string]: {
+              before: number | string;
+              after: number | string;
+            };
+          };
+        }[];
+        added: {
+          type: string;
+          label: string;
+          description?: string;
+          quantity?: number;
+          unitPrice?: number;
+          amount?: number;
+        }[];
+        removed: {
+          type: string;
+          label: string;
+          description?: string;
+          quantity?: number;
+          unitPrice?: number;
+          amount?: number;
+        }[];
+      };
+      metaDiff?: {
+        [key: string]: {
+          before: string | number | null;
+          after: string | number | null;
+        };
+      };
+      updatedBy: {
+        _id: string;
+        email: string;
+      };
+      updatedAt: string;
+      _id: string;
+    }[];
 }
 
 export interface IRoomCompletedContract {
