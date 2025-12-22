@@ -22,34 +22,48 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetLaundryFloorsQuery } from "@/services/laundry/laundry.service";
-import { useGetMyRoomQuery } from "@/services/room/room.service";
 import { socketService } from "@/services/socket/socket.service";
 import type { IWasherItem } from "@/types/laundry";
+import { useGetMyRoomQuery } from "@/services/room/room.service";
 
-export const LaundryDevicesCard = () => {
+interface LaundryDevicesCardProps {
+  buildingId?: string;
+}
+
+export const LaundryDevicesCard = ({ buildingId }: LaundryDevicesCardProps) => {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "running" | "idle" | "unknown"
   >("all");
 
+  // Nếu không có buildingId từ props, lấy từ useGetMyRoomQuery
   const { data: myRoomData } = useGetMyRoomQuery();
-  const buildingId = myRoomData?.room?.building?._id || "";
+  const finalBuildingId = buildingId || myRoomData?.data?.room?.building?._id || "";
 
   const {
     data: laundryDevicesData,
     isLoading: isLoadingLaundryDevices,
+    refetch: refetchLaundryDevices,
   } = useGetLaundryFloorsQuery(
     {
-      buildingId,
+      buildingId: finalBuildingId,
       status: statusFilter === "all" ? undefined : statusFilter,
     },
     {
-      skip: !buildingId,
+      skip: !finalBuildingId,
     }
   );
 
   const [realtimeDevices, setRealtimeDevices] = useState<IWasherItem[] | null>(
     null
   );
+
+  // Reset realtimeDevices và refetch khi buildingId thay đổi
+  useEffect(() => {
+    setRealtimeDevices(null);
+    if (finalBuildingId) {
+      refetchLaundryDevices();
+    }
+  }, [finalBuildingId, refetchLaundryDevices]);
 
   const laundryDevices = useMemo(() => {
     if (realtimeDevices) return realtimeDevices;
@@ -60,13 +74,13 @@ export const LaundryDevicesCard = () => {
   useEffect(() => {
     const socket = socketService.getSocket();
 
-    if (!socket || !buildingId) {
+    if (!socket || !finalBuildingId) {
       setRealtimeDevices(null);
       return;
     }
 
     const payload = {
-      buildingId,
+      buildingId: finalBuildingId,
       status: statusFilter === "all" ? undefined : statusFilter,
     };
 
@@ -90,11 +104,11 @@ export const LaundryDevicesCard = () => {
     socket.emit("join_laundry_building", payload);
 
     return () => {
-      socket.emit("leave_laundry_building", { buildingId });
+      socket.emit("leave_laundry_building", { buildingId: finalBuildingId });
       socket.off("laundry_building_status", handleStatus);
       socket.off("laundry_error", handleError);
     };
-  }, [buildingId, statusFilter]);
+  }, [finalBuildingId, statusFilter]);
 
   // Tính toán thống kê
   const stats = useMemo(() => {
@@ -105,7 +119,7 @@ export const LaundryDevicesCard = () => {
     return { total, running, idle };
   }, [laundryDevices]);
 
-  if (!buildingId) {
+  if (!finalBuildingId) {
     return null;
   }
 

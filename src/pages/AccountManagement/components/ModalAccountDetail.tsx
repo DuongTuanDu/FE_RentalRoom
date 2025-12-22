@@ -47,7 +47,7 @@ const AccountDetailModal = ({ open, onOpenChange, accountId }: AccountDetailModa
       toast.success("Cập nhật vai trò thành công");
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Cập nhật vai trò thất bại");
+      toast.error(error?.message?.message || "Cập nhật vai trò thất bại");
     }
   };
 

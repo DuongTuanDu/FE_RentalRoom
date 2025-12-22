@@ -88,7 +88,7 @@ export const UpdateContractDialog = ({
     defaultValues: {
       contractNo: "",
       signPlace: "",
-      signDate: "",
+      signDate: new Date().toISOString().split('T')[0],
       price: "",
       deposit: "",
       startDate: "",
@@ -155,10 +155,12 @@ export const UpdateContractDialog = ({
   // Load contract detail data into form when dialog opens
   useEffect(() => {
     if (open && contractDetail) {
+      // Set signDate to today's date
+      const today = new Date().toISOString().split('T')[0];
       form.reset({
         contractNo: contractDetail.contract?.no || "",
         signPlace: contractDetail.contract?.signPlace || "",
-        signDate: formatDateForInput(contractDetail.contract?.signDate),
+        signDate: today,
         price: contractDetail.contract?.price?.toString() || "",
         deposit: contractDetail.contract?.deposit?.toString() || "",
         startDate: formatDateForInput(contractDetail.contract?.startDate),
@@ -219,7 +221,26 @@ export const UpdateContractDialog = ({
       setRegulationSlateValues({});
       setRegulationNames({});
       setRegulationSlateValuesInitialized(false);
-      form.reset();
+      // Reset form with today's date for signDate
+      const today = new Date().toISOString().split('T')[0];
+      form.reset({
+        contractNo: "",
+        signPlace: "",
+        signDate: today,
+        price: "",
+        deposit: "",
+        startDate: "",
+        endDate: "",
+        paymentCycleMonths: "1",
+        personAName: "",
+        personADob: "",
+        personACccd: "",
+        personACccdIssuedDate: "",
+        personACccdIssuedPlace: "",
+        personAPermanentAddress: "",
+        personAPhone: "",
+        personAEmail: "",
+      });
     }
   }, [open, contractDetail, sortedTerms, sortedRegulations, form]);
 
@@ -412,7 +433,9 @@ export const UpdateContractDialog = ({
                                 <Input
                                   {...field}
                                   type="date"
-                                  className="inline-block w-32 h-6 text-sm"
+                                  disabled
+                                  readOnly
+                                  className="inline-block w-32 h-6 text-sm bg-muted cursor-not-allowed"
                                 />
                               </FormControl>
                             </div>
@@ -474,8 +497,21 @@ export const UpdateContractDialog = ({
                       control={form.control}
                       name="personADob"
                       rules={{
-                        validate: (value) =>
-                          validateRequired(value, "Ngày sinh") || true,
+                        validate: (value) => {
+                          const requiredError = validateRequired(value, "Ngày sinh");
+                          if (requiredError) return requiredError;
+                          // Validate không được sau ngày hiện tại
+                          const today = new Date().toISOString().split('T')[0];
+                          if (value && value > today) {
+                            return "Ngày sinh không được sau ngày hiện tại";
+                          }
+                          // Validate relationship với ngày cấp
+                          const issuedDate = form.getValues("personACccdIssuedDate");
+                          if (value && issuedDate && value > issuedDate) {
+                            return "Ngày sinh không được sau ngày cấp CCCD";
+                          }
+                          return true;
+                        },
                       }}
                       render={({ field }) => (
                         <FormItem className="flex items-start">
@@ -485,6 +521,25 @@ export const UpdateContractDialog = ({
                               <Input
                                 {...field}
                                 type="date"
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  // Trigger validation của ngày cấp khi ngày sinh thay đổi
+                                  const issuedDate = form.getValues("personACccdIssuedDate");
+                                  if (e.target.value && issuedDate) {
+                                    setTimeout(() => {
+                                      form.trigger("personADob");
+                                      form.trigger("personACccdIssuedDate");
+                                    }, 0);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  field.onBlur();
+                                  // Trigger validation của ngày cấp khi blur
+                                  const issuedDate = form.getValues("personACccdIssuedDate");
+                                  if (field.value && issuedDate) {
+                                    form.trigger("personACccdIssuedDate");
+                                  }
+                                }}
                                 className="inline-block w-32 h-6 text-sm"
                               />
                             </FormControl>
@@ -520,8 +575,21 @@ export const UpdateContractDialog = ({
                         control={form.control}
                         name="personACccdIssuedDate"
                         rules={{
-                          validate: (value) =>
-                            validateRequired(value, "Ngày cấp CCCD") || true,
+                          validate: (value) => {
+                            const requiredError = validateRequired(value, "Ngày cấp CCCD");
+                            if (requiredError) return requiredError;
+                            // Validate không được sau ngày hiện tại
+                            const today = new Date().toISOString().split('T')[0];
+                            if (value && value > today) {
+                              return "Ngày cấp không được sau ngày hiện tại";
+                            }
+                            // Validate relationship với ngày sinh
+                            const dob = form.getValues("personADob");
+                            if (value && dob && value < dob) {
+                              return "Ngày cấp không được trước ngày sinh";
+                            }
+                            return true;
+                          },
                         }}
                         render={({ field }) => (
                           <FormItem className="flex items-start">
@@ -533,6 +601,25 @@ export const UpdateContractDialog = ({
                                 <Input
                                   {...field}
                                   type="date"
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    // Trigger validation của ngày sinh khi ngày cấp thay đổi
+                                    const dob = form.getValues("personADob");
+                                    if (e.target.value && dob) {
+                                      setTimeout(() => {
+                                        form.trigger("personADob");
+                                        form.trigger("personACccdIssuedDate");
+                                      }, 0);
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    field.onBlur();
+                                    // Trigger validation của ngày sinh khi blur
+                                    const dob = form.getValues("personADob");
+                                    if (field.value && dob) {
+                                      form.trigger("personADob");
+                                    }
+                                  }}
                                   className="inline-block w-32 h-6 text-sm"
                                 />
                               </FormControl>

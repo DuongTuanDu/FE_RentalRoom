@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCreateMaintenanceMutation } from "@/services/maintenance/maintenance.service";
-import { useGetMyRoomQuery } from "@/services/room/room.service";
+import { useGetPostRoomDetailsQuery } from "@/services/post/post.service";
 import {
   Dialog,
   DialogContent,
@@ -79,15 +79,19 @@ interface CreateMaintenanceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultFurnitureId?: string;
+  roomId?: string;
 }
 
 export const CreateMaintenanceModal = ({
   open,
   onOpenChange,
   defaultFurnitureId,
+  roomId,
 }: CreateMaintenanceModalProps) => {
   const [createMaintenance, { isLoading }] = useCreateMaintenanceMutation();
-  const { data: roomData } = useGetMyRoomQuery();
+  const { data: roomDetailData } = useGetPostRoomDetailsQuery(roomId || "", {
+    skip: !roomId || !open,
+  });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [furnitureComboboxOpen, setFurnitureComboboxOpen] = useState(false);
@@ -110,10 +114,10 @@ export const CreateMaintenanceModal = ({
 
   // Set default roomId when room data is available
   useEffect(() => {
-    if (roomData?.room && open) {
-      form.setValue("roomId", roomData.room._id);
+    if (roomDetailData?.data && open) {
+      form.setValue("roomId", roomDetailData.data._id);
     }
-  }, [roomData?.room, open, form]);
+  }, [roomDetailData?.data, open, form]);
 
   // Set default furnitureId when provided
   useEffect(() => {
@@ -190,7 +194,7 @@ export const CreateMaintenanceModal = ({
     }
   };
 
-  const furnitures = roomData?.furnitures || [];
+  const furnitures = roomDetailData?.data?.furnitures || [];
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -215,15 +219,15 @@ export const CreateMaintenanceModal = ({
                 <FormItem>
                   <FormLabel>Phòng *</FormLabel>
                   <FormControl>
-                    {roomData?.room ? (
+                    {roomDetailData?.data ? (
                       <>
                         <Input
-                          value={roomData.room.roomNumber || "N/A"}
+                          value={roomDetailData.data.roomNumber || "N/A"}
                           disabled
                           className="bg-muted"
                         />
                         {/* Hidden input to store roomId */}
-                        <input type="hidden" {...field} value={roomData.room._id} />
+                        <input type="hidden" {...field} value={roomDetailData.data._id} />
                       </>
                     ) : (
                       <Input placeholder="Chọn phòng" {...field} />
@@ -279,7 +283,7 @@ export const CreateMaintenanceModal = ({
                 name="furnitureId"
                 render={({ field }) => {
                   const selectedFurniture = furnitures.find(
-                    (f) => f._id === field.value
+                    (f: { _id: string; name: string; condition: string }) => f._id === field.value
                   );
                   
                   // Hiển thị tên furniture nếu đã chọn, hoặc giá trị tự do
@@ -288,7 +292,7 @@ export const CreateMaintenanceModal = ({
                     : field.value || "";
 
                   // Lọc danh sách furniture theo input
-                  const filteredFurnitures = furnitures.filter((f) =>
+                  const filteredFurnitures = furnitures.filter((f: { name: string }) =>
                     f.name.toLowerCase().includes(furnitureInputValue.toLowerCase())
                   );
 
@@ -340,7 +344,7 @@ export const CreateMaintenanceModal = ({
                           <div className="furniture-dropdown absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-[300px] overflow-auto">
                             {filteredFurnitures.length > 0 ? (
                               <div className="p-1">
-                                {filteredFurnitures.map((furniture) => (
+                                {filteredFurnitures.map((furniture: { _id: string; name: string; condition: string }) => (
                                   <div
                                     key={furniture._id}
                                     className={cn(

@@ -97,7 +97,7 @@ const FirstTimeChangePassword = () => {
         navigate("/auth/login");
       }, 2000);
     } catch (error: any) {
-      const message = error?.data?.message || "Đổi mật khẩu thất bại";
+      const message = error?.message?.message || "Đổi mật khẩu thất bại";
       toast.error(message);
     }
   };

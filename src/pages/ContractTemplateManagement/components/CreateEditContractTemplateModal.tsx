@@ -86,7 +86,6 @@ export const CreateEditContractTemplateModal = ({
           <div>CCCD: ... Cấp ngày: ..., Nơi cấp: ...</div>
           <div>Hộ khẩu thường trú: ...</div>
           <div>Điện thoại: ...</div>
-          <div>STK: ...</div>
           <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>
           <div>Đại diện (Ông/Bà): ...</div>
           <div>CCCD/Passport: ... Cấp ngày: ..., Tại: ...</div>

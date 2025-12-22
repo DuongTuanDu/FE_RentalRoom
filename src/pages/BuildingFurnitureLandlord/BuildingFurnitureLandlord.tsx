@@ -273,7 +273,7 @@ const BuildingFurnitureLandlord = () => {
                         }
                         setIsApplyOpen(false);
                       } catch (err: any) {
-                        toast.error(err?.data?.message || "Áp dụng thất bại.");
+                        toast.error(err?.message?.message || "Áp dụng thất bại.");
                       }
                     }}
                   >

@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   useVerifyIdentityMutation,
   useGetTenantContractDetailsQuery,
@@ -37,6 +38,7 @@ export const VerifyIdentityDialog = ({
   const [previewCccdFront, setPreviewCccdFront] = useState<string | null>(null);
   const [previewCccdBack, setPreviewCccdBack] = useState<string | null>(null);
   const [previewSelfie, setPreviewSelfie] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { data: contractDetail } = useGetTenantContractDetailsQuery(
     contractId || "",
@@ -57,6 +59,7 @@ export const VerifyIdentityDialog = ({
       setPreviewCccdFront(null);
       setPreviewCccdBack(null);
       setPreviewSelfie(null);
+      setAcceptedTerms(false);
     }
   }, [open]);
 
@@ -142,7 +145,7 @@ export const VerifyIdentityDialog = ({
       }
     } catch (error: any) {
       toast.error(
-        error?.data?.message || "Có lỗi xảy ra khi xác thực danh tính"
+        error?.message?.message || error?.message || "Có lỗi xảy ra khi xác thực danh tính"
       );
     }
   };
@@ -308,6 +311,23 @@ export const VerifyIdentityDialog = ({
               previewSelfie,
               "Chụp ảnh chân dung rõ mặt, không đeo kính đen hay khẩu trang"
             )}
+
+            {/* Checkbox xác nhận cung cấp thông tin */}
+            <div className="flex items-start gap-3 pt-2">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                className="mt-1"
+              />
+              <Label
+                htmlFor="accept-terms"
+                className="text-sm text-slate-700 cursor-pointer leading-relaxed"
+              >
+                Tôi xác nhận đã cung cấp đầy đủ và chính xác thông tin căn cước công dân cho hệ thống. 
+                Tôi hiểu rằng thông tin này sẽ được sử dụng để xác thực danh tính và quản lý hợp đồng thuê phòng.
+              </Label>
+            </div>
           </div>
         </div>
 
@@ -323,7 +343,7 @@ export const VerifyIdentityDialog = ({
           <Button
             type="button"
             onClick={handleVerifyIdentity}
-            disabled={isVerifying || !cccdFront || !cccdBack || !selfie}
+            disabled={isVerifying || !cccdFront || !cccdBack || !selfie || !acceptedTerms}
           >
             {isVerifying ? "Đang xác thực..." : "Xác thực danh tính"}
           </Button>

@@ -41,7 +41,7 @@ const Washer = () => {
 
   const { data: myRoomData, isLoading: isLoadingMyRoom } = useGetMyRoomQuery();
 
-  const buildingId = myRoomData?.room?.building?._id || "";
+  const buildingId = myRoomData?.data?.room?.building?._id || "";
 
   const {
     data: laundryDevicesData,
@@ -136,7 +136,7 @@ const Washer = () => {
     );
   }
 
-  if (!myRoomData?.room) {
+  if (!myRoomData?.data?.room) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
         <Card className="max-w-md border-0 shadow-xl">

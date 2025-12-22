@@ -128,7 +128,7 @@ export const HistorySubscription = () => {
       refetch();
       setCancelDialogOpen(false);
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể hủy gói dịch vụ lúc này.");
+      toast.error(err?.message?.message || "Không thể hủy gói dịch vụ lúc này.");
     }
   };
 

@@ -85,7 +85,6 @@ export const SendContractModal = ({
   const [personAPermanentAddressError, setPersonAPermanentAddressError] = useState("");
   const [personAPhoneError, setPersonAPhoneError] = useState("");
   const [personAEmailError, setPersonAEmailError] = useState("");
-  const [personABankAccountError, setPersonABankAccountError] = useState("");
 
   // Person A (Landlord) states
   const [personAName, setPersonAName] = useState("");
@@ -96,7 +95,6 @@ export const SendContractModal = ({
   const [personAPermanentAddress, setPersonAPermanentAddress] = useState("");
   const [personAPhone, setPersonAPhone] = useState("");
   const [personAEmail, setPersonAEmail] = useState("");
-  const [personABankAccount, setPersonABankAccount] = useState("");
 
   // Terms states
   const [termSlateValues, setTermSlateValues] = useState<Record<number, SlateValue>>({});
@@ -145,7 +143,6 @@ export const SendContractModal = ({
       setStartDateError("");
       setEndDateError("");
       setPaymentCycleMonthsError("");
-      setPersonABankAccountError("");
 
       // Fill Person A (Landlord) - from contractData.A
       setPersonAName(contractData.A.name || "");
@@ -156,7 +153,6 @@ export const SendContractModal = ({
       setPersonAPermanentAddress(contractData.A.permanentAddress || "");
       setPersonAPhone(contractData.A.phone || "");
       setPersonAEmail(contractData.A.email || "");
-      setPersonABankAccount("");
 
       // Reset signature
       if (signatureRef.current) {
@@ -212,7 +208,6 @@ export const SendContractModal = ({
       setStartDateError("");
       setEndDateError("");
       setPaymentCycleMonthsError("");
-      setPersonABankAccountError("");
     }
   }, [open, contractData, sortedTerms, sortedRegulations]);
 
@@ -280,7 +275,6 @@ export const SendContractModal = ({
     setPersonAPermanentAddressError("");
     setPersonAPhoneError("");
     setPersonAEmailError("");
-    setPersonABankAccountError("");
 
     let hasError = false;
     let firstErrorField: string | null = null;
@@ -434,6 +428,14 @@ export const SendContractModal = ({
       setPersonADobError(personADobErrorMsg);
       hasError = true;
       if (!firstErrorField) firstErrorField = "personADob";
+    } else {
+      // Validate không được sau ngày hiện tại
+      const today = new Date().toISOString().split('T')[0];
+      if (personADob && personADob > today) {
+        setPersonADobError("Ngày sinh không được sau ngày hiện tại");
+        hasError = true;
+        if (!firstErrorField) firstErrorField = "personADob";
+      }
     }
 
     // Validate personACccd
@@ -450,6 +452,15 @@ export const SendContractModal = ({
       setPersonACccdIssuedDateError(personACccdIssuedDateErrorMsg);
       hasError = true;
       if (!firstErrorField) firstErrorField = "personACccdIssuedDate";
+    } else {
+      // Validate relationship với ngày sinh
+      if (personACccdIssuedDate && personADob) {
+        if (personACccdIssuedDate < personADob) {
+          setPersonACccdIssuedDateError("Ngày cấp không được trước ngày sinh");
+          hasError = true;
+          if (!firstErrorField) firstErrorField = "personACccdIssuedDate";
+        }
+      }
     }
 
     // Validate personACccdIssuedPlace
@@ -482,19 +493,6 @@ export const SendContractModal = ({
       setPersonAEmailError(personAEmailErrorMsg);
       hasError = true;
       if (!firstErrorField) firstErrorField = "personAEmail";
-    }
-
-    // Validate personABankAccount (STK) - nếu có giá trị thì phải là số
-    if (personABankAccount && personABankAccount.trim() !== "") {
-      if (!/^\d+$/.test(personABankAccount.trim())) {
-        setPersonABankAccountError("Số tài khoản chỉ được chứa số");
-        hasError = true;
-        if (!firstErrorField) firstErrorField = "personABankAccount";
-      } else if (personABankAccount.trim().length < 8 || personABankAccount.trim().length > 19) {
-        setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
-        hasError = true;
-        if (!firstErrorField) firstErrorField = "personABankAccount";
-      }
     }
 
     if (hasError) {
@@ -643,16 +641,9 @@ export const SendContractModal = ({
                     data-field="signDate"
                     type="date"
                     value={signDate}
-                    onChange={(e) => {
-                      setSignDate(e.target.value);
-                      const error = validateRequired(e.target.value, "Ngày ký");
-                      setSignDateError(error || "");
-                    }}
-                    onBlur={() => {
-                      const error = validateRequired(signDate, "Ngày ký");
-                      setSignDateError(error || "");
-                    }}
-                    className={`inline-block w-32 h-6 text-sm ${signDateError ? "border-red-500" : ""}`}
+                    disabled
+                    readOnly
+                    className={`inline-block w-32 h-6 text-sm ${signDateError ? "border-red-500" : ""} bg-muted cursor-not-allowed`}
                   />{" "}
                   tại:{" "}
                   <Input
@@ -710,13 +701,50 @@ export const SendContractModal = ({
                     type="date"
                     value={personADob}
                     onChange={(e) => {
-                      setPersonADob(e.target.value);
-                      const error = validateRequired(e.target.value, "Ngày sinh");
-                      setPersonADobError(error || "");
+                      const value = e.target.value;
+                      setPersonADob(value);
+                      const requiredError = validateRequired(value, "Ngày sinh");
+                      if (requiredError) {
+                        setPersonADobError(requiredError);
+                      } else {
+                        // Validate không được sau ngày hiện tại
+                        const today = new Date().toISOString().split('T')[0];
+                        if (value && value > today) {
+                          setPersonADobError("Ngày sinh không được sau ngày hiện tại");
+                        } else {
+                          setPersonADobError("");
+                          // Validate relationship với ngày cấp
+                          if (value && personACccdIssuedDate) {
+                            if (value > personACccdIssuedDate) {
+                              setPersonACccdIssuedDateError("Ngày cấp không được trước ngày sinh");
+                            } else {
+                              setPersonACccdIssuedDateError("");
+                            }
+                          }
+                        }
+                      }
                     }}
                     onBlur={() => {
-                      const error = validateRequired(personADob, "Ngày sinh");
-                      setPersonADobError(error || "");
+                      const requiredError = validateRequired(personADob, "Ngày sinh");
+                      if (requiredError) {
+                        setPersonADobError(requiredError);
+                      } else {
+                        // Validate không được sau ngày hiện tại
+                        const today = new Date().toISOString().split('T')[0];
+                        if (personADob && personADob > today) {
+                          setPersonADobError("Ngày sinh không được sau ngày hiện tại");
+                        } else {
+                          setPersonADobError("");
+                          // Validate relationship với ngày cấp
+                          if (personADob && personACccdIssuedDate) {
+                            if (personADob > personACccdIssuedDate) {
+                              setPersonACccdIssuedDateError("Ngày cấp không được trước ngày sinh");
+                            } else {
+                              setPersonACccdIssuedDateError("");
+                            }
+                          }
+                        }
+                      }
                     }}
                     className={`inline-block w-32 h-6 text-sm ${personADobError ? "border-red-500" : ""}`}
                   />
@@ -749,13 +777,50 @@ export const SendContractModal = ({
                     type="date"
                     value={personACccdIssuedDate}
                     onChange={(e) => {
-                      setPersonACccdIssuedDate(e.target.value);
-                      const error = validateRequired(e.target.value, "Ngày cấp CCCD");
-                      setPersonACccdIssuedDateError(error || "");
+                      const value = e.target.value;
+                      setPersonACccdIssuedDate(value);
+                      const requiredError = validateRequired(value, "Ngày cấp CCCD");
+                      if (requiredError) {
+                        setPersonACccdIssuedDateError(requiredError);
+                      } else {
+                        // Validate không được sau ngày hiện tại
+                        const today = new Date().toISOString().split('T')[0];
+                        if (value && value > today) {
+                          setPersonACccdIssuedDateError("Ngày cấp không được sau ngày hiện tại");
+                        } else {
+                          setPersonACccdIssuedDateError("");
+                          // Validate relationship với ngày sinh
+                          if (value && personADob) {
+                            if (value < personADob) {
+                              setPersonACccdIssuedDateError("Ngày cấp không được trước ngày sinh");
+                            } else {
+                              setPersonADobError("");
+                            }
+                          }
+                        }
+                      }
                     }}
                     onBlur={() => {
-                      const error = validateRequired(personACccdIssuedDate, "Ngày cấp CCCD");
-                      setPersonACccdIssuedDateError(error || "");
+                      const requiredError = validateRequired(personACccdIssuedDate, "Ngày cấp CCCD");
+                      if (requiredError) {
+                        setPersonACccdIssuedDateError(requiredError);
+                      } else {
+                        // Validate không được sau ngày hiện tại
+                        const today = new Date().toISOString().split('T')[0];
+                        if (personACccdIssuedDate && personACccdIssuedDate > today) {
+                          setPersonACccdIssuedDateError("Ngày cấp không được sau ngày hiện tại");
+                        } else {
+                          setPersonACccdIssuedDateError("");
+                          // Validate relationship với ngày sinh
+                          if (personACccdIssuedDate && personADob) {
+                            if (personACccdIssuedDate < personADob) {
+                              setPersonACccdIssuedDateError("Ngày cấp không được trước ngày sinh");
+                            } else {
+                              setPersonADobError("");
+                            }
+                          }
+                        }
+                      }
                     }}
                     className={`inline-block w-32 h-6 text-sm ${personACccdIssuedDateError ? "border-red-500" : ""}`}
                   />
@@ -852,44 +917,6 @@ export const SendContractModal = ({
                 </div>
                 {personAEmailError && (
                   <p className="text-xs text-red-500 mt-1">{personAEmailError}</p>
-                )}
-              </div>
-              <div>
-                <div>
-                  STK:{" "}
-                  <Input
-                    data-field="personABankAccount"
-                    value={personABankAccount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setPersonABankAccount(value);
-                      // Reset error khi người dùng thay đổi
-                      setPersonABankAccountError("");
-                      // Validate ngay khi thay đổi nếu có giá trị
-                      if (value && value.trim() !== "") {
-                        if (!/^\d+$/.test(value.trim())) {
-                          setPersonABankAccountError("Số tài khoản chỉ được chứa số");
-                        } else if (value.trim().length < 8 || value.trim().length > 19) {
-                          setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
-                        }
-                      }
-                    }}
-                    onBlur={() => {
-                      // Validate khi blur
-                      if (personABankAccount && personABankAccount.trim() !== "") {
-                        if (!/^\d+$/.test(personABankAccount.trim())) {
-                          setPersonABankAccountError("Số tài khoản chỉ được chứa số");
-                        } else if (personABankAccount.trim().length < 8 || personABankAccount.trim().length > 19) {
-                          setPersonABankAccountError("Số tài khoản phải có từ 8 đến 19 ký tự");
-                        }
-                      }
-                    }}
-                    placeholder="Nhập số tài khoản"
-                    className={`inline-block w-40 h-6 text-sm ${personABankAccountError ? "border-red-500" : ""}`}
-                  />
-                </div>
-                {personABankAccountError && (
-                  <p className="text-xs text-red-500 mt-1">{personABankAccountError}</p>
                 )}
               </div>
               <div className="font-semibold pt-2">BÊN THUÊ NHÀ (BÊN B):</div>

@@ -175,3 +175,40 @@ export interface IGenerateAIDescriptionResponse {
     aiDescription: string;
   };
 }
+
+export interface IGetRoomDetailResponse {
+  success: boolean;
+  data: {
+    _id: string;
+    buildingId: {
+      _id: string;
+      name: string;
+      address: string;
+      eIndexType: "byNumber" | "byPerson" | "included";
+      ePrice: number;
+      wIndexType: "byNumber" | "byPerson" | "included";
+      wPrice: number;
+      status: "active" | "inactive";
+    };
+    floorId: string;
+    roomNumber: string;
+    images: string[];
+    area: number;
+    price: number;
+    maxTenants: number;
+    currentContractId: string;
+    currentTenantIds: string[];
+    status: "available" | "rented" | "maintenance";
+    eStart: number;
+    wStart: number;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    furnitures: {
+      _id: string;
+      name: string;
+      quantity: number;
+      condition: string;
+    }[];
+  };
+}

@@ -119,7 +119,7 @@ const TermManagement = () => {
       setIsDeleteDialogOpen(false);
       setDeletingTerm(null);
     } catch (error: any) {
-      toast.error(error?.data?.message || "Xóa điều khoản thất bại");
+      toast.error(error?.message?.message || "Xóa điều khoản thất bại");
     }
   };
 
@@ -151,7 +151,7 @@ const TermManagement = () => {
       setIsModalOpen(false);
       setEditingTerm(null);
     } catch (error: any) {
-      toast.error(error?.data?.message || "Lưu điều khoản thất bại");
+      toast.error(error?.message?.message || "Lưu điều khoản thất bại");
     }
   };
 

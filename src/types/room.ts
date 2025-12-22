@@ -54,7 +54,7 @@ export interface IMyRoom {
     fullName: string;
     phoneNumber: string;
   }[];
-  contractRoommates:  {
+  contractRoommates: {
     name: string;
     cccd: string;
     phone: string;
@@ -75,13 +75,30 @@ export interface IRoomListResponse {
 }
 
 export interface IMyRoomResponse {
-  room: IMyRoom;
-  furnitures: {
-    _id: string;
-    name: string;
-    quantity: number;
-    condition: string;
-  }[];
+  success: boolean;
+  message: string;
+  data: {
+    room: IMyRoom;
+    furnitures: {
+      _id: string;
+      name: string;
+      quantity: number;
+      condition: string;
+    }[];
+    availableRooms: {
+      _id: string;
+      roomNumber: string;
+      buildingName: string;
+      status: "active" | "inactive";
+      contract: {
+        _id: string;
+        contractNo: string;
+        startDate: string;
+        endDate: string;
+        status: "active" | "upcoming";
+      }
+    }[];
+  };
 }
 
 export interface CreateRoomRequest {

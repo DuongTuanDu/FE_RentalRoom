@@ -92,6 +92,21 @@ export interface ITenantContract {
     requestedAt: string;
     requestedById: string;
   };
+  identityVerification?: {
+    cccdFrontUrl: string;
+    cccdBackUrl: string;
+    selfieUrl: string;
+    ocrData: {
+      name: string;
+      dob: string;
+      cccd: string;
+      permanentAddress: string;
+    };
+    faceMatchScore: number;
+    status: "pending" | "verified" | "failed";
+    verifiedAt?: string;
+    rejectedReason?: string;
+  };
 }
 
 export type IPerson = {
@@ -398,6 +413,9 @@ export interface ITenantContractDetailResponse {
       permanentAddress: string;
     };
     faceMatchScore: number;
+    status: "pending" | "verified" | "failed";
+    verifiedAt?: string;
+    rejectedReason?: string;
   };
   completedAt: string;
   tenantSignatureUrl: string;

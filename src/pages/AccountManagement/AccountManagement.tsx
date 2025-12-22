@@ -82,7 +82,7 @@ const AccountManagement = () => {
       toast.success(result.message || "Cập nhật trạng thái thành công");
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Cập nhật trạng thái thất bại");
+      toast.error(error?.message?.message || "Cập nhật trạng thái thất bại");
     }
   };
 
