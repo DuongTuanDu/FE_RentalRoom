@@ -180,7 +180,7 @@ const FloorManageLandlord = () => {
     setCurrentPage(1);
   };
 
-  const totalPages = floorsData ? Math.ceil(floorsData.total / pageSize) : 0;
+  const totalPages = floorsData?.pagination?.totalPages ?? 0;
 
   return (
     <div className="container mx-auto space-y-6">
@@ -371,9 +371,9 @@ const FloorManageLandlord = () => {
                         Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
                         {Math.min(
                           currentPage * pageSize,
-                          floorsData?.total || 0
+                          floorsData?.pagination.total || 0
                         )}{" "}
-                        trong tổng số {floorsData?.total || 0} tầng
+                        trong tổng số {floorsData?.pagination.total || 0} tầng
                       </p>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-muted-foreground">

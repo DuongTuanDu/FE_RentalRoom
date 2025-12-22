@@ -31,7 +31,10 @@ export interface UpdateFloorRequest extends CreateFloorRequest {
 
 export type IFloorListResponse = {
   data: IFloor[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 };

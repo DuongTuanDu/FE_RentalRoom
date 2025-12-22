@@ -373,7 +373,11 @@ const AppSidebar = () => {
                                       handleNavigation(subItem.path)
                                     }
                                     isActive={isActivePath(subItem.path)}
-                                    className="cursor-pointer"
+                                    className={`cursor-pointer ${
+                                    isActivePath(subItem.path)
+                                      ? "font-bold text-primary "
+                                      : ""
+                                  }`}
                                   >
                                     <SubIcon className="h-4 w-4" />
                                     <span>{subItem.title}</span>

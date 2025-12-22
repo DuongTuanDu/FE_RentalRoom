@@ -204,7 +204,7 @@ const PostManageLandlord = () => {
       </div>
       <PostActionsGuide />
 
-      <Card className="border-yellow-200 bg-blue-50/50 dark:bg-blue-950/30">
+      <Card className="border-yellow-200 bg-yellow-50/50 dark:bg-blue-950/30">
         <CardHeader >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-yellow-100 dark:bg-blue-800 rounded-full">

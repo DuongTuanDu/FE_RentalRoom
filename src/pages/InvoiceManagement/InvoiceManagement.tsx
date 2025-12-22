@@ -84,6 +84,7 @@ import { SendDraftAllInvoicesDialog } from "./components/SendDraftAllInvoicesDia
 import { ReplaceInvoiceDialog } from "./components/ReplaceInvoiceDialog";
 import _ from "lodash";
 import { InvoiceActionsGuide } from "./components/InvoiceActionsGuide";
+import { useNavigate } from "react-router-dom";
 
 const InvoiceManagement = () => {
   const formatPrice = useFormatPrice();
@@ -431,6 +432,12 @@ const InvoiceManagement = () => {
     }
   };
 
+  const navigate = useNavigate();
+
+  const handleGoToProfile = () => {
+    navigate("/landlord/profile");
+  }
+
   // Generate month options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   const currentYear = new Date().getFullYear();
@@ -496,6 +503,10 @@ const InvoiceManagement = () => {
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 mt-0.5">•</span>
                 <span>Sau khi gửi, trạng thái sẽ chuyển từ <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Nháp</span> → <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Đã gửi</span></span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>Hóa đơn sẽ bao gồm thông tin ngân hàng của bạn. Nếu chưa cập nhật thông tin ngân hàng, bấm vào dây <strong className="cursor-pointer" onClick={() => handleGoToProfile()}>cập nhật ngay</strong></span>
               </li>
             </ul>
           </div>
