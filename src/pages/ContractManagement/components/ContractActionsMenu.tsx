@@ -225,7 +225,7 @@ export const ContractActionsMenu = ({
       {onDisable &&
         (status === "draft" ||
           status === "signed_by_landlord" ||
-          status === "sent_to_tenant" || (status === "completed" && shouldShowMoveInActions)) &&
+          status === "sent_to_tenant" || (status === "completed")) &&
         depositInvoice?.status !== "paid" && (
           <TooltipProvider>
             <Tooltip>
