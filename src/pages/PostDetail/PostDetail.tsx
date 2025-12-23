@@ -218,12 +218,6 @@ const PostDetail = () => {
                 <span>{rooms.length || 0}+ phòng</span>
               </div>
             </div>
-
-            <div className="pt-2">
-              <Button className="w-full">
-                Những thông tin liên quan đến phòng
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

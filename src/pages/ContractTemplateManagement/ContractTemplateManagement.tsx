@@ -49,7 +49,9 @@ const ContractTemplateManagement = () => {
     data: templates,
     isLoading,
     isFetching,
-  } = useGetContractTemplatesQuery();
+  } = useGetContractTemplatesQuery(
+    selectedBuildingId ? { buildingId: selectedBuildingId } : {}
+  );
   const [createTemplate, { isLoading: isCreating }] =
     useCreateContractTemplateMutation();
   const [updateTemplate, { isLoading: isUpdating }] =
@@ -60,9 +62,9 @@ const ContractTemplateManagement = () => {
     useLazyGetPreviewContractPdfQuery();
 
   const filteredTemplates = useMemo(() => {
-    if (!selectedBuildingId) return templates ?? [];
-    return (templates ?? []).filter((t) => t.buildingId === selectedBuildingId);
-  }, [templates, selectedBuildingId]);
+    // Dữ liệu đã được filter từ API theo buildingId (nếu có)
+    return templates ?? [];
+  }, [templates]);
 
   const handleOpenCreate = () => {
     setEditingItem(null);
@@ -71,7 +73,7 @@ const ContractTemplateManagement = () => {
 
   const handleOpenEdit = (item: IContractTemplate) => {
     setEditingItem(item);
-    setSelectedBuildingId(item.buildingId);
+    setSelectedBuildingId(item.buildingId._id);
     setIsModalOpen(true);
   };
 
@@ -129,7 +131,7 @@ const ContractTemplateManagement = () => {
   const handleDownload = async (item: IContractTemplate) => {
     try {
       const blob = await triggerGetPdf({
-        buildingId: item.buildingId,
+        buildingId: item.buildingId._id,
         termIds: item.defaultTermIds ?? [],
         regulationIds: item.defaultRegulationIds ?? [],
         fileName: `${item.name || "HopDong_ThuPhong"}_XemTruoc.pdf`,
@@ -228,7 +230,7 @@ const ContractTemplateManagement = () => {
                     <TableRow key={t._id}>
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell className="font-medium">{t.name}</TableCell>
-                      <TableCell>{t.buildingId}</TableCell>
+                      <TableCell>{t.buildingId.name}</TableCell>
                       <TableCell>
                         {t.status === "active"
                           ? "Hoạt động"

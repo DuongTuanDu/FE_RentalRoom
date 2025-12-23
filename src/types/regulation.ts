@@ -1,6 +1,10 @@
 export interface IRegulation {
   _id: string;
-  buildingId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+    address: string;
+  };
   title: string;
   description: string;
   status: "active" | "inactive";

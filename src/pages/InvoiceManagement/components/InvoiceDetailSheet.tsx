@@ -24,10 +24,7 @@ import {
   DollarSign,
   Mail,
   CreditCard,
-  Clock,
   Receipt,
-  UserCheck,
-  Trash2,
   Send,
   RefreshCw,
   AlertCircle,
@@ -1072,77 +1069,6 @@ export const InvoiceDetailSheet = ({
               </div>
             </div>
           )}
-
-          {/* Thông tin hệ thống */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              <Clock className="w-4 h-4" />
-              Thông tin hệ thống
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
-              {invoiceData.createdBy && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                      <UserCheck className="w-4 h-4" />
-                      Người tạo
-                    </label>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                      {invoiceData.createdBy}
-                    </p>
-                  </div>
-                  <Separator />
-                </>
-              )}
-              <div className="flex justify-between items-center">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Ngày tạo
-                </label>
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {formatDate(invoiceData.createdAt)}
-                </p>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Cập nhật lần cuối
-                </label>
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {formatDate(invoiceData.updatedAt)}
-                </p>
-              </div>
-              {invoiceData.isDeleted && (
-                <>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                      <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                      Trạng thái
-                    </label>
-                    <Badge
-                      variant="outline"
-                      className="bg-red-100 text-red-800 border-red-200"
-                    >
-                      Đã xóa
-                    </Badge>
-                  </div>
-                  {invoiceData.deletedAt && (
-                    <>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <label className="text-sm text-slate-600 dark:text-slate-400">
-                          Ngày xóa
-                        </label>
-                        <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                          {formatDate(invoiceData.deletedAt)}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
         </div>
       </SheetContent>
     </Sheet>

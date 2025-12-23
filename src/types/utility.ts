@@ -65,6 +65,10 @@ export interface IUtilityItem {
     _id: string;
     name: string;
     address: string;
+    wIndexType: "byNumber" | "byPerson";
+    wPrice: number;
+    eIndexType: "byNumber";
+    ePrice: number;
   };
   roomId: {
     _id: string;

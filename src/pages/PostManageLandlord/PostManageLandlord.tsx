@@ -12,7 +12,6 @@ import {
   Calendar,
   Image as ImageIcon,
   Clock,
-  Info,
 } from "lucide-react";
 import _ from "lodash";
 import { Button } from "@/components/ui/button";

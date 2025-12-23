@@ -16,8 +16,14 @@ export const contractTemplateApi = createApi({
   },
   tagTypes: ["ContractTemplate"],
   endpoints: (builder) => ({
-    getContractTemplates: builder.query<IContractTemplateResponse, void>({
-      query: () => ({ url: "/landlords/contract-templates", method: "GET" }),
+    getContractTemplates: builder.query<IContractTemplateResponse, {
+      buildingId?: string;
+    }>({
+      query: ({ buildingId }) => ({
+        url: "/landlords/contract-templates",
+        method: "GET",
+        params: { buildingId },
+      }),
       providesTags: ["ContractTemplate"],
     }),
     createContractTemplate: builder.mutation<

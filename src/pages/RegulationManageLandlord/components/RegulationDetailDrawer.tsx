@@ -99,9 +99,9 @@ export const RegulationDetailSheet = ({
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <h3 className="font-semibold">Tòa nhà</h3>
               </div>
-              <div className="p-3 bg-secondary/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">ID tòa nhà</p>
-                <p className="font-mono text-sm">{regulation.buildingId}</p>
+              <div className="p-3 bg-secondary/30 rounded-lg flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Tòa nhà:</p>
+                <p className="font-mono text-sm">{regulation.buildingId.name}</p>
               </div>
             </div>
 
@@ -112,7 +112,7 @@ export const RegulationDetailSheet = ({
                 <h3 className="font-semibold">Phân loại</h3>
               </div>
               <div className="p-3 bg-secondary/30 rounded-lg space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
                     Trạng thái:
                   </span>

@@ -106,6 +106,9 @@ export const CreateUtilityDialog = ({
     })[0];
   })();
 
+  const isWaterByPerson =
+    previousReading?.buildingId?.wIndexType === "byPerson";
+
   // Generate month and year options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   const currentYear = new Date().getFullYear();
@@ -193,27 +196,31 @@ export const CreateUtilityDialog = ({
       !formData.periodMonth ||
       !formData.periodYear ||
       !formData.eCurrentIndex ||
-      !formData.wCurrentIndex
+      (!isWaterByPerson && !formData.wCurrentIndex)
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
     const eCurrentIndexNum = parseFloat(formData.eCurrentIndex);
-    const wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
+    const wCurrentIndexNum = isWaterByPerson
+      ? previousReading?.wCurrentIndex ?? 0
+      : parseFloat(formData.wCurrentIndex);
 
     if (eCurrentIndexNum < 0) {
       toast.error("Chỉ số điện hiện tại không được là số âm");
       return;
     }
 
-    if (wCurrentIndexNum < 0) {
-      toast.error("Chỉ số nước hiện tại không được là số âm");
-      return;
+    if (!isWaterByPerson) {
+      if (wCurrentIndexNum < 0) {
+        toast.error("Chỉ số nước hiện tại không được là số âm");
+        return;
+      }
     }
 
     // Validate against previous reading
-    if (previousReading) {
+    if (previousReading && !isWaterByPerson) {
       if (eCurrentIndexNum < previousReading.eCurrentIndex) {
         setErrors((prev) => ({
           ...prev,
@@ -410,29 +417,41 @@ export const CreateUtilityDialog = ({
               <Label>
                 Chỉ số nước hiện tại <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span>
               </Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.wCurrentIndex}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Chỉ cho phép số dương hoặc rỗng
-                  if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                    setFormData((prev) => ({
-                      ...prev,
-                      wCurrentIndex: value,
-                    }));
-                    // Validate immediately
-                    const error = validateIndex("water", value);
-                    setErrors((prev) => ({ ...prev, wCurrentIndex: error }));
-                  }
-                }}
-                placeholder="Nhập chỉ số nước hiện tại"
-                className={errors.wCurrentIndex ? "border-red-500" : ""}
-              />
-              {errors.wCurrentIndex && (
-                <p className="text-sm text-red-500 mt-1">{errors.wCurrentIndex}</p>
+              {!isWaterByPerson && (
+                <>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.wCurrentIndex}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Chỉ cho phép số dương hoặc rỗng
+                      if (
+                        value === "" ||
+                        (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)
+                      ) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          wCurrentIndex: value,
+                        }));
+                        // Validate immediately
+                        const error = validateIndex("water", value);
+                        setErrors((prev) => ({
+                          ...prev,
+                          wCurrentIndex: error,
+                        }));
+                      }
+                    }}
+                    placeholder="Nhập chỉ số nước hiện tại"
+                    className={errors.wCurrentIndex ? "border-red-500" : ""}
+                  />
+                  {errors.wCurrentIndex && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.wCurrentIndex}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -180,6 +180,40 @@ export const ContractDetailSheet = ({
                     : "—"}
                 </p>
               </div>
+              <div>
+                <Label className="text-slate-500">Cách tính tiền điện</Label>
+                <p className="font-medium">
+                  {contractDetail.buildingId?.eIndexType === "byNumber"
+                    ? "Tính theo chỉ số"
+                    : contractDetail.buildingId?.eIndexType || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Giá điện (VNĐ)</Label>
+                <p className="font-medium">
+                  {typeof contractDetail.buildingId?.ePrice === "number"
+                    ? new Intl.NumberFormat("vi-VN").format(
+                        contractDetail.buildingId.ePrice
+                      ) + " VNĐ"
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Chỉ số nước</Label>
+                <p className="font-medium">
+                  {contractDetail.buildingId?.wIndexType || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Cách tính tiền nước</Label>
+                <p className="font-medium">
+                  {contractDetail.buildingId?.wPrice === "byNumber"
+                    ? "Tính theo chỉ số"
+                    : contractDetail.buildingId?.wPrice === "byPerson"
+                    ? "Tính theo đầu người"
+                    : contractDetail.buildingId?.wPrice || "—"}
+                </p>
+              </div>
             </div>
           </div>
 

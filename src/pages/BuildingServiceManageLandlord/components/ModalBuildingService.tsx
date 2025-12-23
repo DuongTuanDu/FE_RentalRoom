@@ -54,6 +54,7 @@ export const ModalBuildingService = ({
               className="w-full p-2 border rounded-md"
             >
               <option value="internet">Internet</option>
+              <option value="water">Nước</option>
               <option value="parking">Bãi đỗ xe</option>
               <option value="cleaning">Dịch vụ vệ sinh</option>
               <option value="security">Bảo vệ</option>
@@ -101,7 +102,6 @@ export const ModalBuildingService = ({
             >
               <option value="perRoom">Theo phòng</option>
               <option value="perPerson">Theo người</option>
-              <option value="included">Bao gồm (đã tính trong tiền phòng)</option>
             </select>
           </div>
 
