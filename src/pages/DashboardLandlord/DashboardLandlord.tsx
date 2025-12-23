@@ -122,7 +122,7 @@ const DashboardLandlord = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            Dashboard
+            Thống kê
           </h1>
           <p className="text-muted-foreground">
             Tổng quan hoạt động kinh doanh của bạn

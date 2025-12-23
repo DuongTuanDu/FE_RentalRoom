@@ -15,7 +15,7 @@ export const useNotifications = () => {
   const currentRole = useSelector((state: RootState) => state.auth.role || state.auth.userInfo?.role);
 
   const landlordQuery = useGetMyNotificationsQuery(
-    currentRole === "landlord" ? undefined : skipToken
+    currentRole === "landlord" || currentRole === "staff" ? undefined : skipToken
   );
 
   const residentQuery = useGetMyNotificationsResidentQuery(
@@ -55,7 +55,7 @@ export const useNotifications = () => {
     try {
       if (currentRole === "resident") {
         await markAsReadResident([notificationId]).unwrap();
-      } else if (currentRole === "landlord") {
+      } else if (currentRole === "landlord" || currentRole === "staff") {
         await markAsReadLandlord([notificationId]).unwrap();
       }
     } catch (error) {
