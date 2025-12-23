@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
-import { User, Phone, Mail, Calendar, MapPin, Crown, UserX } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { User, Phone, Mail, Calendar, MapPin, Crown, UserX, LogOut } from "lucide-react";
 import type { IRoommate } from "@/types/roommate";
 import { useFormatDateNoHours } from "@/hooks/useFormatDateNoHours";
 
@@ -13,6 +24,8 @@ interface RoommateCardProps {
   onRemove?: (roommate: IRoommate) => void;
   canRemove?: boolean;
   isRemoving?: boolean;
+  onLeave?: () => void;
+  isLeaving?: boolean;
 }
 
 export const RoommateCard = ({
@@ -21,8 +34,11 @@ export const RoommateCard = ({
   onRemove,
   canRemove = false,
   isRemoving = false,
+  onLeave,
+  isLeaving = false,
 }: RoommateCardProps) => {
   const formatDate = useFormatDateNoHours();
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name
@@ -135,6 +151,53 @@ export const RoommateCard = ({
                     </>
                   )}
                 </Button>
+              )}
+              {onLeave && !roommate.isMainTenant && roommate.isMe && (
+                <>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setIsLeaveDialogOpen(true)}
+                    disabled={isLeaving}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Rời phòng
+                  </Button>
+                  <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận rời phòng</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Bạn có chắc chắn muốn rời khỏi phòng này không? Hành động này không thể hoàn tác.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            onLeave();
+                            setIsLeaveDialogOpen(false);
+                          }}
+                          disabled={isLeaving}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isLeaving ? (
+                            <>
+                              <Spinner className="h-4 w-4 mr-2" />
+                              Đang rời...
+                            </>
+                          ) : (
+                            <>
+                              <LogOut className="h-4 w-4 mr-2" />
+                              Xác nhận rời phòng
+                            </>
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
               )}
             </div>
           </div>
