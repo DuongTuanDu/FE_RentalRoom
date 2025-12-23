@@ -7,6 +7,7 @@ import { Users, UserPlus, AlertCircle } from "lucide-react";
 import {
   useGetRoommatesByRoomIdQuery,
   useRemoveRoommateMutation,
+  useLeaveRoommateMutation,
 } from "@/services/room/room.service";
 import { RoommateCard } from "./RoommateCard";
 import { AddRoommateDialog } from "./AddRoommateDialog";
@@ -33,7 +34,9 @@ export const RoommateList = ({
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [roommateToDelete, setRoommateToDelete] = useState<IRoommate | null>(null);
+  const [roommateToDelete, setRoommateToDelete] = useState<IRoommate | null>(
+    null
+  );
 
   const {
     data: roommateData,
@@ -44,7 +47,9 @@ export const RoommateList = ({
     skip: !roomId,
   });
 
-  const [removeRoommate, { isLoading: isRemoving }] = useRemoveRoommateMutation();
+  const [removeRoommate, { isLoading: isRemoving }] =
+    useRemoveRoommateMutation();
+  const [leaveRoommate, { isLoading: isLeaving }] = useLeaveRoommateMutation();
 
   const handleOpenDeleteDialog = (roommate: IRoommate) => {
     setRoommateToDelete(roommate);
@@ -66,7 +71,8 @@ export const RoommateList = ({
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.message?.message || "Không thể xóa người ở cùng. Vui lòng thử lại."
+        error?.message?.message ||
+          "Không thể xóa người ở cùng. Vui lòng thử lại."
       );
     } finally {
       setRemovingUserId(null);
@@ -76,6 +82,18 @@ export const RoommateList = ({
   const handleViewDetail = (userId: string) => {
     setSelectedUserId(userId);
     setIsDetailSheetOpen(true);
+  };
+
+  const handleLeaveRoom = async () => {
+    try {
+      await leaveRoommate({ roomId }).unwrap();
+      toast.success("Đã rời phòng thành công");
+      refetch();
+    } catch (error: any) {
+      toast.error(
+        error?.message?.message || "Không thể rời phòng. Vui lòng thử lại."
+      );
+    }
   };
 
   const canAddMore = roommateData?.data?.canAddMore ?? false;
@@ -118,7 +136,8 @@ export const RoommateList = ({
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
             <p className="text-destructive font-medium mb-2">
-              Không thể tải danh sách người ở cùng
+              {(error as any)?.message.message ||
+                "Không thể tải danh sách người ở cùng"}
             </p>
             <p className="text-sm text-muted-foreground">
               Vui lòng thử lại sau
@@ -165,9 +184,17 @@ export const RoommateList = ({
                   key={roommate._id}
                   roommate={roommate}
                   onViewDetail={handleViewDetail}
-                  onRemove={finalIsMainTenant ? handleOpenDeleteDialog : undefined}
+                  onRemove={
+                    finalIsMainTenant ? handleOpenDeleteDialog : undefined
+                  }
                   canRemove={finalIsMainTenant && !roommate.isMainTenant}
                   isRemoving={isRemoving && removingUserId === roommate._id}
+                  onLeave={
+                    !roommate.isMainTenant && roommate.isMe
+                      ? handleLeaveRoom
+                      : undefined
+                  }
+                  isLeaving={isLeaving}
                 />
               ))}
             </div>
@@ -226,4 +253,3 @@ export const RoommateList = ({
     </>
   );
 };
-

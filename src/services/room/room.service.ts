@@ -236,6 +236,14 @@ export const roomApi = createApi({
       }),
       invalidatesTags: ["Roommate"],
     }),
+    leaveRoommate: builder.mutation<IRoommateResponse, { roomId: string }>({
+      query: ({ roomId }) => ({
+        url: "/roommates/leave",
+        method: "POST",
+        data: { roomId },
+      }),
+      invalidatesTags: ["Roommate", "MyRoom"],
+    }),
     roomActiveContract: builder.query<IRoomContractResponse, string>({
       query: (id) => ({
         url: `/landlords/rooms/${id}/active-contract`,
@@ -261,5 +269,6 @@ export const {
   useGetRoommateDetailQuery,
   useAddRoommateMutation,
   useRemoveRoommateMutation,
+  useLeaveRoommateMutation,
   useRoomActiveContractQuery,
 } = roomApi;
