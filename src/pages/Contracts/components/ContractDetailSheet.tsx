@@ -199,12 +199,6 @@ export const ContractDetailSheet = ({
                 </p>
               </div>
               <div>
-                <Label className="text-slate-500">Chỉ số nước</Label>
-                <p className="font-medium">
-                  {contractDetail?.wIndexType || "—"}
-                </p>
-              </div>
-              <div>
                 <Label className="text-slate-500">Cách tính tiền nước</Label>
                 <p className="font-medium">
                   {contractDetail.wIndexType === "byNumber"
@@ -212,6 +206,16 @@ export const ContractDetailSheet = ({
                     : contractDetail.wIndexType === "byPerson"
                     ? "Tính theo đầu người"
                     : contractDetail.wIndexType || "—"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-slate-500">Giá nước (VNĐ)</Label>
+                <p className="font-medium">
+                  {typeof contractDetail?.wPrice === "number"
+                    ? new Intl.NumberFormat("vi-VN").format(
+                        contractDetail?.wPrice
+                      ) + " VNĐ"
+                    : "—"}
                 </p>
               </div>
             </div>
