@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { X, Clock, User, Phone, MapPin, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import {  Clock, User, MapPin, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,6 @@ const BookingAppointment = ({
   postId,
   buildingId,
   buildingName,
-  postTitle,
   address,
 }: BookingAppointmentProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -107,7 +106,6 @@ const BookingAppointment = ({
     const month = currentMonth.getMonth();
     
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     const startDay = new Date(firstDay);
     startDay.setDate(startDay.getDate() - firstDay.getDay());
     

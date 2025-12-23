@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Loader2, X, UploadCloud, Building2, Copy, Check } from "lucide-react";
 import {
   useRequestTransferConfirmationMutation,
@@ -43,7 +42,6 @@ export const RequestTransferConfirmationDialog = ({
 
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [proofImagePreview, setProofImagePreview] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [paymentInfo, setPaymentInfo] =
@@ -56,14 +54,9 @@ export const RequestTransferConfirmationDialog = ({
     if (!open) {
       setProofImage(null);
       setProofImagePreview("");
-      setAmount("");
       setNote("");
       setPaymentInfo(null);
       setCopiedField(null);
-    } else if (invoice) {
-      // Set default amount to remaining amount
-      const remainingAmount = invoice.totalAmount - (invoice.paidAmount || 0);
-      setAmount(remainingAmount.toString());
     }
   }, [open, invoice]);
 
@@ -144,11 +137,6 @@ export const RequestTransferConfirmationDialog = ({
       return;
     }
 
-    if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Vui lòng nhập số tiền hợp lệ");
-      return;
-    }
-
     try {
       setIsUploading(true);
 
@@ -163,7 +151,6 @@ export const RequestTransferConfirmationDialog = ({
         id: invoice._id,
         data: {
           proofImageUrl: uploadResult.secure_url,
-          amount: parseFloat(amount),
           note: note || "",
         },
       }).unwrap();
@@ -424,24 +411,6 @@ export const RequestTransferConfirmationDialog = ({
                 </Button>
               )} */}
             </div>
-          </div>
-
-          {/* Amount */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Số tiền chuyển khoản (VNĐ) *</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Nhập số tiền"
-              min="0"
-              step="1000"
-              required
-            />
-            <p className="text-xs text-slate-500">
-              Số tiền còn lại: {formatPrice(remainingAmount)}
-            </p>
           </div>
 
           {/* Note */}

@@ -296,7 +296,6 @@ export interface ITenantPayInvoiceRequest {
 
 export interface IRequestTransferConfirmation {
   proofImageUrl: string;
-  amount: number;
   note: string;
 }
 
