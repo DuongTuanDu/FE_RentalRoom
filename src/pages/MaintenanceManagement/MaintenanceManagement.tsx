@@ -251,24 +251,11 @@ const MaintenanceManagement = () => {
                       <TableRow className="bg-slate-50">
                         <TableHead className="font-semibold">Tiêu đề</TableHead>
                         <TableHead className="font-semibold">Phòng</TableHead>
-                        <TableHead className="font-semibold">
-                          Người báo
-                        </TableHead>
-                        <TableHead className="font-semibold">
-                          Người được giao
-                        </TableHead>
-                        <TableHead className="font-semibold">
-                          Chi phí sửa chữa
-                        </TableHead>
-                        <TableHead className="font-semibold">
-                          Phải trả
-                        </TableHead>
-                        <TableHead className="font-semibold">
-                          Trạng thái
-                        </TableHead>
-                        <TableHead className="font-semibold">
-                          Ngày tạo
-                        </TableHead>
+                        <TableHead className="font-semibold">Người báo</TableHead>
+                        <TableHead className="font-semibold">Người được giao</TableHead>
+                        <TableHead className="font-semibold">Chi phí sửa chữa</TableHead>
+                        <TableHead className="font-semibold">Trạng thái</TableHead>
+                        <TableHead className="font-semibold">Ngày tạo</TableHead>
                         <TableHead className="text-center font-semibold">
                           Thao tác
                         </TableHead>
