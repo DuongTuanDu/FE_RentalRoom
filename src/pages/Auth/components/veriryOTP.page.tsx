@@ -40,15 +40,13 @@ const VerifyOtp: React.FC = () => {
         type,
         otp: otpValue,
       }).unwrap();
-      console.log("res", res);
-      
 
       if (res.success === true && res.data) {
         toast.success("Xác thực thành công!");
         navigate(config.loginPath);
       }
-    } catch (error) {
-      console.log("OTP verification error:", error);
+    } catch (error: any) {
+      console.log("OTP verification error:", error.message.message);
       setOtpError("Mã OTP không chính xác. Vui lòng thử lại!");
     }
   };

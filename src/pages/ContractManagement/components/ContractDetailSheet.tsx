@@ -183,17 +183,17 @@ export const ContractDetailSheet = ({
               <div>
                 <Label className="text-slate-500">Cách tính tiền điện</Label>
                 <p className="font-medium">
-                  {contractDetail.buildingId?.eIndexType === "byNumber"
+                  {contractDetail?.eIndexType === "byNumber"
                     ? "Tính theo chỉ số"
-                    : contractDetail.buildingId?.eIndexType || "—"}
+                    : contractDetail?.eIndexType || "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-500">Giá điện (VNĐ)</Label>
                 <p className="font-medium">
-                  {typeof contractDetail.buildingId?.ePrice === "number"
+                  {typeof contractDetail?.ePrice === "number"
                     ? new Intl.NumberFormat("vi-VN").format(
-                        contractDetail.buildingId.ePrice
+                        contractDetail.ePrice
                       ) + " VNĐ"
                     : "—"}
                 </p>
@@ -201,19 +201,19 @@ export const ContractDetailSheet = ({
               <div>
                 <Label className="text-slate-500">Chỉ số nước</Label>
                 <p className="font-medium">
-                  {contractDetail.buildingId?.wIndexType === "byNumber"
+                  {contractDetail?.wIndexType === "byNumber"
                     ? "Tính theo chỉ số"
-                    : contractDetail.buildingId?.wIndexType === "byPerson"
+                    : contractDetail?.wIndexType === "byPerson"
                     ? "Tính theo đầu người"
-                    : contractDetail.buildingId?.wIndexType || "—"}
+                    : contractDetail?.wIndexType || "—"}
                 </p>
               </div>
               <div>
                 <Label className="text-slate-500">Giá nước (VNĐ)</Label>
                 <p className="font-medium">
-                  {typeof contractDetail.buildingId?.wPrice === "number"
+                  {typeof contractDetail?.wPrice === "number"
                     ? new Intl.NumberFormat("vi-VN").format(
-                        contractDetail.buildingId.wPrice
+                        contractDetail.wPrice
                       ) + " VNĐ"
                     : "—"}
                 </p>

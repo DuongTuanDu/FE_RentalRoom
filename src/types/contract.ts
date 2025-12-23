@@ -207,6 +207,10 @@ export interface IContractDetailResponse {
     wIndexType: "byNumber" | "byPerson";
     wPrice: number;
   };
+  eIndexType: "byNumber";
+  ePrice: number;
+  wIndexType: "byNumber" | "byPerson";
+  wPrice: number;
   roomId: {
     _id: string;
     roomNumber: string;
@@ -374,9 +378,13 @@ export interface ITenantContractDetailResponse {
     address: string;
     eIndexType: "byNumber";
     ePrice: number;
-    wIndexType: string;
-    wPrice: "byNumber" | "byPerson";
+    wIndexType: "byNumber" | "byPerson";
+    wPrice: number;
   };
+  eIndexType: "byNumber";
+  ePrice: number;
+  wIndexType: "byNumber" | "byPerson";
+  wPrice: number;
   roomId: {
     _id: string;
     roomNumber: string;

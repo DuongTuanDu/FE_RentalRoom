@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/select";
 import { Droplets, Loader2, Zap } from "lucide-react";
 import { RoomCompletedContractSelectCombobox } from "@/pages/InvoiceManagement/components/RoomCompletedContractSelectCombobox";
-import { useCreateUtilityReadingMutation, useGetUtilityReadingsQuery } from "@/services/utility/utility.service";
+import {
+  useCreateUtilityReadingMutation,
+  useGetUtilityReadingsQuery,
+} from "@/services/utility/utility.service";
+import { useRoomActiveContractQuery } from "@/services/room/room.service";
 import { toast } from "sonner";
 
 interface CreateUtilityDialogProps {
@@ -50,36 +54,55 @@ export const CreateUtilityDialog = ({
   const [createUtilityReading, { isLoading: isCreating }] =
     useCreateUtilityReadingMutation();
 
-  const { data: previousReadingsData, isLoading: isLoadingPrevious } = useGetUtilityReadingsQuery(
-    {
-      roomId: formData.roomId || undefined,
-      page: 1,
-      limit: 100,
-    },
+  const { data: previousReadingsData, isLoading: isLoadingPrevious } =
+    useGetUtilityReadingsQuery(
+      {
+        roomId: formData.roomId || undefined,
+        page: 1,
+        limit: 100,
+      },
+      {
+        skip: !formData.roomId,
+      }
+    );
+
+  // Lấy hợp đồng đang active của phòng để check wIndexType (byNumber / byPerson)
+  const { data: roomActiveContract } = useRoomActiveContractQuery(
+    formData.roomId,
     {
       skip: !formData.roomId,
     }
   );
 
   const previousReading = (() => {
-    if (!previousReadingsData?.items || previousReadingsData.items.length === 0) {
+    if (
+      !previousReadingsData?.items ||
+      previousReadingsData.items.length === 0
+    ) {
       return undefined;
     }
 
     const items = previousReadingsData.items;
-    
-    if (formData.periodMonth && formData.periodYear && 
-        formData.periodMonth !== "" && formData.periodYear !== "") {
+
+    if (
+      formData.periodMonth &&
+      formData.periodYear &&
+      formData.periodMonth !== "" &&
+      formData.periodYear !== ""
+    ) {
       const currentPeriodMonth = parseInt(formData.periodMonth);
       const currentPeriodYear = parseInt(formData.periodYear);
-      
+
       // Validate parsed values
       if (!isNaN(currentPeriodMonth) && !isNaN(currentPeriodYear)) {
         const filtered = items.filter((reading) => {
           if (reading.periodYear < currentPeriodYear) {
             return true;
           }
-          if (reading.periodYear === currentPeriodYear && reading.periodMonth < currentPeriodMonth) {
+          if (
+            reading.periodYear === currentPeriodYear &&
+            reading.periodMonth < currentPeriodMonth
+          ) {
             return true;
           }
           return false;
@@ -106,8 +129,9 @@ export const CreateUtilityDialog = ({
     })[0];
   })();
 
+  // Check xem chỉ số nước tính theo đầu người hay theo số công tơ
   const isWaterByPerson =
-    previousReading?.buildingId?.wIndexType === "byPerson";
+    roomActiveContract?.contract?.wIndexType === "byPerson";
 
   // Generate month and year options
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -143,12 +167,15 @@ export const CreateUtilityDialog = ({
       return "";
     }
 
-    const previousValue = type === "electricity" 
-      ? previousReading.eCurrentIndex 
-      : previousReading.wCurrentIndex;
+    const previousValue =
+      type === "electricity"
+        ? previousReading.eCurrentIndex
+        : previousReading.wCurrentIndex;
 
     if (currentValue < previousValue) {
-      return `Chỉ số ${type === "electricity" ? "điện" : "nước"} hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousValue.toLocaleString()})`;
+      return `Chỉ số ${
+        type === "electricity" ? "điện" : "nước"
+      } hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousValue.toLocaleString()})`;
     }
 
     return "";
@@ -160,7 +187,10 @@ export const CreateUtilityDialog = ({
       // Re-validate current values
       if (formData.eCurrentIndex) {
         const currentValue = parseFloat(formData.eCurrentIndex);
-        if (!isNaN(currentValue) && currentValue < previousReading.eCurrentIndex) {
+        if (
+          !isNaN(currentValue) &&
+          currentValue < previousReading.eCurrentIndex
+        ) {
           setErrors((prev) => ({
             ...prev,
             eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex.toLocaleString()})`,
@@ -171,7 +201,10 @@ export const CreateUtilityDialog = ({
       }
       if (formData.wCurrentIndex) {
         const currentValue = parseFloat(formData.wCurrentIndex);
-        if (!isNaN(currentValue) && currentValue < previousReading.wCurrentIndex) {
+        if (
+          !isNaN(currentValue) &&
+          currentValue < previousReading.wCurrentIndex
+        ) {
           setErrors((prev) => ({
             ...prev,
             wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
@@ -203,16 +236,15 @@ export const CreateUtilityDialog = ({
     }
 
     const eCurrentIndexNum = parseFloat(formData.eCurrentIndex);
-    const wCurrentIndexNum = isWaterByPerson
-      ? previousReading?.wCurrentIndex ?? 0
-      : parseFloat(formData.wCurrentIndex);
 
     if (eCurrentIndexNum < 0) {
       toast.error("Chỉ số điện hiện tại không được là số âm");
       return;
     }
 
+    let wCurrentIndexNum: number | undefined;
     if (!isWaterByPerson) {
+      wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
       if (wCurrentIndexNum < 0) {
         toast.error("Chỉ số nước hiện tại không được là số âm");
         return;
@@ -220,7 +252,7 @@ export const CreateUtilityDialog = ({
     }
 
     // Validate against previous reading
-    if (previousReading && !isWaterByPerson) {
+    if (previousReading) {
       if (eCurrentIndexNum < previousReading.eCurrentIndex) {
         setErrors((prev) => ({
           ...prev,
@@ -230,7 +262,7 @@ export const CreateUtilityDialog = ({
         return;
       }
 
-      if (wCurrentIndexNum < previousReading.wCurrentIndex) {
+      if (!isWaterByPerson && wCurrentIndexNum !== undefined && wCurrentIndexNum < previousReading.wCurrentIndex) {
         setErrors((prev) => ({
           ...prev,
           wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
@@ -247,13 +279,21 @@ export const CreateUtilityDialog = ({
     });
 
     try {
-      await createUtilityReading({
+      const basePayload = {
         roomId: formData.roomId,
         periodMonth: parseInt(formData.periodMonth),
         periodYear: parseInt(formData.periodYear),
         eCurrentIndex: eCurrentIndexNum,
-        wCurrentIndex: wCurrentIndexNum,
-      }).unwrap();
+      };
+
+      if (isWaterByPerson) {
+        await createUtilityReading(basePayload).unwrap();
+      } else {
+        await createUtilityReading({
+          ...basePayload,
+          wCurrentIndex: wCurrentIndexNum!,
+        }).unwrap();
+      }
 
       onOpenChange(false);
       toast.success("Thành công", {
@@ -339,12 +379,17 @@ export const CreateUtilityDialog = ({
             <>
               {isLoadingPrevious ? (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600">Đang tải chỉ số trước đó...</p>
+                  <p className="text-sm text-gray-600">
+                    Đang tải chỉ số trước đó...
+                  </p>
                 </div>
               ) : previousReading ? (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                   <p className="text-sm font-medium text-blue-900 mb-2">
-                    {formData.periodMonth && formData.periodYear && formData.periodMonth !== "" && formData.periodYear !== ""
+                    {formData.periodMonth &&
+                    formData.periodYear &&
+                    formData.periodMonth !== "" &&
+                    formData.periodYear !== ""
                       ? "Chỉ số điện nước kỳ trước:"
                       : "Chỉ số điện nước gần nhất:"}
                   </p>
@@ -355,9 +400,10 @@ export const CreateUtilityDialog = ({
                       </Label>
                       <div className="text-sm font-semibold text-blue-900 flex items-center gap-1">
                         <Zap className="w-4 h-4 text-yellow-500" />
-                        {previousReading.eCurrentIndex.toLocaleString()}
+                        {previousReading.eCurrentIndex}
                         <span className="text-xs text-blue-600 font-normal ml-1">
-                          (Tháng {previousReading.periodMonth}/{previousReading.periodYear})
+                          (Tháng {previousReading.periodMonth}/
+                          {previousReading.periodYear})
                         </span>
                       </div>
                     </div>
@@ -367,9 +413,10 @@ export const CreateUtilityDialog = ({
                       </Label>
                       <div className="text-sm font-semibold text-blue-900 flex items-center gap-1">
                         <Droplets className="w-4 h-4 text-blue-500" />
-                        {previousReading.wCurrentIndex.toLocaleString()}
+                        {previousReading.wCurrentIndex}
                         <span className="text-xs text-blue-600 font-normal ml-1">
-                          (Tháng {previousReading.periodMonth}/{previousReading.periodYear})
+                          (Tháng {previousReading.periodMonth}/
+                          {previousReading.periodYear})
                         </span>
                       </div>
                     </div>
@@ -377,7 +424,9 @@ export const CreateUtilityDialog = ({
                 </div>
               ) : (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600">Chưa có chỉ số điện nước trước đó cho phòng này</p>
+                  <p className="text-sm text-gray-600">
+                    Chưa có chỉ số điện nước trước đó cho phòng này
+                  </p>
                 </div>
               )}
             </>
@@ -386,7 +435,10 @@ export const CreateUtilityDialog = ({
           <div className="space-y-2 grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
-                Chỉ số điện hiện tại <span><Zap className="w-4 h-4 text-yellow-500" /></span>
+                Chỉ số điện hiện tại{" "}
+                <span>
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                </span>
               </Label>
               <Input
                 type="number"
@@ -396,7 +448,10 @@ export const CreateUtilityDialog = ({
                 onChange={(e) => {
                   const value = e.target.value;
                   // Chỉ cho phép số dương hoặc rỗng
-                  if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                  if (
+                    value === "" ||
+                    (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)
+                  ) {
                     setFormData((prev) => ({
                       ...prev,
                       eCurrentIndex: value,
@@ -410,14 +465,20 @@ export const CreateUtilityDialog = ({
                 className={errors.eCurrentIndex ? "border-red-500" : ""}
               />
               {errors.eCurrentIndex && (
-                <p className="text-sm text-red-500 mt-1">{errors.eCurrentIndex}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.eCurrentIndex}
+                </p>
               )}
             </div>
-            <div className="space-y-2 !mt-0">
-              <Label>
-                Chỉ số nước hiện tại <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span>
-              </Label>
-              {!isWaterByPerson && (
+            {!isWaterByPerson && (
+              <div className="space-y-2 !mt-0">
+                <Label>
+                  Chỉ số nước hiện tại{" "}
+                  <span className="text-red-500">
+                    <Droplets className="w-4 h-4 text-blue-500" />
+                  </span>
+                </Label>
+
                 <>
                   <Input
                     type="number"
@@ -452,8 +513,8 @@ export const CreateUtilityDialog = ({
                     </p>
                   )}
                 </>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -464,9 +525,11 @@ export const CreateUtilityDialog = ({
           >
             Hủy
           </Button>
-          <Button 
-            onClick={handleCreate} 
-            disabled={isCreating || !!errors.eCurrentIndex || !!errors.wCurrentIndex}
+          <Button
+            onClick={handleCreate}
+            disabled={
+              isCreating || !!errors.eCurrentIndex || !!errors.wCurrentIndex
+            }
           >
             {isCreating ? (
               <>

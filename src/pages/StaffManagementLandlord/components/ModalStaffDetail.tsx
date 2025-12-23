@@ -9,15 +9,9 @@ import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { IStaff } from "@/types/staff";
-import { 
-  useUpdateStaffInfoMutation, 
-  useUpdateStaffPermissionsMutation 
-} from "@/services/staff/staff.service";
-import { toast } from "sonner";
 import ModalEditStaffInfo from "./ModalEditStaffInfo";
 import ModalEditStaffPermissions from "./ModalEditStaffPermissions";
 
@@ -31,9 +25,6 @@ const ModalStaffDetail = ({ open, onOpenChange, staff }: ModalStaffDetailProps) 
   const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
   const [isEditPermissionsOpen, setIsEditPermissionsOpen] = useState(false);
   
-  const [updateStaffInfo, { isLoading: isUpdatingInfo }] = useUpdateStaffInfoMutation();
-  const [updateStaffPermissions, { isLoading: isUpdatingPermissions }] = useUpdateStaffPermissionsMutation();
-
   if (!staff) return null;
 
   const formatDate = (dateString: string) => {
@@ -358,17 +349,18 @@ const ModalStaffDetail = ({ open, onOpenChange, staff }: ModalStaffDetailProps) 
         }}
       />
 
-        <ModalEditStaffPermissions
-            open={isEditPermissionsOpen}
-            onOpenChange={setIsEditPermissionsOpen}
-            staffId={staff._id}
-            staffName={staff.accountId.userInfo.fullName}
-            staffPermissions={staff.permissions}
-            staffBuildings={staff.assignedBuildings?.map(b => b.id) || []}
-            onSuccess={() => {
-                setIsEditPermissionsOpen(false);
-            }}
-        />
+      <ModalEditStaffPermissions
+        open={isEditPermissionsOpen}
+        onOpenChange={setIsEditPermissionsOpen}
+        staffId={staff._id}
+        staffName={staff.accountId.userInfo.fullName}
+        staffPermissions={staff.permissions}
+        staffBuildings={staff.assignedBuildings?.map((b) => b.id) || []}
+        onSuccess={() => {
+          setIsEditPermissionsOpen(false);
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 };

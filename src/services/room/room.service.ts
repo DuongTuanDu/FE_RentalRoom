@@ -6,6 +6,7 @@ import type {
   CreateRoomRequest,
   IQuickCreateRoomRequest,
   IMyRoomResponse,
+  IRoomContractResponse,
 } from "@/types/room";
 import type {
   IRoommateDetail,
@@ -235,6 +236,12 @@ export const roomApi = createApi({
       }),
       invalidatesTags: ["Roommate"],
     }),
+    roomActiveContract: builder.query<IRoomContractResponse, string>({
+      query: (id) => ({
+        url: `/landlords/rooms/${id}/active-contract`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -254,4 +261,5 @@ export const {
   useGetRoommateDetailQuery,
   useAddRoommateMutation,
   useRemoveRoommateMutation,
+  useRoomActiveContractQuery,
 } = roomApi;

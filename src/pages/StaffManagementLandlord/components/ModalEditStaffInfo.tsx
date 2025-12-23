@@ -38,6 +38,14 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
     address: "",
   });
 
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    phoneNumber?: string;
+    gender?: string;
+    dob?: string;
+    address?: string;
+  }>({});
+
   const [updateStaffInfo, { isLoading }] = useUpdateStaffInfoMutation();
 
   useEffect(() => {
@@ -49,12 +57,61 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
         dob: staff.accountId.userInfo.dob ? staff.accountId.userInfo.dob.split("T")[0] : "",
         address: staff.accountId.userInfo.address || "",
       });
+      setErrors({});
     }
   }, [staff]);
+
+  const validate = () => {
+    const newErrors: {
+      fullName?: string;
+      phoneNumber?: string;
+      gender?: string;
+      dob?: string;
+      address?: string;
+    } = {};
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Họ và tên là bắt buộc.";
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Số điện thoại là bắt buộc.";
+    } else {
+      // [Suy luận] Validate cơ bản cho số điện thoại Việt Nam: 10 chữ số và bắt đầu bằng 0
+      const phoneRegex = /^0\d{9}$/;
+      if (!phoneRegex.test(formData.phoneNumber.trim())) {
+        newErrors.phoneNumber = "Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số và bắt đầu bằng 0.";
+      }
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = "Giới tính là bắt buộc.";
+    }
+
+    if (!formData.dob) {
+      newErrors.dob = "Ngày sinh là bắt buộc.";
+    } else {
+      const dobDate = new Date(formData.dob);
+      const today = new Date();
+      if (dobDate > today) {
+        newErrors.dob = "Ngày sinh không được lớn hơn ngày hiện tại.";
+      }
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = "Địa chỉ là bắt buộc.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!staff) return;
+
+    const isValid = validate();
+    if (!isValid) return;
 
     try {
       await updateStaffInfo({
@@ -75,8 +132,9 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   return (
@@ -102,8 +160,10 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
                   value={formData.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
                   placeholder="Nhập họ và tên"
-                  required
                 />
+                {errors.fullName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
+                )}
               </div>
             </div>
 
@@ -118,8 +178,10 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
                   value={formData.phoneNumber}
                   onChange={(e) => handleChange("phoneNumber", e.target.value)}
                   placeholder="Nhập số điện thoại"
-                  required
                 />
+                {errors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -137,6 +199,9 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
                     <SelectItem value="other">Khác</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.gender && (
+                  <p className="mt-1 text-sm text-red-500">{errors.gender}</p>
+                )}
               </div>
             </div>
 
@@ -151,10 +216,13 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
                 value={formData.dob}
                 onChange={(e) => handleChange("dob", e.target.value)}
               />
+              {errors.dob && (
+                <p className="mt-1 text-sm text-red-500">{errors.dob}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dob" className="flex items-center gap-1.5">
+              <Label htmlFor="address" className="flex items-center gap-1.5">
                 <Map className="w-4 h-4" />
                 Địa chỉ
               </Label>
@@ -164,6 +232,9 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
                 value={formData.address}
                 onChange={(e) => handleChange("address", e.target.value)}
               />
+              {errors.address && (
+                <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+              )}
             </div>
           </div>
 

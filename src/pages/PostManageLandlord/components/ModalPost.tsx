@@ -291,8 +291,6 @@ export const ModalPost = ({
       }).unwrap();
 
       if (result.success && result.data.aiDescription) {
-        console.log("result", result.data);
-
         let html = result.data.aiDescription.trim();
 
         // Kiểm tra xem có phải là HTML hợp lệ không (có thẻ mở và đóng)
@@ -309,12 +307,8 @@ export const ModalPost = ({
             html = "<p></p>";
           }
         }
-        console.log("html", html);
-
         try {
           const value = htmlToSlate(html);
-          console.log("value", value);
-
           setSlateValue(value);
           // Force re-mount SlateEditor để nhận giá trị mới
           setSlateKey((prev) => prev + 1);

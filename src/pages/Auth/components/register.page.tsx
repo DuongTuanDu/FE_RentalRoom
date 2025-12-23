@@ -70,8 +70,6 @@ const Register = () => {
       ...data,
       role,
     };
-    console.log("submit data:", payload);
-
     try {
       const res = await registerApi(payload).unwrap();
 

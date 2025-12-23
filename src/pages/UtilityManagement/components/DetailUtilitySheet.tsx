@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Zap, Droplets, Loader2 } from "lucide-react";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useGetUtilityReadingDetailQuery } from "@/services/utility/utility.service";
+import { useRoomActiveContractQuery } from "@/services/room/room.service";
 import type { IUtilityItem } from "@/types/utility";
 
 interface DetailUtilitySheetProps {
@@ -32,6 +33,18 @@ export const DetailUtilitySheet = ({
   );
 
   const utility: IUtilityItem | undefined = response?.data;
+
+  // Lấy hợp đồng đang active của phòng để check wIndexType (byNumber / byPerson)
+  const { data: roomActiveContract } = useRoomActiveContractQuery(
+    utility?.roomId?._id || "",
+    {
+      skip: !utility?.roomId?._id || !open,
+    }
+  );
+
+  // Check xem chỉ số nước tính theo đầu người hay theo số công tơ
+  const isWaterByPerson =
+    roomActiveContract?.contract?.wIndexType === "byPerson";
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -190,61 +203,66 @@ export const DetailUtilitySheet = ({
           </div>
 
           {/* Water Reading Info */}
-          <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Droplets className="w-5 h-5 text-blue-500" />
-              Thông tin chỉ số nước
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
-                <p className="font-medium mt-1">
-                  {utility.wPreviousIndex != null
-                    ? utility.wPreviousIndex.toLocaleString()
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
-                <p className="font-medium mt-1 text-lg">
-                  {utility.wCurrentIndex != null
-                    ? utility.wCurrentIndex.toLocaleString()
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
-                <p className="font-medium mt-1">
-                  {utility.wConsumption != null
-                    ? utility.wConsumption.toLocaleString()
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <Label className="text-slate-400 text-sm">Đơn giá</Label>
-                <p className="font-medium mt-1">
-                  {utility.wUnitPrice != null
-                    ? `${utility.wUnitPrice.toLocaleString()} đ`
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <Label className="text-slate-400 text-sm">Thành tiền</Label>
-                <p className="font-bold text-lg mt-1 text-blue-600">
-                  {utility.wAmount != null
-                    ? `${utility.wAmount.toLocaleString()} đ`
-                    : "—"}
-                </p>
+          {!isWaterByPerson && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Droplets className="w-5 h-5 text-blue-500" />
+                Thông tin chỉ số nước
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
+                  <p className="font-medium mt-1">
+                    {utility.wPreviousIndex != null
+                      ? utility.wPreviousIndex.toLocaleString()
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
+                  <p className="font-medium mt-1 text-lg">
+                    {utility.wCurrentIndex != null
+                      ? utility.wCurrentIndex.toLocaleString()
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
+                  <p className="font-medium mt-1">
+                    {utility.wConsumption != null
+                      ? utility.wConsumption.toLocaleString()
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-slate-400 text-sm">Đơn giá</Label>
+                  <p className="font-medium mt-1">
+                    {utility.wUnitPrice != null
+                      ? `${utility.wUnitPrice.toLocaleString()} đ`
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-slate-400 text-sm">Thành tiền</Label>
+                  <p className="font-bold text-lg mt-1 text-blue-600">
+                    {utility.wAmount != null
+                      ? `${utility.wAmount.toLocaleString()} đ`
+                      : "—"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Total Amount */}
           <div className="space-y-4 pt-4 border-t">
             <div>
               <Label className="text-slate-400 text-sm">Tổng thành tiền</Label>
               <p className="font-bold text-xl mt-1 text-blue-600">
-                {((utility.eAmount || 0) + (utility.wAmount || 0)).toLocaleString()} đ
+                {(
+                  (utility.eAmount || 0) + 
+                  (isWaterByPerson ? 0 : (utility.wAmount || 0))
+                ).toLocaleString()} đ
               </p>
             </div>
           </div>

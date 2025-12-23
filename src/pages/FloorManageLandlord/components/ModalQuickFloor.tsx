@@ -167,33 +167,6 @@ export const ModalQuickFloor = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="count">Số lượng tầng</Label>
-              <Input
-                id="count"
-                type="number"
-                value={formData.count}
-                onChange={(e) => handleInputChange("count", e.target.value)}
-                placeholder="5"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startLevel">Tầng bắt đầu tạo</Label>
-              <Input
-                id="startLevel"
-                type="number"
-                value={formData.startLevel}
-                onChange={(e) =>
-                  handleInputChange("startLevel", e.target.value)
-                }
-                placeholder="1"
-                required
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="description">Mô tả chung</Label>
             <Textarea
