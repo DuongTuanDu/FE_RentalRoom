@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGetTenantMaintenancesQuery } from "@/services/maintenance/maintenance.service";
+import { useGetMyRoomQuery } from "@/services/room/room.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -45,6 +46,10 @@ const Maintenance = () => {
   });
   const allMaintenances = data?.requests || [];
   const totalItems = data?.total || 0;
+
+  // Get available rooms for maintenance modal
+  const { data: myRoomData } = useGetMyRoomQuery();
+  const availableRooms = myRoomData?.data?.availableRooms || [];
 
   // Reset to page 1 and clear list when filters change
   useEffect(() => {
@@ -353,6 +358,7 @@ const Maintenance = () => {
         <CreateMaintenanceModal
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
+          availableRooms={availableRooms}
         />
       </div>
     </div>

@@ -17,7 +17,7 @@ const residentRoutes = (
     <Route path={config.maintenancePath} element={lazyLoad(() => import('@/pages/Maintenance'))} />
     <Route path={config.myInvoicePath} element={lazyLoad(() => import('@/pages/Invoice'))} />
     <Route path={config.settingPath} element={lazyLoad(() => import('@/pages/SettingLandlord'))} />
-    <Route path={config.washerPath} element={lazyLoad(() => import('@/pages/Washer'))} />
+    {/* <Route path={config.washerPath} element={lazyLoad(() => import('@/pages/Washer'))} /> */}
   </>
 ) as ReactElement
 

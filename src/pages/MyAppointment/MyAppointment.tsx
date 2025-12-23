@@ -8,7 +8,6 @@ import {
   Phone,
   Mail,
   Building2,
-  FileText,
   X,
   ChevronLeft,
   ChevronRight,
@@ -104,8 +103,8 @@ const MyAppointments = () => {
       toast.success("Đã hủy lịch hẹn thành công");
       setCancelDialogOpen(false);
       setAppointmentToCancel(null);
-    } catch (err) {
-      toast.error("Hủy lịch thất bại, vui lòng thử lại");
+    } catch (error: any) {
+      toast.error(error.message.message || "Hủy lịch thất bại, vui lòng thử lại");
     }
   };
 
@@ -212,7 +211,6 @@ const MyAppointments = () => {
     (currentPage - 1) * pageLimit,
     currentPage * pageLimit
   );
-
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -326,14 +324,14 @@ const MyAppointments = () => {
                         style={{ cursor: "pointer" }}
                       >
                         {typeof appt.postId === "object"
-                          ? appt.postId.title
+                          ? appt.postId?.title
                           : "Bài đăng không tồn tại"}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-1 text-slate-600">
                         <Building2 className="w-4 h-4" />
                         <span className="font-medium">
                           {typeof appt.buildingId === "object"
-                            ? appt.buildingId.name
+                            ? appt.buildingId?.name
                             : "—"}
                         </span>
                       </div>
@@ -373,7 +371,7 @@ const MyAppointments = () => {
                             <p className="text-slate-500">Địa chỉ</p>
                             <p className="font-medium">
                               {typeof appt.postId === "object"
-                                ? appt.postId.address
+                                ? appt.postId?.address
                                 : "—"}
                             </p>
                           </div>

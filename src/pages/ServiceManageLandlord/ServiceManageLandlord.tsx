@@ -119,8 +119,6 @@ const ServiceManageLandlord = () => {
       const response = await buySubscription({
         packageId: selectedPackage._id,
       }).unwrap();
-      console.log("Mua gói thành công:", response);
-
       if (selectedPackage.price === 0) {
         toast.success("Kích hoạt gói dùng thử thành công!", {
           description: "Bạn có thể bắt đầu sử dụng các tính năng ngay bây giờ.",

@@ -42,7 +42,6 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
 
   useEffect(() => {
     if (staff) {
-        console.log("staff" , staff);
       setFormData({
         fullName: staff.accountId.userInfo.fullName || "",
         phoneNumber: staff.accountId.userInfo.phoneNumber || "",
@@ -69,12 +68,10 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
         },
       }).unwrap();
 
-      console.log("result", result);
-
       toast.success("Cập nhật thông tin nhân viên thành công");
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Cập nhật thông tin thất bại");
+      toast.error(error?.message?.message || "Cập nhật thông tin thất bại");
     }
   };
 

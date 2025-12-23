@@ -75,11 +75,26 @@ const maintenanceSchema = z
 
 type MaintenanceFormValues = z.infer<typeof maintenanceSchema>;
 
+interface AvailableRoom {
+  _id: string;
+  roomNumber: string;
+  buildingName: string;
+  status: "active" | "inactive";
+  contract?: {
+    _id: string;
+    contractNo: string;
+    startDate: string;
+    endDate: string;
+    status: "active" | "upcoming";
+  };
+}
+
 interface CreateMaintenanceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultFurnitureId?: string;
   roomId?: string;
+  availableRooms?: AvailableRoom[];
 }
 
 export const CreateMaintenanceModal = ({
@@ -87,10 +102,16 @@ export const CreateMaintenanceModal = ({
   onOpenChange,
   defaultFurnitureId,
   roomId,
+  availableRooms = [],
 }: CreateMaintenanceModalProps) => {
   const [createMaintenance, { isLoading }] = useCreateMaintenanceMutation();
-  const { data: roomDetailData } = useGetPostRoomDetailsQuery(roomId || "", {
-    skip: !roomId || !open,
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  
+  // Use roomId prop if provided, otherwise use selectedRoomId from state
+  const roomIdToFetch = roomId || selectedRoomId;
+  
+  const { data: roomDetailData } = useGetPostRoomDetailsQuery(roomIdToFetch || "", {
+    skip: !roomIdToFetch || !open,
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -112,12 +133,37 @@ export const CreateMaintenanceModal = ({
   // Watch category để ẩn/hiện furnitureId field
   const category = form.watch("category");
 
+  // Set roomId from prop if provided (from MyRoom.tsx)
+  useEffect(() => {
+    if (roomId && open) {
+      setSelectedRoomId(roomId);
+      form.setValue("roomId", roomId);
+    }
+  }, [roomId, open, form]);
+
   // Set default roomId when room data is available
   useEffect(() => {
     if (roomDetailData?.data && open) {
       form.setValue("roomId", roomDetailData.data._id);
     }
   }, [roomDetailData?.data, open, form]);
+
+  // Auto-select first room if only one room available (only when no roomId prop)
+  useEffect(() => {
+    if (open && availableRooms.length === 1 && !selectedRoomId && !roomId) {
+      const firstRoomId = availableRooms[0]._id;
+      setSelectedRoomId(firstRoomId);
+      form.setValue("roomId", firstRoomId);
+    }
+  }, [open, availableRooms, selectedRoomId, roomId, form]);
+
+  // Reset selectedRoomId when modal closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedRoomId("");
+      form.setValue("roomId", "");
+    }
+  }, [open, form]);
 
   // Set default furnitureId when provided
   useEffect(() => {
@@ -211,7 +257,7 @@ export const CreateMaintenanceModal = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Room (read-only if user has room) */}
+            {/* Room Select or Read-only Input */}
             <FormField
               control={form.control}
               name="roomId"
@@ -219,7 +265,8 @@ export const CreateMaintenanceModal = ({
                 <FormItem>
                   <FormLabel>Phòng *</FormLabel>
                   <FormControl>
-                    {roomDetailData?.data ? (
+                    {roomId && roomDetailData?.data ? (
+                      // Read-only input when roomId prop is provided (from MyRoom.tsx)
                       <>
                         <Input
                           value={roomDetailData.data.roomNumber || "N/A"}
@@ -229,8 +276,34 @@ export const CreateMaintenanceModal = ({
                         {/* Hidden input to store roomId */}
                         <input type="hidden" {...field} value={roomDetailData.data._id} />
                       </>
+                    ) : availableRooms.length > 0 ? (
+                      // Select dropdown when availableRooms is provided (from Maintenance.tsx)
+                      <Select
+                        value={selectedRoomId}
+                        onValueChange={(value) => {
+                          setSelectedRoomId(value);
+                          field.onChange(value);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn phòng">
+                            {selectedRoomId
+                              ? availableRooms.find((r: AvailableRoom) => r._id === selectedRoomId)?.roomNumber ||
+                                "Chọn phòng"
+                              : "Chọn phòng"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableRooms.map((room: AvailableRoom) => (
+                            <SelectItem key={room._id} value={room._id}>
+                              {room.roomNumber} - {room.buildingName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
-                      <Input placeholder="Chọn phòng" {...field} />
+                      // Fallback input when no rooms available
+                      <Input placeholder="Chọn phòng" {...field} disabled />
                     )}
                   </FormControl>
                   <FormMessage />

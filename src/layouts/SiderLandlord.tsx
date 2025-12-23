@@ -94,31 +94,6 @@ const menuItems = [
       },
     ],
   },
-  // {
-  //   title: "Danh sách người thuê",
-  //   icon: Users,
-  //   staffAccess: true,
-  //   path: "/landlord/tenants",
-  // },
-  {
-    title: "Tài chính",
-    icon: DollarSign,
-    staffAccess: true,
-    items: [
-      {
-        title: "Hóa đơn",
-        icon: FileText,
-        path: "/landlord/invoices",
-        staffAccess: true,
-      },
-      {
-        title: "Thu chi",
-        icon: ClipboardList,
-        path: "/landlord/revenues",
-        staffAccess: true,
-      },
-    ],
-  },
   {
     title: "Dịch vụ & Tiện ích",
     icon: Wrench,
@@ -181,11 +156,31 @@ const menuItems = [
       },
     ],
   },
+
   {
     title: "Quản lý bài viết",
     icon: Newspaper,
     path: "/landlord/posts",
     staffAccess: true,
+  },
+  {
+    title: "Quản lý lịch xem phòng",
+    icon: Calendar,
+    staffAccess: true,
+    items: [
+      {
+        title: "Lịch xem phòng",
+        icon: Calendar,
+        path: "/landlord/appointment-management",
+        staffAccess: true,
+      },
+      {
+        title: "Cài đặt lịch",
+        icon: Calendar,
+        path: "/landlord/availability-management",
+        staffAccess: true,
+      },
+    ],
   },
   {
     title: "Quản lý hợp đồng",
@@ -215,25 +210,24 @@ const menuItems = [
         icon: ScrollText,
         path: "/landlord/contracts",
         staffAccess: true,
-
       },
     ],
   },
   {
-    title: "Quản lý lịch xem phòng",
-    icon: Calendar,
+    title: "Tài chính",
+    icon: DollarSign,
     staffAccess: true,
     items: [
       {
-        title: "Lịch xem phòng",
-        icon: Calendar,
-        path: "/landlord/appointment-management",
+        title: "Hóa đơn",
+        icon: FileText,
+        path: "/landlord/invoices",
         staffAccess: true,
       },
       {
-        title: "Cài đặt lịch",
-        icon: Calendar,
-        path: "/landlord/availability-management",
+        title: "Thu chi",
+        icon: ClipboardList,
+        path: "/landlord/revenues",
         staffAccess: true,
       },
     ],

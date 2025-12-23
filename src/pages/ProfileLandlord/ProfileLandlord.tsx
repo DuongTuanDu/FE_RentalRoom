@@ -22,7 +22,6 @@ import {
 import {
   User,
   Mail,
-  MapPin,
   Shield,
   Save,
   Edit,
@@ -186,24 +185,14 @@ const   ProfileLandlord = () => {
 
     try {
       const result = await uploadBankQr(formData).unwrap();
-      console.log("Response từ backend:", result);
       setQrUrl(result.bankInfo.qrImageUrl || "");
       toast.success(result.message || "Upload QR thành công");
       setIsQrModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lỗi upload QR:", err);
-      toast.error("Upload QR thất bại, vui lòng thử lại");
+      toast.error(err.message.message || "Upload QR thất bại, vui lòng thử lại");
     }
   };
-
-  const fullAddress = [
-    addressDetail,
-    wardsData?.data?.find((w: any) => w.WardCode === ward)?.WardName,
-    districtsData?.data?.find((d: any) => d.DistrictID === Number(district))?.DistrictName,
-    provincesData?.data?.find((p: any) => p.ProvinceID === Number(province))?.ProvinceName,
-  ]
-    .filter(Boolean)
-    .join(", ");
 
   if (!userInfo) {
     return (

@@ -144,11 +144,9 @@ const Profile = () => {
           description: "Thông tin cá nhân của bạn đã được cập nhật.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("error", error);
-      toast.error("Cập nhật thông tin thất bại!", {
-        description: "Vui lòng thử lại sau.",
-      });
+      toast.error(error?.message?.message || "Cập nhật thông tin thất bại!");
     }
   };
 
