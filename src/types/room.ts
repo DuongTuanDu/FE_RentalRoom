@@ -23,6 +23,20 @@ export interface IRoom {
   status: "available" | "rented" | "maintenance";
   description: string;
   images?: string[];
+  currentContractId?: {
+    contract: {
+      no: string;
+    }
+  };
+  currentTenantIds?: [
+    {
+      email: string;
+      user: {
+        fullName: string;
+        phoneNumber: string;
+      }
+    }
+  ];
   isDeleted: boolean;
   deletedAt: string | null;
   createdAt: string;

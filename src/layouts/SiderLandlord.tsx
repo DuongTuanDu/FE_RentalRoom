@@ -156,13 +156,6 @@ const menuItems = [
       },
     ],
   },
-
-  {
-    title: "Quản lý bài viết",
-    icon: Newspaper,
-    path: "/landlord/posts",
-    staffAccess: true,
-  },
   {
     title: "Quản lý lịch xem phòng",
     icon: Calendar,
@@ -250,6 +243,12 @@ const menuItems = [
         staffAccess: false,
       },
     ],
+  },
+    {
+    title: "Quản lý bài viết",
+    icon: Newspaper,
+    path: "/landlord/posts",
+    staffAccess: true,
   },
   {
     title: "Thông báo",
