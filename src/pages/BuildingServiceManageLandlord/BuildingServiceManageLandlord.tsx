@@ -210,6 +210,7 @@ const BuildingServiceManageLandlord = () => {
   const getServiceNameLabel = (name: string) => {
     const labels: Record<string, string> = {
       internet: "Internet",
+      water: "Nước",
       parking: "Bãi đỗ xe",
       cleaning: "Dịch vụ vệ sinh",
       security: "Bảo vệ",

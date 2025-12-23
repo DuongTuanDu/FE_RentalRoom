@@ -56,6 +56,9 @@ export const UpdateUtilityDialog = ({
     }
   }, [utility, open]);
 
+  const isWaterByPerson =
+    utility?.buildingId?.wIndexType === "byPerson";
+
   const handleUpdate = async () => {
     if (!utility) return;
 
@@ -209,74 +212,90 @@ export const UpdateUtilityDialog = ({
             </div>
           </div>
 
-          <div className="border-b pb-4">
-            <Label className="text-sm font-semibold mb-3">Thông tin nước <span className="text-red-500"><Droplets className="w-4 h-4 text-blue-500" /></span></Label>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>
-                  Chỉ số trước <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.wPreviousIndex}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        wPreviousIndex: value,
-                      }));
-                    }
-                  }}
-                  placeholder="Chỉ số trước"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>
-                  Chỉ số hiện tại <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.wCurrentIndex}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        wCurrentIndex: value,
-                      }));
-                    }
-                  }}
-                  placeholder="Chỉ số hiện tại"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>
-                  Đơn giá <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.wUnitPrice}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        wUnitPrice: value,
-                      }));
-                    }
-                  }}
-                  placeholder="Đơn giá"
-                />
+          {!isWaterByPerson && (
+            <div className="border-b pb-4">
+              <Label className="text-sm font-semibold mb-3">
+                Thông tin nước{" "}
+                <span className="text-red-500">
+                  <Droplets className="w-4 h-4 text-blue-500" />
+                </span>
+              </Label>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>
+                    Chỉ số trước <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.wPreviousIndex}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (
+                        value === "" ||
+                        (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)
+                      ) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          wPreviousIndex: value,
+                        }));
+                      }
+                    }}
+                    placeholder="Chỉ số trước"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Chỉ số hiện tại <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.wCurrentIndex}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (
+                        value === "" ||
+                        (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)
+                      ) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          wCurrentIndex: value,
+                        }));
+                      }
+                    }}
+                    placeholder="Chỉ số hiện tại"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Đơn giá <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.wUnitPrice}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (
+                        value === "" ||
+                        (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)
+                      ) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          wUnitPrice: value,
+                        }));
+                      }
+                    }}
+                    placeholder="Đơn giá"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <Label>Ghi chú</Label>

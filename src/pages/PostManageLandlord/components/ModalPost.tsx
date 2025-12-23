@@ -442,7 +442,7 @@ export const ModalPost = ({
                 name="roomIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phòng trống</FormLabel>
+                    <FormLabel>Phòng trống và sắp hết hạn hợp đồng</FormLabel>
                     <FormControl>
                       <RoomMultiSelectCombobox
                         buildingId={form.watch("buildingId")}

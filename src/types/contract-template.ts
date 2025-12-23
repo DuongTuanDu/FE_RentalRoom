@@ -1,6 +1,9 @@
 export interface IContractTemplate {
   _id: string;
-  buildingId: string;
+  buildingId: {
+    _id: string;
+    name: string;
+  };
   ownerId: string;
   name: string;
   basePdfUrl: string;
