@@ -281,7 +281,6 @@ const RoomFurnitureLandlord = () => {
                             <div>
                               <div className="font-medium">{furnitureName}</div>
                               <div className="text-sm text-muted-foreground">
-                                {furnitureInfo?.category || "Chưa phân loại"} •{" "}
                                 {formatPrice(furnitureInfo?.price || 0)}
                               </div>
                             </div>

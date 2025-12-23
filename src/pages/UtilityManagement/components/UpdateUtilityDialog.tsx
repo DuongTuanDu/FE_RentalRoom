@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Droplets, Loader2, Zap } from "lucide-react";
 import { useUpdateUtilityReadingMutation } from "@/services/utility/utility.service";
+import { useRoomActiveContractQuery } from "@/services/room/room.service";
 import { toast } from "sonner";
 import type { IUpdateReadingRequest, IUtilityItem } from "@/types/utility";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,85 +42,136 @@ export const UpdateUtilityDialog = ({
   const [updateUtilityReading, { isLoading: isUpdating }] =
     useUpdateUtilityReadingMutation();
 
+  // Lấy hợp đồng đang active của phòng để check wIndexType (byNumber / byPerson)
+  const { data: roomActiveContract } = useRoomActiveContractQuery(
+    utility?.roomId?._id || "",
+    {
+      skip: !utility?.roomId?._id,
+    }
+  );
+
   // Set form data when utility changes
   useEffect(() => {
     if (utility && open) {
       setFormData({
-        ePreviousIndex: utility.ePreviousIndex.toString(),
-        eCurrentIndex: utility.eCurrentIndex.toString(),
-        eUnitPrice: utility.eUnitPrice.toString(),
-        wPreviousIndex: utility.wPreviousIndex.toString(),
-        wCurrentIndex: utility.wCurrentIndex.toString(),
-        wUnitPrice: utility.wUnitPrice.toString(),
+        ePreviousIndex: utility.ePreviousIndex?.toString(),
+        eCurrentIndex: utility.eCurrentIndex?.toString(),
+        eUnitPrice: utility.eUnitPrice?.toString(),
+        wPreviousIndex: utility.wPreviousIndex?.toString(),
+        wCurrentIndex: utility.wCurrentIndex?.toString(),
+        wUnitPrice: utility.wUnitPrice?.toString(),
         note: "",
       });
     }
   }, [utility, open]);
 
+  // Check xem chỉ số nước tính theo đầu người hay theo số công tơ
   const isWaterByPerson =
-    utility?.buildingId?.wIndexType === "byPerson";
+    roomActiveContract?.contract?.wIndexType === "byPerson";
 
   const handleUpdate = async () => {
     if (!utility) return;
 
+    // Validate các trường điện (bắt buộc)
     if (
       !formData.ePreviousIndex ||
       !formData.eCurrentIndex ||
-      !formData.eUnitPrice ||
-      !formData.wPreviousIndex ||
-      !formData.wCurrentIndex ||
-      !formData.wUnitPrice
+      !formData.eUnitPrice
     ) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+      toast.error("Vui lòng điền đầy đủ thông tin điện");
+      return;
+    }
+
+    // Validate các trường nước chỉ khi không tính theo đầu người
+    if (
+      !isWaterByPerson &&
+      (!formData.wPreviousIndex ||
+        !formData.wCurrentIndex ||
+        !formData.wUnitPrice)
+    ) {
+      toast.error("Vui lòng điền đầy đủ thông tin nước");
       return;
     }
 
     const ePreviousIndexNum = parseFloat(formData.ePreviousIndex);
     const eCurrentIndexNum = parseFloat(formData.eCurrentIndex);
     const eUnitPriceNum = parseFloat(formData.eUnitPrice);
-    const wPreviousIndexNum = parseFloat(formData.wPreviousIndex);
-    const wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
-    const wUnitPriceNum = parseFloat(formData.wUnitPrice);
 
     if (eCurrentIndexNum < ePreviousIndexNum) {
       toast.error("Chỉ số điện hiện tại không được nhỏ hơn chỉ số trước");
       return;
     }
 
-    if (wCurrentIndexNum < wPreviousIndexNum) {
-      toast.error("Chỉ số nước hiện tại không được nhỏ hơn chỉ số trước");
+    if (eUnitPriceNum < 0) {
+      toast.error("Đơn giá điện không được là số âm");
       return;
     }
 
-    if (eUnitPriceNum < 0 || wUnitPriceNum < 0) {
-      toast.error("Đơn giá không được là số âm");
-      return;
+    // Validate nước chỉ khi không tính theo đầu người
+    let wPreviousIndexNum: number | undefined;
+    let wCurrentIndexNum: number | undefined;
+    let wUnitPriceNum: number | undefined;
+
+    if (!isWaterByPerson) {
+      wPreviousIndexNum = parseFloat(formData.wPreviousIndex);
+      wCurrentIndexNum = parseFloat(formData.wCurrentIndex);
+      wUnitPriceNum = parseFloat(formData.wUnitPrice);
+
+      if (wCurrentIndexNum < wPreviousIndexNum) {
+        toast.error("Chỉ số nước hiện tại không được nhỏ hơn chỉ số trước");
+        return;
+      }
+
+      if (wUnitPriceNum < 0) {
+        toast.error("Đơn giá nước không được là số âm");
+        return;
+      }
     }
 
     try {
-      // Chỉ gửi ePreviousIndex và wPreviousIndex nếu có thay đổi
-      const payload: IUpdateReadingRequest = {
-        eCurrentIndex: eCurrentIndexNum,
-        eUnitPrice: eUnitPriceNum,
-        wCurrentIndex: wCurrentIndexNum,
-        wUnitPrice: wUnitPriceNum,
-        note: formData.note,
-      };
+      // Tạo payload: chỉ gửi các trường nước khi không tính theo đầu người
+      if (isWaterByPerson) {
+        // Khi tính theo đầu người, chỉ gửi thông tin điện
+        const payload: Partial<IUpdateReadingRequest> = {
+          eCurrentIndex: eCurrentIndexNum,
+          eUnitPrice: eUnitPriceNum,
+          note: formData.note,
+        };
 
-      // Kiểm tra nếu ePreviousIndex thay đổi
-      if (ePreviousIndexNum !== utility.ePreviousIndex) {
-        payload.ePreviousIndex = ePreviousIndexNum;
+        // Kiểm tra nếu ePreviousIndex thay đổi
+        if (ePreviousIndexNum !== utility.ePreviousIndex) {
+          payload.ePreviousIndex = ePreviousIndexNum;
+        }
+
+        await updateUtilityReading({
+          id: utility._id,
+          data: payload as any,
+        }).unwrap();
+      } else {
+        // Khi tính theo số công tơ, gửi đầy đủ thông tin điện và nước
+        const payload: IUpdateReadingRequest = {
+          eCurrentIndex: eCurrentIndexNum,
+          eUnitPrice: eUnitPriceNum,
+          wCurrentIndex: wCurrentIndexNum!,
+          wUnitPrice: wUnitPriceNum!,
+          note: formData.note,
+        };
+
+        // Kiểm tra nếu ePreviousIndex thay đổi
+        if (ePreviousIndexNum !== utility.ePreviousIndex) {
+          payload.ePreviousIndex = ePreviousIndexNum;
+        }
+
+        // Kiểm tra nếu wPreviousIndex thay đổi
+        if (wPreviousIndexNum !== undefined && wPreviousIndexNum !== utility.wPreviousIndex) {
+          payload.wPreviousIndex = wPreviousIndexNum;
+        }
+
+        await updateUtilityReading({
+          id: utility._id,
+          data: payload,
+        }).unwrap();
       }
-
-      // Kiểm tra nếu wPreviousIndex thay đổi
-      if (wPreviousIndexNum !== utility.wPreviousIndex) {
-        payload.wPreviousIndex = wPreviousIndexNum;
-      }
-
-      await updateUtilityReading({
-        id: utility._id,
-        data: payload,
-      }).unwrap();
 
       onOpenChange(false);
       toast.success("Thành công", {

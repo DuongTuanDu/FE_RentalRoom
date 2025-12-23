@@ -98,8 +98,8 @@ const SendOtp: React.FC = () => {
         toast.success("Xác thực thành công!");
         dispatch(setEmailVerify(email));
       }
-    } catch (error) {
-      console.log("OTP verification error:", error);
+    } catch (error: any) {
+      console.log("OTP verification error:", error.message.message);
       setOtpError("Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!");
     }
   };

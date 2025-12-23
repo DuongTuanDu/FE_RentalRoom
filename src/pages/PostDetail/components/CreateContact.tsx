@@ -137,8 +137,6 @@ const CreateContact = ({
         tenantNote: tenantNote.trim(),
       };
 
-      console.log("Contact Request Payload:", payload);
-
       const res = await createContactRequest(payload).unwrap();
 
       if (!res.success) {

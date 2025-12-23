@@ -246,8 +246,7 @@ const ModalCreateStaffAccount = ({
       console.error("Lỗi tạo nhân viên:", error);
 
       const status = error?.status;
-      const errorData = error?.data;
-      const detailMessage = errorData?.message?.message;
+      const detailMessage = error?.message?.message;
 
       switch (status) {
         case 400:

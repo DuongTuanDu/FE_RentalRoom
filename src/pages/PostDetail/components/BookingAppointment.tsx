@@ -58,7 +58,6 @@ const BookingAppointment = ({
           setContactName(profileData?.user.userInfo?.fullName || "");
           setContactPhone(profileData?.user.userInfo?.phoneNumber || "");
         }
-        console.log("profileData", profileData);
       }, [profileData]);
 
     const formatDateLocal = (date: Date) => {

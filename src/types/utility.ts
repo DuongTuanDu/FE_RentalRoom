@@ -106,7 +106,7 @@ export interface IUtilityReadingRequest {
   periodMonth: number;
   periodYear: number;
   eCurrentIndex: number;
-  wCurrentIndex: number;
+  wCurrentIndex?: number;
 }
 
 export interface ICreateUtilityBulkRequest {

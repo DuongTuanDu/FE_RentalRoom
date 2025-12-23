@@ -1,6 +1,6 @@
 // types/room.ts
 
-import type { IPerson } from "./contract";
+import type { IContractInfo, IContractStatus, IPerson } from "./contract";
 
 export interface IRoom {
   _id: string;
@@ -96,7 +96,7 @@ export interface IMyRoomResponse {
         startDate: string;
         endDate: string;
         status: "active" | "upcoming";
-      }
+      };
     }[];
   };
 }
@@ -178,5 +178,67 @@ export interface IVacantRoomResponse {
       type: "entry_exit" | "pet_policy" | "common_area" | "other";
       effectiveFrom: string;
     };
+  };
+}
+
+export interface IRoomContractResponse {
+  contract: {
+    _id: string;
+    landlordId: string;
+    tenantId: string;
+    buildingId: {
+      _id: string;
+      name: string;
+    };
+    roomId: {
+      _id: string;
+      roomNumber: string;
+    };
+    contactId: string;
+    eIndexType: "byNumber";
+    ePrice: number;
+    wIndexType: "byNumber" | "byPerson";
+    wPrice: number;
+    templateId: string;
+    A: IPerson;
+    B: IPerson;
+    contract: IContractInfo;
+    terms: {
+      name: string;
+      description: string;
+      order: number;
+    }[];
+    regulations: {
+      title: string;
+      description: string;
+      effectiveFrom: string;
+      order: number;
+    }[];
+    status: IContractStatus;
+    roommates: IPerson[];
+    bikes: {
+      bikeNumber: string;
+      color: string;
+      brand: string;
+    }[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    landlordSignatureUrl: string;
+    sentToTenantAt: string;
+    identityVerification?: {
+      cccdFrontUrl: string;
+      cccdBackUrl: string;
+      selfieUrl: string;
+      ocrData: {
+        name: string;
+        dob: string;
+        cccd: string;
+        permanentAddress: string;
+      };
+      faceMatchScore: number;
+    };
+    tenantSignatureUrl: string;
+    moveInConfirmedAt?: string | null;
   };
 }

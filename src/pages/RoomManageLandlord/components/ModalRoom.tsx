@@ -182,13 +182,6 @@ export const ModalRoom = ({
       submitData.removeUrls = imagesToRemove;
       submitData.replaceAllImages = replaceAllImages;
     }
-
-    // Debug: Log the data being submitted
-    console.log('Submitting room data:', {
-      ...submitData,
-      images: selectedFiles.map(f => ({ name: f.name, size: f.size, type: f.type }))
-    });
-
     await onSubmit(submitData);
   };
 
