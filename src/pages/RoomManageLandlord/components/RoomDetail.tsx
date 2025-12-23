@@ -118,7 +118,7 @@ export const RoomDetail = ({ open, onOpenChange, roomId }: RoomDetailProps) => {
           </div>
         </SheetHeader>
 
-        <div className="space-y-6 pb-6">
+        <div className="space-y-6 p-6">
             {/* Images Section */}
             {room.images && room.images.length > 0 ? (
               <Card>
@@ -278,6 +278,61 @@ export const RoomDetail = ({ open, onOpenChange, roomId }: RoomDetailProps) => {
                 </div>
               </CardContent>
             </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Người thuê & Hợp đồng hiện tại
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {room.currentContractId ? (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Hợp đồng hiện tại</h4>
+                      <div className="bg-secondary/50 rounded-lg p-4 space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Số hợp đồng:</span>
+                          <Badge variant="secondary">
+                            {room.currentContractId.contract?.no || "N/A"}
+                          </Badge>
+                        </div>
+                     
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Chưa có hợp đồng nào đang hiệu lực</p>
+                  )}
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Người đang ở</h4>
+                    {room.currentTenantIds && room.currentTenantIds.length > 0 ? (
+                      <div className="space-y-3">
+                        {room.currentTenantIds.map((tenant: any) => (
+                          <div
+                            key={tenant._id}
+                            className="flex items-center justify-between bg-secondary/50 rounded-lg p-4"
+                          >
+                            <div className="space-y-1">
+                              <p className="font-medium">{tenant.userInfo?.fullName || "Chưa có tên"}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {tenant.email}
+                              </p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <p className="text-sm font-medium">
+                                {tenant.userInfo?.phoneNumber || "Chưa có SĐT"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Phòng hiện chưa có người ở</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
             {/* Description */}
             {room.description && (
