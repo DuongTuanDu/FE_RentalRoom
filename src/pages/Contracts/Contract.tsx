@@ -444,7 +444,7 @@ const Contract = () => {
                                       </Tooltip>
                                     </TooltipProvider>
 
-                                    {!contract.identityVerification && (
+                                    {(!contract.identityVerification || contract.identityVerification.status === "pending" || contract.identityVerification.status === "failed") && (
                                       <TooltipProvider>
                                         <Tooltip>
                                           <TooltipTrigger asChild>
