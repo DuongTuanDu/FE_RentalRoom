@@ -257,15 +257,7 @@ export const TenantInvoiceDetailSheet = ({
                   </p>
                   <p className="font-medium">{invoice.roomId.roomNumber}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Số hợp đồng
-                  </p>
-                  <p className="font-medium">
-                    {invoice.contractId?.contract?.no || "N/A"}
-                  </p>
-                </div>
+                
               </div>
             </CardContent>
           </Card>
@@ -312,46 +304,6 @@ export const TenantInvoiceDetailSheet = ({
             </div>
           )}
 
-          {/* Chi tiết hóa đơn */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              <DollarSign className="w-4 h-4" />
-              Chi tiết hóa đơn
-            </div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Kỳ thanh toán</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm text-slate-600 dark:text-slate-400">
-                    Tháng/Năm
-                  </label>
-                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {invoice.periodMonth}/{invoice.periodYear}
-                  </p>
-                </div>
-                <Separator />
-                <div className="flex justify-between items-center">
-                  <label className="text-sm text-slate-600 dark:text-slate-400">
-                    Ngày phát hành
-                  </label>
-                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {formatDate(invoice.issuedAt)}
-                  </p>
-                </div>
-                <Separator />
-                <div className="flex justify-between items-center">
-                  <label className="text-sm text-slate-600 dark:text-slate-400">
-                    Hạn thanh toán
-                  </label>
-                  <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                    {formatDate(invoice.dueDate)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Chi tiết hạng mục */}
           {invoice.items && invoice.items.length > 0 && (
