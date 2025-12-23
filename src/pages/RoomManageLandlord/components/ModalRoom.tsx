@@ -115,8 +115,6 @@ export const ModalRoom = ({
   useEffect(() => {
     if (open) {
       if (room) {
-        console.log("room", room);
-        
         form.reset({
           buildingId: (room.buildingId)._id,
           floorId: (room.floorId)._id,

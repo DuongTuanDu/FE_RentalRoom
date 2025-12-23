@@ -16,7 +16,6 @@ const SettingLandlord = () => {
 
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
   const { data } = useGetProfileQuery();
-  console.log("data", data);
   const role = data?.user.role;
   
 
@@ -37,8 +36,6 @@ const SettingLandlord = () => {
         newPassword: data.newPassword,
       }).unwrap();
 
-      console.log("changePasswordResult", changePasswordResult);
-      
       if (changePasswordResult.message === "Thay đổi mật khẩu thành công!") {
         toast.success("Đổi mật khẩu thành công!");
         reset();

@@ -11,7 +11,7 @@ import {
   ScrollText,
   Wrench,
   Receipt,
-  WashingMachine,
+  // WashingMachine,
 } from "lucide-react";
 // import LanguageSelector from "@/components/language/LanguageSelector";
 import LogoHeader from "../logo/LogoHeader";
@@ -180,26 +180,26 @@ const Header = () => {
                       <span>Yêu cầu hợp đồng</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => navigate(config.myInvoicePath)}
-                      className="cursor-pointer"
-                    >
-                      <Receipt className="mr-2 h-4 w-4" />
-                      <span>Hóa đơn của tôi</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => navigate(config.washerPath)}
-                      className="cursor-pointer"
-                    >
-                      <WashingMachine className="mr-2 h-4 w-4" />
-                      <span>Thiết bị giặt sấy</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
                       onClick={() => navigate(config.maintenancePath)}
                       className="cursor-pointer"
                     >
                       <Wrench className="mr-2 h-4 w-4" />
                       <span>Yêu cầu bảo trì</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate(config.myInvoicePath)}
+                      className="cursor-pointer"
+                    >
+                      <Receipt className="mr-2 h-4 w-4" />
+                      <span>Hóa đơn của tôi</span>
+                    </DropdownMenuItem>
+                    {/* <DropdownMenuItem
+                      onClick={() => navigate(config.washerPath)}
+                      className="cursor-pointer"
+                    >
+                      <WashingMachine className="mr-2 h-4 w-4" />
+                      <span>Thiết bị giặt sấy</span>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                       onClick={() => navigate(config.myRoomPath)}
                       className="cursor-pointer"

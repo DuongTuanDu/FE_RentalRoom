@@ -251,19 +251,14 @@ const BuildingManageLandlord = () => {
   const handleCreateQuickBuilding = async (
     formData: CreateQuickBuildingRequest
   ) => {
-    console.log("formData", formData);
-
     try {
       const res = await createQuickBuilding(formData).unwrap();
-      console.log("res", res);
-
       setIsQuickModalOpen(false);
       toast.success("Thành công", {
         description: res.message,
       });
     } catch (error: any) {
-      const message = toText(error, "Đã xảy ra lỗi không xác định.");
-      toast.error("Thêm tòa nhà thất bại", { description: message });
+      toast.error(error?.message?.message || "Thêm tòa nhà thất bại");
       console.error(error);
     }
   };
@@ -279,8 +274,7 @@ const BuildingManageLandlord = () => {
         } thành công`,
       });
     } catch (error: any) {
-      const message = toText(error, "Đã xảy ra lỗi không xác định.");
-      toast.error("Cập nhật nhà thất bại", { description: message });
+      toast.error(error?.message?.message || "Cập nhật nhà thất bại");
       console.error(error);
     }
   };
