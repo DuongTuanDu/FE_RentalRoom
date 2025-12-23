@@ -19,12 +19,14 @@ interface RoommateListProps {
   roomId: string;
   maxTenants: number;
   currentCount: number;
+  canManage?: boolean;
 }
 
 export const RoommateList = ({
   roomId,
   maxTenants,
   currentCount,
+  canManage = true,
 }: RoommateListProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -142,7 +144,7 @@ export const RoommateList = ({
               <Badge variant="secondary" className="shadow-sm">
                 {currentCount}/{maxTenants}
               </Badge>
-              {finalIsMainTenant && canAddMore && (
+              {finalIsMainTenant && canAddMore && canManage && (
                 <Button
                   size="sm"
                   onClick={() => setIsAddDialogOpen(true)}
@@ -173,7 +175,7 @@ export const RoommateList = ({
             <div className="text-center py-12 text-muted-foreground">
               <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
               <p className="text-sm mb-4">Chưa có người ở cùng nào</p>
-              {finalIsMainTenant && canAddMore && (
+              {finalIsMainTenant && canAddMore && canManage && (
                 <Button
                   variant="outline"
                   onClick={() => setIsAddDialogOpen(true)}

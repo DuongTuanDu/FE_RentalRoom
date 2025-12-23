@@ -100,9 +100,10 @@ const ServiceManageLandlord = () => {
           window.location.reload();
         }, 1500);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error(
-        "Có lỗi xảy ra khi kích hoạt dùng thử, Vui lòng thử lại sau."
+        error?.message?.message ||
+          "Có lỗi xảy ra khi kích hoạt dùng thử, Vui lòng thử lại sau."
       );
     }
   };

@@ -172,24 +172,23 @@ const ModalQuickBuilding = ({
                   <FormField
                     control={form.control as any}
                     name="eIndexType"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel>Hình thức tính điện *</FormLabel>
                         <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
+                          // luôn cố định Theo số (kWh)
+                          value="byNumber"
+                          onValueChange={() => {}}
+                          disabled
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="cursor-not-allowed">
                               <SelectValue placeholder="Chọn hình thức" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="byNumber">
                               Theo số (kWh)
-                            </SelectItem>
-                            <SelectItem value="byPerson">
-                              Theo đầu người
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -238,9 +237,6 @@ const ModalQuickBuilding = ({
                               Theo số (m³)
                             </SelectItem>
                             <SelectItem value="byPerson">Theo người</SelectItem>
-                            <SelectItem value="included">
-                              Đã bao gồm trong giá thuê
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -426,7 +422,7 @@ const ModalQuickBuilding = ({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <FormField
                       control={form.control as any}
                       name="rooms.defaults.maxTenants"
@@ -441,30 +437,6 @@ const ModalQuickBuilding = ({
                               {...field}
                             />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control as any}
-                      name="rooms.defaults.status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Trạng thái mặc định *</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Chọn trạng thái" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="available">Có sẵn</SelectItem>
-                              <SelectItem value="rented">Đã thuê</SelectItem>
-                            </SelectContent>
-                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

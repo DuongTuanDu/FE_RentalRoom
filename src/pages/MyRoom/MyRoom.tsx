@@ -45,6 +45,11 @@ const MyRoom = () => {
 
   // Phòng hiện tại được hiển thị (mặc định là phòng trong response)
   const currentRoomId = selectedRoomId || room?._id;
+  const currentAvailableRoom = availableRooms.find(
+    (availableRoom) => availableRoom._id === currentRoomId
+  );
+  const isUpcomingContract =
+    currentAvailableRoom?.contract?.status === "upcoming";
 
   // Luôn gọi API getPostRoomDetails cho phòng hiện tại (cả phòng mặc định và phòng được chọn)
   const { data: defaultRoomDetailData, isLoading: isLoadingDefaultRoomDetail } =
@@ -100,7 +105,6 @@ const MyRoom = () => {
   }, [selectedRoomId, roomDetailData, defaultRoomDetailData, room]);
 
   const displayRoom = displayData.room;
-  console.log("displayRoom:", displayRoom);
 
   const furnitures = displayData.furnitures;
   const displayBuilding = displayData.building;
@@ -124,11 +128,11 @@ const MyRoom = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="max-w-md border-0 shadow-lg">
+        <Card className="max-w-lg border-0 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-destructive font-medium mb-2">
-                Không thể tải thông tin phòng
+              <p className="text-md font-medium mb-2">
+                {(error as any)?.message.message || "Không thể tải thông tin phòng"}
               </p>
               <p className="text-sm text-muted-foreground">
                 Vui lòng thử lại sau
@@ -411,6 +415,7 @@ const MyRoom = () => {
                 roomId={displayRoom._id}
                 maxTenants={displayRoom.maxTenants}
                 currentCount={displayRoom.currentCount}
+                canManage={!isUpcomingContract}
               />
             )}
 
@@ -461,6 +466,7 @@ const MyRoom = () => {
                             variant="outline"
                             size="sm"
                             className="w-full gap-2"
+                            disabled={isUpcomingContract}
                             onClick={() => {
                               setSelectedFurnitureId(furniture._id);
                               setIsCreateMaintenanceOpen(true);
