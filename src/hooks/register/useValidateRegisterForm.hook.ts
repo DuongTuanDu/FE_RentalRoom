@@ -35,17 +35,26 @@ export default (): {
 
   const password = watch("password");
 
-  const nameRegister = register('fullName', {
-    required: 'Tên là bắt buộc',
-    minLength: {
-      value: 2,
-      message: 'Tên phải có ít nhất 2 ký tự'
+  const nameRegister = register("fullName", {
+    required: "Tên là bắt buộc",
+    validate: (value) => {
+      const trimmed = (value || "").trim();
+
+      if (!trimmed) {
+        return "Tên là bắt buộc";
+      }
+
+      if (trimmed.length < 2) {
+        return "Tên phải có ít nhất 2 ký tự";
+      }
+
+      if (trimmed.length > 100) {
+        return "Tên không được quá 100 ký tự";
+      }
+
+      return true;
     },
-    maxLength: {
-      value: 100,
-      message: 'Tên không được quá 100 ký tự'
-    }
-  })
+  });
 
   const emailRegister = register("email", {
     required: t("errorMessages.required", { field: t("email") }),
@@ -57,23 +66,42 @@ export default (): {
 
   const passwordRegister = register("password", {
     required: t("errorMessages.required", { field: t("password") }),
-    minLength: {
-      value: 8,
-      message: "Mật khẩu phải có ít nhất 8 ký tự",
-    },
-    pattern: {
-      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      message:
-        "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+    validate: (value) => {
+      const noSpaces = (value || "").replace(/\s/g, "");
+
+      if (!noSpaces) {
+        return t("errorMessages.required", { field: t("password") });
+      }
+
+      if (noSpaces.length < 8) {
+        return "Mật khẩu phải có ít nhất 8 ký tự";
+      }
+
+      const strongPattern =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+
+      if (!strongPattern.test(noSpaces)) {
+        return "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt";
+      }
+
+      return true;
     },
   });
 
   const confirmPasswordRegister = register("confirmPassword", {
     required: "Xác nhận mật khẩu là bắt buộc",
     validate: (value) => {
-      if (value !== password) {
+      const noSpaces = (value || "").replace(/\s/g, "");
+      const passwordNoSpaces = (password || "").replace(/\s/g, "");
+
+      if (!noSpaces) {
+        return "Xác nhận mật khẩu là bắt buộc";
+      }
+
+      if (noSpaces !== passwordNoSpaces) {
         return "Mật khẩu xác nhận không khớp";
       }
+
       return true;
     },
   });

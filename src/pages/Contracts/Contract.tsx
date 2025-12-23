@@ -159,7 +159,10 @@ const Contract = () => {
     }
   };
 
-  const getStatusBadge = (status: IContractStatus) => {
+  const getStatusBadge = (status: IContractStatus, contract?: any) => {
+    const hasMoveInConfirmed =
+      contract?.moveInConfirmedAt || contract?.contract?.moveInConfirmedAt;
+
     const statusConfig = {
       draft: { label: "Bản nháp", className: "bg-gray-100 text-gray-800" },
       sent_to_tenant: {
@@ -175,7 +178,9 @@ const Contract = () => {
         className: "bg-green-100 text-green-800",
       },
       completed: {
-        label: "Hoàn thành",
+        label: hasMoveInConfirmed
+          ? "Đang có hiệu lực"
+          : "Hoàn thành (chưa vào ở)",
         className: "bg-green-100 text-green-800",
       },
       voided: {
@@ -344,7 +349,7 @@ const Contract = () => {
                     </TableHeader>
                     <TableBody>
                       {data.items.map((contract) => {
-                        const isActiveContract = 
+                        const isActiveContract =
                           contract.status === "completed";
 
                         const daysUntilExpire = isActiveContract && contract.contract?.endDate
@@ -370,7 +375,7 @@ const Contract = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                {getStatusBadge(contract.status)}
+                                {getStatusBadge(contract.status, contract)}
                                 {isExpiringSoon && (
                                   <TooltipProvider>
                                     <Tooltip>

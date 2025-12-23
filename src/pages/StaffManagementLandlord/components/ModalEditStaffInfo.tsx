@@ -1,6 +1,6 @@
 // ModalEditStaffInfo.tsx
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Calendar, Loader2, Map } from "lucide-react";
+import { User, Phone, Calendar, Loader2, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -57,7 +57,7 @@ const ModalEditStaffInfo = ({ open, onOpenChange, staff, onSuccess }: ModalEditS
     if (!staff) return;
 
     try {
-      const result = await updateStaffInfo({
+      await updateStaffInfo({
         staffId: staff._id,
         body: {
           fullName: formData.fullName,

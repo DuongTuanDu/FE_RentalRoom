@@ -121,11 +121,11 @@ const Maintenance = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="max-w-md border-0 shadow-lg">
+        <Card className="max-w-lg border-0 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-destructive font-medium mb-2">
-                Không thể tải yêu cầu bảo trì
+              <p className="text-md font-medium mb-2">
+                {(error as any)?.message.message || "Không thể tải yêu cầu bảo trì"}
               </p>
               <p className="text-sm text-muted-foreground">
                 Vui lòng thử lại sau

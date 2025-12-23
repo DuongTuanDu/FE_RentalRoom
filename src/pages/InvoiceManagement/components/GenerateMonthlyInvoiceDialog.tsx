@@ -215,11 +215,10 @@ export const GenerateMonthlyInvoiceDialog = ({
               </Label>
               <Select
                 value={periodMonth}
-                onValueChange={setPeriodMonth}
-                required
+                disabled
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn tháng" />
+                  <SelectValue placeholder="Tháng hiện tại" />
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map((month) => (
@@ -236,9 +235,9 @@ export const GenerateMonthlyInvoiceDialog = ({
               <Label>
                 Năm <span className="text-red-500">*</span>
               </Label>
-              <Select value={periodYear} onValueChange={setPeriodYear} required>
+              <Select value={periodYear} disabled>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn năm" />
+                  <SelectValue placeholder="Năm hiện tại" />
                 </SelectTrigger>
                 <SelectContent>
                   {yearOptions.map((year) => (

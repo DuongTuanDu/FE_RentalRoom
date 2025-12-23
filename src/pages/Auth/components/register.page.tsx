@@ -42,12 +42,17 @@ const Register = () => {
 
   const getPasswordStrength = (password: string) => {
     if (!password) return 0;
+
+    // Bỏ toàn bộ khoảng trắng khi đánh giá độ mạnh mật khẩu
+    const noSpaces = password.replace(/\s/g, "");
+    if (!noSpaces) return 0;
+
     let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[@$!%*?&]/.test(password)) strength++;
+    if (noSpaces.length >= 8) strength++;
+    if (/[a-z]/.test(noSpaces)) strength++;
+    if (/[A-Z]/.test(noSpaces)) strength++;
+    if (/\d/.test(noSpaces)) strength++;
+    if (/[@$!%*?&]/.test(noSpaces)) strength++;
     return strength;
   };
 
@@ -87,7 +92,7 @@ const Register = () => {
       console.error("Register error:", err);
 
       const status = err?.status;
-      const detailMessage = err?.data?.message;
+      const detailMessage = err?.message?.message;
 
       switch (status) {
         case 400:

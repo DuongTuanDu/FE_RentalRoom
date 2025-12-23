@@ -40,9 +40,6 @@ import {
   useUpdateProfileMutation,
   useUpdateBankInfoMutation,
   useUploadBankQrMutation,
-  useGetProvincesQuery,
-  useGetDistrictsQuery,
-  useGetWardsQuery,
 } from "@/services/profile/profile.service";
 import { toast } from "sonner";
 
@@ -61,9 +58,6 @@ const   ProfileLandlord = () => {
 
   // Address states
   const [addressDetail, setAddressDetail] = useState("");
-  const [province, setProvince] = useState("");
-  const [district, setDistrict] = useState("");
-  const [ward, setWard] = useState("");
 
   // Bank states
   const [bankName, setBankName] = useState("");
@@ -74,11 +68,6 @@ const   ProfileLandlord = () => {
 
   // Original data để so sánh thay đổi
   const [originalData, setOriginalData] = useState<any>({});
-
-  // Address dropdown data
-  const { data: provincesData } = useGetProvincesQuery();
-  const { data: districtsData } = useGetDistrictsQuery(province, { skip: !province });
-  const { data: wardsData } = useGetWardsQuery(district, { skip: !district });
 
   // Edit name
   const [isEditingName, setIsEditingName] = useState(false);

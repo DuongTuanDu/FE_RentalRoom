@@ -57,11 +57,6 @@ interface ModalBuildingProps {
   editingBuilding?: IBuilding | null;
 }
 
-const indexETypeOptions = [
-  { value: "byNumber", label: "Theo chỉ số" },
-
-  { value: "included", label: "Đã bao gồm trong giá thuê" },
-];
 const indexWTypeOptions = [
   { value: "byNumber", label: "Theo chỉ số" },
   { value: "byPerson", label: "Theo đầu người" },
@@ -96,7 +91,7 @@ const ModalBuilding = ({
         form.reset({
           name: editingBuilding.name,
           address: editingBuilding.address,
-          eIndexType: editingBuilding.eIndexType,
+          eIndexType: "byNumber",
           ePrice: editingBuilding.ePrice,
           wIndexType: editingBuilding.wIndexType,
           wPrice: editingBuilding.wPrice,
@@ -229,29 +224,26 @@ const ModalBuilding = ({
                 <FormField
                   control={form.control}
                   name="eIndexType"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>
                         Loại chỉ số điện <span className="text-red-500">*</span>
                       </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
+                      <FormControl>
+                        <Select
+                          // luôn cố định "Theo chỉ số"
+                          value="byNumber"
+                          onValueChange={() => {}}
+                          disabled
+                        >
+                          <SelectTrigger className="cursor-not-allowed">
                             <SelectValue placeholder="Chọn loại chỉ số" />
                           </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {indexETypeOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          <SelectContent>
+                            <SelectItem value="byNumber">Theo chỉ số</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
