@@ -641,9 +641,27 @@ export const UpdateInvoiceDialog = ({
                                       </Badge>
                                     </TableCell>
                                     <TableCell>
-                                      <span className="text-sm">
+                                      {/* <span className="text-sm">
                                         {item.label || "—"}
-                                      </span>
+                                      </span> */}
+                                      {isReadOnly ? (
+                                        <span className="text-sm text-muted-foreground">
+                                          {item.label || "—"}
+                                        </span>
+                                      ) : (
+                                        <Input
+                                          value={item.label}
+                                          onChange={(e) =>
+                                            handleUpdateItem(
+                                              index,
+                                              "label",
+                                              e.target.value
+                                            )
+                                          }
+                                          placeholder="Mô tả"
+                                          className="h-8"
+                                        />
+                                      )}
                                     </TableCell>
                                     <TableCell>
                                       {isReadOnly ? (
