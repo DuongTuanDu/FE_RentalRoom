@@ -252,7 +252,7 @@ export const HistorySubscription = () => {
                       <TableRow>
                         <TableHead>Tên gói</TableHead>
                         <TableHead>Giá</TableHead>
-                        <TableHead>Thời hạn</TableHead>
+                        <TableHead>Phòng và thời hạn</TableHead>
                         <TableHead>Ngày bắt đầu</TableHead>
                         <TableHead>Ngày kết thúc</TableHead>
                         <TableHead>Còn lại</TableHead>
@@ -310,7 +310,7 @@ export const HistorySubscription = () => {
 
                             <TableCell>
                               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                {sub.packageId.durationDays} ngày
+                                {sub.packageId.roomLimit} phòng và {sub.packageId.durationDays} ngày
                               </Badge>
                             </TableCell>
 
