@@ -297,7 +297,7 @@ export const MaintenanceDetailModal = ({
             <div className="space-y-2">
               <h4 className="font-semibold flex items-center gap-2">
                 <ImageIcon className="h-4 w-4" />
-                Hình ảnh ({maintenance.photos.length})
+                Hình ảnh từ người thuê ({maintenance.photos.length})
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {maintenance.photos.map((photo) => (
@@ -385,14 +385,37 @@ export const MaintenanceDetailModal = ({
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       Chưa có hoạt động nào
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                      Hãy là người đầu tiên bình luận về yêu cầu này
-                    </p>
                   </div>
                 )}
               </div>
             );
           })()}
+
+            {maintenance.images && maintenance.images.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4" />
+                  Hình ảnh từ chủ trọ ({maintenance.images.length})
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {maintenance.images.map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      className="relative aspect-video rounded-lg overflow-hidden border"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Hình ảnh sửa chữa ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Ảnh chụp sau khi hoàn tất sửa chữa (nếu có)
+                </p>
+              </div>
+            )}
 
           {/* Add Comment Section */}
           <div className="space-y-4 border-t border-slate-200 dark:border-slate-700 pt-6">
