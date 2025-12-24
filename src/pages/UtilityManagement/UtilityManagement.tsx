@@ -428,16 +428,16 @@ const UtilityManagement = () => {
                             <TableCell className="text-center bg-yellow-50/30">
                               <div className="space-y-1 py-2">
                                 <div className="text-xs text-slate-600">
-                                  {item.ePreviousIndex?.toLocaleString() || "—"}{" "}
+                                  {item?.ePreviousIndex?.toLocaleString() || "—"}{" "}
                                   -{" "}
-                                  {item.eCurrentIndex?.toLocaleString() || "—"}
+                                  {item?.eCurrentIndex?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-lg font-bold text-slate-900">
-                                  {item.eConsumption?.toLocaleString() || "—"}
+                                  {item?.eConsumption?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-sm font-semibold text-yellow-700">
-                                  {item.eAmount
-                                    ? `${item.eAmount.toLocaleString()} đ`
+                                  {item?.eAmount
+                                    ? `${item?.eAmount?.toLocaleString()} đ`
                                     : "0 đ"}
                                 </div>
                               </div>
@@ -446,26 +446,26 @@ const UtilityManagement = () => {
                             <TableCell className="text-center bg-blue-50/30">
                               <div className="space-y-1 py-2">
                                 <div className="text-xs text-slate-600">
-                                  {item.wPreviousIndex?.toLocaleString() || "—"}{" "}
+                                  {item?.wPreviousIndex?.toLocaleString() || "—"}{" "}
                                   -{" "}
-                                  {item.wCurrentIndex?.toLocaleString() || "—"}
+                                  {item?.wCurrentIndex?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-lg font-bold text-slate-900">
-                                  {item.wConsumption?.toLocaleString() || "—"}
+                                  {item?.wConsumption?.toLocaleString() || "—"}
                                 </div>
                                 <div className="text-sm font-semibold text-blue-700">
-                                  {item.wAmount
-                                    ? `${item.wAmount.toLocaleString()} đ`
+                                  {item?.wAmount
+                                    ? `${item?.wAmount?.toLocaleString()} đ`
                                     : "0 đ"}
                                 </div>
                               </div>
                             </TableCell>
                             {/* Tổng tiền */}
                             <TableCell className="text-slate-900 font-bold text-base">
-                              {totalAmount.toLocaleString()} đ
+                              {totalAmount?.toLocaleString() || "0"} đ
                             </TableCell>
                             {/* Trạng thái */}
-                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                            <TableCell>{getStatusBadge(item?.status || "")}</TableCell>
                             {/* Thao tác */}
                             <TableCell className="sticky right-0 bg-white z-10">
                               <div className="flex items-center justify-center gap-2">
