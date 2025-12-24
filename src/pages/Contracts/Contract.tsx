@@ -68,11 +68,20 @@ const Contract = () => {
   const [isVerifyIdentityDialogOpen, setIsVerifyIdentityDialogOpen] = useState(false);
 
   const formatDate = useFormatDate();
-  const { data, error, isLoading } = useGetTenantContractsQuery({
+  const { data: rawData, error, isLoading } = useGetTenantContractsQuery({
     page: currentPage,
     limit: pageLimit,
     status: statusFilter !== "all" ? (statusFilter as IContractStatus) : undefined,
   });
+
+  // Filter out draft contracts from the data
+  const data = useMemo(() => {
+    if (!rawData) return rawData;
+    return {
+      ...rawData,
+      items: rawData.items.filter((contract) => contract.status !== "draft"),
+    };
+  }, [rawData]);
 
   // Lấy danh sách hợp đồng sắp hết hạn
   const { data: upcomingExpireData } = useGetUpcomingExpireQuery({
@@ -282,11 +291,12 @@ const Contract = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="draft">Bản nháp</SelectItem>
                     <SelectItem value="sent_to_tenant">Đã gửi</SelectItem>
                     <SelectItem value="signed_by_tenant">Đã ký</SelectItem>
                     <SelectItem value="signed_by_landlord">Đã ký bởi chủ trọ</SelectItem>
                     <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="voided">Vô hiệu hóa</SelectItem>
+                    <SelectItem value="terminated">Đã chấm dứt</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
