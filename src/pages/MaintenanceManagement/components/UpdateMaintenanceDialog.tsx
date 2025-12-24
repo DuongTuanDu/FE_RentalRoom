@@ -176,6 +176,7 @@ export const UpdateMaintenanceDialog = ({
                     />
                   </FormControl>
                   <FormMessage />
+                  <small className="text-gray-400">Nếu người thuê phải trả thì nhập mục chi phí sửa chữa</small>
                 </FormItem>
               )}
             />

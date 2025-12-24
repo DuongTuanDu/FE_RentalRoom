@@ -322,6 +322,33 @@ export const MaintenanceDetailSheet = ({
             );
           })()}
 
+          {maintenance.images && maintenance.images.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4" />
+                            Hình ảnh từ chủ trọ ({maintenance.images.length})
+                          </h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {maintenance.images.map((imageUrl, index) => (
+                              <div
+                                key={index}
+                                className="relative aspect-video rounded-lg overflow-hidden border"
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt={`Hình ảnh sửa chữa ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Ảnh chụp sau khi hoàn tất sửa chữa 
+                          </p>
+                        </div>
+                      )}
+          
+
           {/* Add Comment Section */}
           <div className="space-y-4 border-t border-slate-200 dark:border-slate-700 pt-6">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">

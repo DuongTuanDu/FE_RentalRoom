@@ -24,7 +24,7 @@ export interface IMaintenanceDetailItem {
   affectedQuantity: number;
   timeline: ITimeline[];
   repairCost: number;
-  image: string[]; // ảnh landlord gửi
+  images: string[]; // ảnh landlord gửi
   assigneeAccountId: {
     _id: string;
     email: string;
@@ -188,6 +188,7 @@ export interface IMaintenanceTenantItem {
     note: string;
     _id: string;
   }[];
+  images: string[]; // ảnh landlord gửi
   priority: "low" | "medium" | "high" | "urgent";
   status: "open" | "in_progress" | "resolved" | "rejected";
   affectedQuantity: number;

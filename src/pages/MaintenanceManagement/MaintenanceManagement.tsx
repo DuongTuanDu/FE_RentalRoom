@@ -291,17 +291,6 @@ const MaintenanceManagement = () => {
                           <TableCell>
                             <Badge
                               className={
-                                maintenance.mustPay
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-green-100 text-green-800"
-                              }
-                            >
-                              {maintenance.mustPay ? "Có" : "Không"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={
                                 STATUS_COLORS[
                                   maintenance.status as keyof typeof STATUS_COLORS
                                 ] || "bg-gray-100 text-gray-800"
