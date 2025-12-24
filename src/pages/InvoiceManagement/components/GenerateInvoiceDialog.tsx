@@ -706,7 +706,7 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số mới:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eCurrentIndex.toLocaleString(
+                                  {reading?.eCurrentIndex?.toLocaleString(
                                     "vi-VN"
                                   )}
                                 </span>
@@ -762,7 +762,7 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số mới:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wCurrentIndex.toLocaleString(
+                                  {reading?.wCurrentIndex?.toLocaleString(
                                     "vi-VN"
                                   )}
                                 </span>
