@@ -163,7 +163,7 @@ export const DetailUtilitySheet = ({
                 <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
                 <p className="font-medium mt-1">
                   {utility.ePreviousIndex != null
-                    ? utility.ePreviousIndex.toLocaleString()
+                    ? utility.ePreviousIndex?.toLocaleString()
                     : "—"}
                 </p>
               </div>
@@ -171,7 +171,7 @@ export const DetailUtilitySheet = ({
                 <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
                 <p className="font-medium mt-1 text-lg">
                   {utility.eCurrentIndex != null
-                    ? utility.eCurrentIndex.toLocaleString()
+                    ? utility.eCurrentIndex?.toLocaleString()
                     : "—"}
                 </p>
               </div>
@@ -179,7 +179,7 @@ export const DetailUtilitySheet = ({
                 <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
                 <p className="font-medium mt-1">
                   {utility.eConsumption != null
-                    ? utility.eConsumption.toLocaleString()
+                    ? utility.eConsumption?.toLocaleString()
                     : "—"}
                 </p>
               </div>
@@ -187,7 +187,7 @@ export const DetailUtilitySheet = ({
                 <Label className="text-slate-400 text-sm">Đơn giá</Label>
                 <p className="font-medium mt-1">
                   {utility.eUnitPrice != null
-                    ? `${utility.eUnitPrice.toLocaleString()} đ`
+                    ? `${utility.eUnitPrice?.toLocaleString()} đ`
                     : "—"}
                 </p>
               </div>
@@ -195,7 +195,7 @@ export const DetailUtilitySheet = ({
                 <Label className="text-slate-400 text-sm">Thành tiền</Label>
                 <p className="font-bold text-lg mt-1 text-blue-600">
                   {utility.eAmount != null
-                    ? `${utility.eAmount.toLocaleString()} đ`
+                    ? `${utility.eAmount?.toLocaleString()} đ`
                     : "—"}
                 </p>
               </div>
@@ -214,7 +214,7 @@ export const DetailUtilitySheet = ({
                   <Label className="text-slate-400 text-sm">Chỉ số trước</Label>
                   <p className="font-medium mt-1">
                     {utility.wPreviousIndex != null
-                      ? utility.wPreviousIndex.toLocaleString()
+                      ? utility?.wPreviousIndex?.toLocaleString()
                       : "—"}
                   </p>
                 </div>
@@ -222,7 +222,7 @@ export const DetailUtilitySheet = ({
                   <Label className="text-slate-400 text-sm">Chỉ số hiện tại</Label>
                   <p className="font-medium mt-1 text-lg">
                     {utility.wCurrentIndex != null
-                      ? utility.wCurrentIndex.toLocaleString()
+                      ? utility?.wCurrentIndex?.toLocaleString()
                       : "—"}
                   </p>
                 </div>
@@ -230,7 +230,7 @@ export const DetailUtilitySheet = ({
                   <Label className="text-slate-400 text-sm">Tiêu thụ</Label>
                   <p className="font-medium mt-1">
                     {utility.wConsumption != null
-                      ? utility.wConsumption.toLocaleString()
+                      ? utility.wConsumption?.toLocaleString()
                       : "—"}
                   </p>
                 </div>
@@ -238,7 +238,7 @@ export const DetailUtilitySheet = ({
                   <Label className="text-slate-400 text-sm">Đơn giá</Label>
                   <p className="font-medium mt-1">
                     {utility.wUnitPrice != null
-                      ? `${utility.wUnitPrice.toLocaleString()} đ`
+                      ? `${utility?.wUnitPrice?.toLocaleString()} đ`
                       : "—"}
                   </p>
                 </div>
@@ -246,7 +246,7 @@ export const DetailUtilitySheet = ({
                   <Label className="text-slate-400 text-sm">Thành tiền</Label>
                   <p className="font-bold text-lg mt-1 text-blue-600">
                     {utility.wAmount != null
-                      ? `${utility.wAmount.toLocaleString()} đ`
+                      ? `${utility?.wAmount?.toLocaleString()} đ`
                       : "—"}
                   </p>
                 </div>
@@ -262,7 +262,7 @@ export const DetailUtilitySheet = ({
                 {(
                   (utility.eAmount || 0) + 
                   (isWaterByPerson ? 0 : (utility.wAmount || 0))
-                ).toLocaleString()} đ
+                )?.toLocaleString()} đ
               </p>
             </div>
           </div>

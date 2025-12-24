@@ -78,7 +78,7 @@ export const PaymentInfoDialog = ({
                 Số tiền:
               </span>
               <span className="font-bold text-lg text-orange-600">
-                {paymentInfo.amount.toLocaleString("vi-VN")} VNĐ
+                {paymentInfo.amount?.toLocaleString("vi-VN")} VNĐ
               </span>
             </div>
           </div>

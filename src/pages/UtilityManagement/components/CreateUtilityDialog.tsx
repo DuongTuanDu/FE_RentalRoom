@@ -175,7 +175,7 @@ export const CreateUtilityDialog = ({
     if (currentValue < previousValue) {
       return `Chỉ số ${
         type === "electricity" ? "điện" : "nước"
-      } hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousValue.toLocaleString()})`;
+      } hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousValue?.toLocaleString()})`;
     }
 
     return "";
@@ -193,7 +193,7 @@ export const CreateUtilityDialog = ({
         ) {
           setErrors((prev) => ({
             ...prev,
-            eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex.toLocaleString()})`,
+            eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex?.toLocaleString()})`,
           }));
         } else {
           setErrors((prev) => ({ ...prev, eCurrentIndex: "" }));
@@ -207,7 +207,7 @@ export const CreateUtilityDialog = ({
         ) {
           setErrors((prev) => ({
             ...prev,
-            wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
+            wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex?.toLocaleString()})`,
           }));
         } else {
           setErrors((prev) => ({ ...prev, wCurrentIndex: "" }));
@@ -256,7 +256,7 @@ export const CreateUtilityDialog = ({
       if (eCurrentIndexNum < previousReading.eCurrentIndex) {
         setErrors((prev) => ({
           ...prev,
-          eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex.toLocaleString()})`,
+          eCurrentIndex: `Chỉ số điện hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.eCurrentIndex?.toLocaleString()})`,
         }));
         toast.error("Vui lòng kiểm tra lại chỉ số điện");
         return;
@@ -265,7 +265,7 @@ export const CreateUtilityDialog = ({
       if (!isWaterByPerson && wCurrentIndexNum !== undefined && wCurrentIndexNum < previousReading.wCurrentIndex) {
         setErrors((prev) => ({
           ...prev,
-          wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex.toLocaleString()})`,
+          wCurrentIndex: `Chỉ số nước hiện tại không được nhỏ hơn chỉ số kỳ trước (${previousReading.wCurrentIndex?.toLocaleString()})`,
         }));
         toast.error("Vui lòng kiểm tra lại chỉ số nước");
         return;

@@ -272,8 +272,8 @@ const PostDetail = () => {
                     <p className="font-medium">
                       {building.eIndexType === "included"
                         ? "Đã bao gồm"
-                        : `${building.ePrice?.toLocaleString()} đ / ${
-                            building.eIndexType === "byNumber" ? "kWh" : "người"
+                        : `${building?.ePrice?.toLocaleString()} đ / ${
+                            building?.eIndexType === "byNumber" ? "kWh" : "người"
                           }`}
                     </p>
                   </div>
@@ -282,8 +282,8 @@ const PostDetail = () => {
                     <p className="font-medium">
                       {building.wIndexType === "included"
                         ? "Đã bao gồm"
-                        : `${building.wPrice?.toLocaleString()} đ / ${
-                            building.wIndexType === "byNumber" ? "m³" : "người"
+                        : `${building?.wPrice?.toLocaleString()} đ / ${
+                            building?.wIndexType === "byNumber" ? "m³" : "người"
                           }`}
                     </p>
                   </div>
@@ -338,7 +338,7 @@ const PostDetail = () => {
                   <div className="text-sm text-muted-foreground mt-1">
                     {s.chargeType === "included"
                       ? "Đã bao gồm"
-                      : `${s.fee.toLocaleString()} ${s.currency}`}
+                      : `${s?.fee?.toLocaleString()} ${s.currency}`}
                   </div>
                   {s.description && (
                     <div className="text-sm mt-2">{s.description}</div>

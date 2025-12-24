@@ -571,8 +571,8 @@ export const GenerateInvoiceDialog = ({
                                 </span>
                               </TableCell>
                               <TableCell className="text-right font-semibold text-blue-700 dark:text-blue-300">
-                                {service.fee.toLocaleString("vi-VN")}{" "}
-                                {service.currency}
+                                {service?.fee?.toLocaleString("vi-VN")}{" "}
+                                {service?.currency}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -637,7 +637,7 @@ export const GenerateInvoiceDialog = ({
                               Giá phòng/tháng:
                             </span>
                             <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
-                              {selectedRoomContract.contract.price.toLocaleString(
+                              {selectedRoomContract?.contract?.price?.toLocaleString(
                                 "vi-VN"
                               )}{" "}
                               đ
@@ -696,7 +696,7 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số cũ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.ePreviousIndex.toLocaleString(
+                                  {reading?.ePreviousIndex?.toLocaleString(
                                     "vi-VN"
                                   )}
                                 </span>
@@ -716,7 +716,7 @@ export const GenerateInvoiceDialog = ({
                                   Tiêu thụ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eConsumption.toLocaleString("vi-VN")}{" "}
+                                  {reading?.eConsumption?.toLocaleString("vi-VN")}{" "}
                                   kWh
                                 </span>
                               </div>
@@ -725,7 +725,7 @@ export const GenerateInvoiceDialog = ({
                                   Đơn giá:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.eUnitPrice.toLocaleString("vi-VN")}{" "}
+                                  {reading?.eUnitPrice?.toLocaleString("vi-VN")}{" "}
                                   đ/kWh
                                 </span>
                               </div>
@@ -734,7 +734,7 @@ export const GenerateInvoiceDialog = ({
                                   Thành tiền:
                                 </span>
                                 <span className="font-semibold text-green-700 dark:text-green-300">
-                                  {reading.eAmount.toLocaleString("vi-VN")} đ
+                                  {reading?.eAmount?.toLocaleString("vi-VN")} đ
                                 </span>
                               </div>
                             </div>
@@ -752,7 +752,7 @@ export const GenerateInvoiceDialog = ({
                                   Chỉ số cũ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wPreviousIndex.toLocaleString(
+                                  {reading?.wPreviousIndex?.toLocaleString(
                                     "vi-VN"
                                   )}
                                 </span>
@@ -772,7 +772,7 @@ export const GenerateInvoiceDialog = ({
                                   Tiêu thụ:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wConsumption.toLocaleString("vi-VN")}{" "}
+                                  {reading?.wConsumption?.toLocaleString("vi-VN")}{" "}
                                   m³
                                 </span>
                               </div>
@@ -781,7 +781,7 @@ export const GenerateInvoiceDialog = ({
                                   Đơn giá:
                                 </span>
                                 <span className="font-medium">
-                                  {reading.wUnitPrice.toLocaleString("vi-VN")}{" "}
+                                  {reading?.wUnitPrice?.toLocaleString("vi-VN")}{" "}
                                   đ/m³
                                 </span>
                               </div>
@@ -790,7 +790,7 @@ export const GenerateInvoiceDialog = ({
                                   Thành tiền:
                                 </span>
                                 <span className="font-semibold text-green-700 dark:text-green-300">
-                                  {reading.wAmount.toLocaleString("vi-VN")} đ
+                                  {reading?.wAmount?.toLocaleString("vi-VN")} đ
                                 </span>
                               </div>
                             </div>
@@ -803,8 +803,8 @@ export const GenerateInvoiceDialog = ({
                             </span>
                             <span className="text-sm font-bold text-green-700 dark:text-green-300">
                               {(
-                                reading.eAmount + reading.wAmount
-                              ).toLocaleString("vi-VN")}{" "}
+                                reading?.eAmount + reading?.wAmount
+                              )?.toLocaleString("vi-VN")}{" "}
                               đ
                             </span>
                           </div>
