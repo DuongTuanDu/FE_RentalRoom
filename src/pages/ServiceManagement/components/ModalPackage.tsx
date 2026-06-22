@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Package, Loader2 } from "lucide-react";
-import type { Package as PackageType } from "@/types/package-services";
+import type { IPackage } from "@/types/package-services";
 import type { CreatePackageRequest } from "@/services/package-services/package-services.service";
 
 const packageSchema = z.object({
@@ -50,7 +50,7 @@ type PackageFormValues = z.infer<typeof packageSchema>;
 interface ModalPackageProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  package?: PackageType | null;
+  package?: IPackage | null;
   onSubmit: (data: CreatePackageRequest) => Promise<void>;
   isLoading?: boolean;
 }

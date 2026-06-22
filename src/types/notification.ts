@@ -8,6 +8,7 @@ export interface INotification {
       _id: string;
       fullName: string;
       phoneNumber: string;
+      avatar?: string;
     };
   };
   createByRole: "landlord" | "staff" | "resident" | "system";

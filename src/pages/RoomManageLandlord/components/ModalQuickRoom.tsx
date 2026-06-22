@@ -43,44 +43,27 @@ const quickRoomSchema = z.object({
     .min(1, "Vui lòng chọn tầng"),
 
   perFloor: z
-    .number({
-      error: "Vui lòng nhập số phòng",
-      invalid_type_error: "Vui lòng nhập số phòng",
-    })
+    .number({ error: "Vui lòng nhập số phòng" })
     .min(1, "Số phòng mỗi tầng phải lớn hơn 0"),
 
   seqStart: z
-    .number({
-      error: "Vui lòng nhập số bắt đầu",
-      invalid_type_error: "Vui lòng nhập số bắt đầu",
-    })
+    .number({ error: "Vui lòng nhập số bắt đầu" })
     .min(1, "Số bắt đầu phải lớn hơn 0"),
 
   defaults: z.object({
     price: z
-      .number({
-        error: "Vui lòng nhập giá thuê",
-        invalid_type_error: "Vui lòng nhập giá thuê",
-      })
+      .number({ error: "Vui lòng nhập giá thuê" })
       .min(0, "Giá thuê không được nhỏ hơn 0"),
 
     area: z
-      .number({
-        error: "Vui lòng nhập diện tích",
-        invalid_type: "Vui lòng nhập diện tích",
-      })
+      .number({ error: "Vui lòng nhập diện tích" })
       .min(0, "Diện tích không được nhỏ hơn 0"),
 
     maxTenants: z
-      .number({
-        error: "Vui lòng nhập sức chứa",
-        invalid_type_error: "Vui lòng nhập sức chứa",
-      })
+      .number({ error: "Vui lòng nhập sức chứa" })
       .min(1, "Sức chứa phải lớn hơn 0"),
 
-    status: z.enum(["available", "rented", "maintenance"], {
-      required_error: "Vui lòng chọn trạng thái",
-    }),
+    status: z.enum(["available", "rented", "maintenance"]),
 
     description: z.string().optional(),
   }),
