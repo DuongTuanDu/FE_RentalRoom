@@ -55,10 +55,13 @@ import CreateContact from "./components/CreateContact";
 import BookingAppointment from "./components/BookingAppointment";
 
 import { BuildingDetailModal } from "../DetailBuilding/components/DetailBuildingComponent";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 
 const PostDetailResident = () => {
   const navigate = useNavigate();
-
+  const user = useSelector((state: RootState) => state.auth);
+  const userId = user?.userInfo?._id;
   const { slug } = useParams();
 
   const id = useMemo(() => slug?.split("-").pop() || "", [slug]);
@@ -252,16 +255,6 @@ const PostDetailResident = () => {
               Đăng ngày {formatDate(post.createdAt)}
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1">
-                <Share2 className="h-4 w-4 mr-2" /> Chia sẻ
-              </Button>
-
-              <Button variant="outline" size="sm" className="flex-1">
-                <Heart className="h-4 w-4 mr-2" /> Lưu tin
-              </Button>
-            </div>
-
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
@@ -325,7 +318,7 @@ const PostDetailResident = () => {
               <CardTitle>Thông tin tòa nhà</CardTitle>
             </div>
 
-            {buildingId && (
+            {buildingId && userId && (
               <Button
                 variant="ghost"
                 size="sm"

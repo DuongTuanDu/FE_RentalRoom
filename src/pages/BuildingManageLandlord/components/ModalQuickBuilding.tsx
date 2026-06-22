@@ -304,7 +304,7 @@ const ModalQuickBuilding = ({
                           />
                         </FormControl>
                         <FormDescription>
-                          Chữ số đầu tiên trong số phòng. Ví dụ: phòng 121 thì nhập 1, phòng 201 thì nhập 2
+                          Chữ số đầu tiên tầng
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

@@ -445,7 +445,7 @@ const PaymentSuccess = () => {
           {!paymentStatus.success && (
             <Button
               variant="outline"
-              onClick={() => navigate("/packages")}
+              onClick={() => navigate("/landlord/package-services")}
               className="gap-2"
             >
               <Package className="h-4 w-4" />
@@ -460,12 +460,6 @@ const PaymentSuccess = () => {
             <Link to="/landlord/history-subscription">
               <Package className="h-4 w-4" />
               Xem lịch sử gói dịch vụ
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="gap-2">
-            <Link to="/">
-              <Home className="h-4 w-4" />
-              Về trang chủ
             </Link>
           </Button>
         </div>
