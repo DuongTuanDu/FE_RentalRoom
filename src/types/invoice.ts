@@ -557,8 +557,12 @@ export interface CreateInvoiceReplaceRequest {
     amount: number;
     utilityReadingId?: string;
     meta?: {
-      previousIndex: number;
-      currentIndex: number;
+      previousIndex?: number;
+      currentIndex?: number;
+      paymentCycleMonths?: number;
+      billedMonths?: number;
+      from?: { month: number; year: number };
+      to?: { month: number; year: number };
     };
   }[];
   note?: string;

@@ -86,7 +86,10 @@ export const ModalRegulation = ({
     if (open) {
       if (regulation) {
         form.reset({
-          buildingId: regulation.buildingId,
+          buildingId:
+            typeof regulation.buildingId === "string"
+              ? regulation.buildingId
+              : regulation.buildingId._id,
           title: regulation.title,
           effectiveFrom: regulation.effectiveFrom.split("T")[0],
         });

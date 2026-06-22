@@ -16,6 +16,13 @@ import { BuildingSelectCombobox } from "@/pages/FloorManageLandlord/components/B
 import { TermMultiSelectCombobox } from "./TermMultiSelectCombobox";
 import { RegulationMultiSelectCombobox } from "./RegulationMultiSelectCombobox";
 
+const resolveBuildingId = (
+  buildingId?: string | { _id: string }
+): string => {
+  if (!buildingId) return "";
+  return typeof buildingId === "string" ? buildingId : buildingId._id;
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +48,7 @@ export const CreateEditContractTemplateModal = ({
 }: Props) => {
   const isEdit = Boolean(template);
   const [buildingId, setBuildingId] = useState<string>(
-    defaultBuildingId || template?.buildingId || ""
+    defaultBuildingId || resolveBuildingId(template?.buildingId)
   );
   const [name, setName] = useState<string>(template?.name || "");
   const [status, setStatus] = useState<"active" | "inactive">(
@@ -56,7 +63,7 @@ export const CreateEditContractTemplateModal = ({
 
   useEffect(() => {
     if (!open) return;
-    setBuildingId(defaultBuildingId || template?.buildingId || "");
+    setBuildingId(defaultBuildingId || resolveBuildingId(template?.buildingId));
     setName(template?.name || "");
     setStatus(template?.status || "active");
     setTermIds(template?.defaultTermIds || []);

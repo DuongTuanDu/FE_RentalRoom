@@ -9,13 +9,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Package, Loader2, AlertTriangle } from "lucide-react";
-import type { Package as PackageType } from "@/types/package-services";
+import type { IPackage } from "@/types/package-services";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 
 interface DeletePackagePopoverProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  package: PackageType | null;
+  package: IPackage | null;
   onConfirm: () => void;
   isLoading?: boolean;
 }
