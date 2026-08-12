@@ -25,9 +25,22 @@ import {
 import { useNavigate } from "react-router-dom";
 import SplitText from "@/components/animation/SplitText";
 import TextType from "@/components/animation/TextType";
+import { useSelector } from "react-redux";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { role } = useSelector((state: any) => state.auth);
+
+  useEffect(() => {
+    if (role === "landlord" || role === "staff") {
+      navigate("/landlord/dashboard", { replace: true });
+      return;
+    }
+    if (role === "admin") {
+      navigate("/admin/dashboard", { replace: true });
+      return;
+    }
+  }, [role, navigate]);
 
   useEffect(() => {
     AOS.init({
@@ -109,11 +122,11 @@ const HomePage = () => {
             >
               {/* Gradient Background Overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               {/* Decorative Elements */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-300/10 rounded-full blur-2xl -ml-16 -mb-16"></div>
-              
+
               {/* Sparkle Icon */}
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <Sparkles className="w-5 h-5 text-blue-500 animate-pulse" />
@@ -191,11 +204,11 @@ const HomePage = () => {
             >
               {/* Gradient Background Overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               {/* Decorative Elements */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-green-400/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-300/10 rounded-full blur-2xl -ml-16 -mb-16"></div>
-              
+
               {/* Sparkle Icon */}
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <Sparkles className="w-5 h-5 text-green-500 animate-pulse" />
