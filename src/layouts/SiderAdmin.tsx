@@ -1,16 +1,14 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
-  DollarSign,
-  FileText,
   Settings,
   Wrench,
   UserCheck,
-  Bell,
-  BarChart3,
   Package,
+  ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/services/auth/auth.slice";
@@ -42,10 +40,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronRight, LogOut } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import LogoHeader from "./logo/LogoHeader";
 
-// Menu items configuration cho quản lý phòng trọ
 const menuItems = [
   {
     title: "Tổng quan",
@@ -81,13 +82,14 @@ const AppSidebar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const authState = useSelector((state: any) => state.auth);
+  const [openPopovers, setOpenPopovers] = useState<Record<string, boolean>>({});
 
   const adminInfo = {
     name:
       authState.user?.name || authState.accessToken ? "Quản trị viên" : "Khách",
     email: authState.user?.email || "admin@phongtro.com",
     avatar: authState.user?.avatar || "/default-avatar.png",
-    role: "Chủ trọ",
+    role: "Admin",
   };
 
   const handleLogout = () => {
@@ -99,14 +101,19 @@ const AppSidebar = () => {
     navigate(path);
   };
 
-  const isActivePath = (path: string) => location.pathname === path;
+  const isActivePath = (path: string) => {
+    if (!location.pathname) return false;
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
+  };
 
   return (
-    <Sidebar>
-      <SidebarHeader>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-16 justify-center border-b group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center px-1 pb-4">
+            <div className="flex h-full items-center px-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <LogoHeader isScrolled={true} />
             </div>
           </SidebarMenuItem>
@@ -114,27 +121,113 @@ const AppSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center">
               {menuItems.map((item) => {
                 const Icon = item.icon;
 
                 if (item.items) {
+                  const itemKey = item.title;
+                  const isPopoverOpen = openPopovers[itemKey] || false;
+
+                  const SubMenuContent = () => (
+                    <div className="flex flex-col gap-1 min-w-[200px]">
+                      {item.items.map((subItem) => (
+                        <button
+                          key={subItem.title}
+                          onClick={() => {
+                            handleNavigation(subItem.path);
+                            setOpenPopovers((prev) => ({
+                              ...prev,
+                              [itemKey]: false,
+                            }));
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md text-sm cursor-pointer transition-colors hover:bg-sidebar-accent ${
+                            isActivePath(subItem.path)
+                              ? "font-semibold bg-sidebar-accent text-sidebar-accent-foreground"
+                              : ""
+                          }`}
+                        >
+                          {subItem.title}
+                        </button>
+                      ))}
+                    </div>
+                  );
+
                   return (
                     <Collapsible
                       key={item.title}
                       defaultOpen
                       className="group/collapsible"
                     >
-                      <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton className="cursor-pointer">
-                            <Icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                            <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
+                      <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                        <Popover
+                          open={isPopoverOpen}
+                          onOpenChange={(open) =>
+                            setOpenPopovers((prev) => ({
+                              ...prev,
+                              [itemKey]: open,
+                            }))
+                          }
+                        >
+                          <PopoverTrigger asChild>
+                            <div
+                              className="hidden group-data-[collapsible=icon]:block"
+                              onMouseEnter={() =>
+                                setOpenPopovers((prev) => ({
+                                  ...prev,
+                                  [itemKey]: true,
+                                }))
+                              }
+                              onMouseLeave={() =>
+                                setOpenPopovers((prev) => ({
+                                  ...prev,
+                                  [itemKey]: false,
+                                }))
+                              }
+                            >
+                              <SidebarMenuButton className="cursor-pointer group-data-[collapsible=icon]:w-8! group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:mx-auto!">
+                                <Icon className="h-4 w-4" />
+                              </SidebarMenuButton>
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            side="right"
+                            align="start"
+                            className="w-auto p-2"
+                            onOpenAutoFocus={(e) => e.preventDefault()}
+                            onMouseEnter={() =>
+                              setOpenPopovers((prev) => ({
+                                ...prev,
+                                [itemKey]: true,
+                              }))
+                            }
+                            onMouseLeave={() =>
+                              setOpenPopovers((prev) => ({
+                                ...prev,
+                                [itemKey]: false,
+                              }))
+                            }
+                          >
+                            <div className="flex flex-col gap-1">
+                              <div className="px-3 py-2 text-sm font-semibold border-b mb-1">
+                                {item.title}
+                              </div>
+                              <SubMenuContent />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        <div className="group-data-[collapsible=icon]:hidden">
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton className="cursor-pointer">
+                              <Icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                              <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                        </div>
                         <CollapsibleContent>
                           <SidebarMenuSub>
                             {item.items.map((subItem) => {
@@ -162,14 +255,20 @@ const AppSidebar = () => {
                 }
 
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem
+                    key={item.title}
+                    className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
+                  >
                     <SidebarMenuButton
-                      onClick={() => handleNavigation(item.path)}
-                      isActive={isActivePath(item.path)}
-                      className="cursor-pointer"
+                      onClick={() => handleNavigation(item.path!)}
+                      isActive={isActivePath(item.path!)}
+                      tooltip={item.title}
+                      className="cursor-pointer group-data-[collapsible=icon]:w-8! group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:mx-auto!"
                     >
                       <Icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">
+                        {item.title}
+                      </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -180,11 +279,15 @@ const AppSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
+        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg">
+                <SidebarMenuButton
+                  size="lg"
+                  tooltip={adminInfo.name}
+                  className="group-data-[collapsible=icon]:w-8! group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:mx-auto!"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={adminInfo.avatar} alt={adminInfo.name} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
@@ -195,7 +298,7 @@ const AppSidebar = () => {
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col gap-0.5 leading-none text-left">
+                  <div className="flex flex-col gap-0.5 leading-none text-left group-data-[collapsible=icon]:hidden">
                     <span className="font-semibold text-sm">
                       {adminInfo.name}
                     </span>
